@@ -5,6 +5,7 @@ import EventCard from '../components/EventCard'
 import EventModal from '../components/EventModal'
 import { SEED_LOCATIONS } from '../utils/seedLocations'
 import { SEED_EVENTS } from '../utils/seedEvents'
+import { useLocations } from '../utils/useLocations'
 
 // 3.7 Home layout. Slots downstream:
 //   - SearchBar slot waits on Dev 2's 2.8
@@ -14,7 +15,6 @@ import { SEED_EVENTS } from '../utils/seedEvents'
 export default function Home() {
   const [events, setEvents] = useState(SEED_EVENTS)
   const [modal, setModal] = useState({ open: false, mode: 'view', event: null })
-
   const openView = (event) => setModal({ open: true, mode: 'view', event })
   const openCreate = () => setModal({ open: true, mode: 'create', event: null })
   const closeModal = () => setModal((m) => ({ ...m, open: false }))
@@ -53,18 +53,22 @@ export default function Home() {
     closeModal()
   }
 
+  const { locations, loading, error } = useLocations()
+  const status = loading
+    : error
+      ? 'Failed to load locations (check VITE_API_URL + backend CORS)'
+      : `${locations.length} locations`
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
-      {/* slot for 2.8 SearchBar — keyword input + type filter */}
       <div className="border-b border-black/10 bg-white/70 px-6 py-3 backdrop-blur">
         <div className="rounded-card bg-cm-cream/60 px-4 py-2 text-sm text-cm-warm-gray">
-          Search bar slot — 2.8 SearchBar drops in here
+          Search bar slot — 2.8 SearchBar drops in here · {status}
         </div>
       </div>
 
       {/* map: ~60% of viewport height */}
       <div className="min-h-0 basis-[60%]">
-        <MapView locations={SEED_LOCATIONS} />
+        <MapView locations={locations} />
       </div>
 
       {/* event list — 3.8 EventCard against seed data */}
