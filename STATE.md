@@ -365,7 +365,7 @@ SEED_LOCATIONS = [
 | 3.7.2 | Home layout slot for `ChatPanel.jsx` | ⬜ TODO | Reserve right sidebar on desktop and bottom drawer area on mobile for Dev 4's `ChatPanel`; pass suggested event IDs down to MapView once available. |
 | 3.8 | `EventCard.jsx` — compact card: title, type pill, date/time, location name, RSVP button | ✅ DONE | `frontend/src/components/EventCard.jsx`. Click opens `EventModal` in view mode; RSVP button stubbed (real wiring in 3.10). Slots marked for Dev 4's 4.9 attendee avatars + 4.10 host badges. Branch: `feat-3.8-3.9`. |
 | 3.9 | `EventModal.jsx` — view/create event. Form: title, description, type, location, start/end, max attendees | ✅ DONE | `frontend/src/components/EventModal.jsx`. Dual-mode (view/create), Esc + backdrop close, native `datetime-local` inputs, required-field validation. Location dropdown consumes `locations` prop fed by Dev 2's `useLocations` hook. Branch: `feat-3.8-3.9`. |
-| 3.10 | Wire RSVP: "I'm Going" → `POST /api/events/{id}/rsvp` with user_id from localStorage | ⬜ TODO | Dev 4 adds badge-earn check on success |
+| 3.10 | Wire RSVP: "I'm Going" → `POST /api/events/{id}/rsvp` with user_id from localStorage | ✅ DONE | `rsvpToEvent(eventId, userId)` helper in `frontend/src/api.js` (sends `X-User-Id` header). `Home.jsx` does optimistic update + real POST + rollback on failure + success toast, and calls `useBadgeWatcher.triggerBadgeCheck()` on success or 409 (already-RSVP'd treated as success). Unsigned users get AuthModal popped via the `community-maxxing-open-auth` event. SEED_EVENTS → live `GET /api/events` swap deferred. Branch: `feat-3.10`. |
 | 3.11 | Empty states: no events yet, no search results — friendly copy + illustration | ⬜ TODO | |
 | 3.12 | Mobile responsive: stacks vertical, full-width cards | ⬜ TODO | |
 | 3.13 | `vite.config.js` — proxy `/api` to backend in dev | ✅ DONE | Done early as part of 3.1 — proxies `/api` to `http://localhost:8000`. |
@@ -597,10 +597,10 @@ VITE_MAPBOX_TOKEN=pk.xxxxxxxxxxxxxxxxxxxxxxxx  # public Mapbox token, scoped to 
 |------------|-----|--------|----------|---------|
 | Backend Foundation | Dev 1 | `feature/backend` | 🟡 In progress — 12/17 done (1.1–1.12 ✅; live at commaxx-api.onrender.com); Maxxer subtasks 1.10.1–1.10.5 TODO | Maxxer needs `ANTHROPIC_API_KEY` env + `routers/chat.py` (1.10.1–1.10.5) |
 | GIS / Mapping | Dev 2 (you) | `feature/gis` | 🟡 In progress — 6/10 done (2.1, 2.2, 2.3, 2.4, 2.5, 2.6); 2.7 deferred | SearchBar + map/event-list sync + mobile UX + Maxxer highlighted pins remain |
-| Frontend App | Dev 3 | `feature/frontend-app` | 🟡 In progress — 10/17 done (3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.13) | 3.10 next (RSVP wiring); 3.11/3.12 unblocked; Maxxer shell can use mock responses until `/api/chat` exists |
+| Frontend App | Dev 3 | `feature/frontend-app` | 🟡 In progress — 11/17 done (3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.13) | 3.7.1/3.7.2 (Maxxer shell slots) and 3.11/3.12 all unblocked; 3.14/3.15 await Dev 1 Render URL confirmation |
 | Badges & Social + Maxxer | Dev 4 | `feature/social` | 🟡 Badges/social done; Maxxer TODO (12/18 done) | Real Maxxer responses need Dev 1 `/api/chat` endpoints |
 
-**Last updated:** 2026-05-23 — Drift fix: Dev 1 rows 1.1–1.12 flipped ✅ (backend live at commaxx-api.onrender.com); Dev 1 tracker row corrected from "Partial foundation present" to 12/17 with Maxxer subtasks outstanding.
+**Last updated:** 2026-05-23 — 3.10 RSVP wiring shipped on branch `feat-3.10` (real `POST /api/events/{id}/rsvp` with `X-User-Id` header, optimistic + rollback, hooks `useBadgeWatcher` on success); Frontend App tracker now 11/17 done.
 
 ---
 
