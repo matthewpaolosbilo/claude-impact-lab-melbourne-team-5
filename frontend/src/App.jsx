@@ -1,22 +1,28 @@
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
 import MapView from './components/MapView'
-import { SEED_LOCATIONS } from './utils/seedLocations'
+import { useLocations } from './utils/useLocations'
 
 // placeholder for 3.7 (Home.jsx layout: search + map + event list + FAB)
-// currently renders MapView fullscreen with the seed mock — Dev 3 to fold
+// currently renders MapView fullscreen against /api/locations — Dev 3 to fold
 // into a proper search + map + event-list layout in 3.7
 function HomePlaceholder() {
+  const { locations, loading, error } = useLocations()
+  const status = loading
+    ? 'Loading locations…'
+    : error
+      ? 'Failed to load locations (check VITE_API_URL + backend CORS)'
+      : `${locations.length} locations`
   return (
     <div className="flex h-screen flex-col bg-cm-cream text-cm-charcoal">
       <header className="border-b border-black/10 bg-white/70 px-6 py-4 backdrop-blur">
         <h1 className="text-2xl font-bold">Community Maxxing</h1>
         <p className="text-xs text-cm-warm-gray">
-          Map smoke test — {SEED_LOCATIONS.length} seed locations.{' '}
+          {status}.{' '}
           <Link to="/profile" className="underline">/profile</Link>
         </p>
       </header>
       <main className="min-h-0 flex-1">
-        <MapView locations={SEED_LOCATIONS} />
+        <MapView locations={locations} />
       </main>
     </div>
   )

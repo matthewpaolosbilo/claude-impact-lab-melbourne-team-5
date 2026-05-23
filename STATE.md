@@ -284,7 +284,7 @@ SEED_LOCATIONS = [
 | 1.11 | Test all endpoints locally with curl/httpie | ⬜ TODO | |
 | 1.12 | Deploy to Render, confirm health check | ⬜ TODO | Update STATE.md with live URL |
 
-**Backend live URL:** `________________` (fill in after deploy)
+**Backend live URL:** https://commaxx-api.onrender.com/ (interactive docs at `/docs`)
 
 ---
 
@@ -293,9 +293,9 @@ SEED_LOCATIONS = [
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 2.1 | `models.py` — Location model | ⬜ TODO | Add to file Dev 1 scaffolds; see Data Models above |
-| 2.2 | `seed.py` — insert all 15 Melbourne seed locations | ⬜ TODO | See Seed Data above |
-| 2.3 | `routers/locations.py` — `GET /api/locations` (list, filter by type), `POST /api/locations`; include `event_count` | ⬜ TODO | |
+| 2.1 | `models.py` — Location model | ✅ DONE | Scaffolded by Dev 1 to unblock Event FK; columns match STATE.md spec. |
+| 2.2 | `seed.py` — insert all 15 Melbourne seed locations | ✅ DONE | Idempotent; called from `main.py` lifespan after `init_db()`. Logs `[seed] inserted 15 locations` on cold start. |
+| 2.3 | `routers/locations.py` — `GET /api/locations` (list, filter by type), `POST /api/locations`; include `event_count` | ✅ DONE | `event_count` = upcoming events (`start_time >= now`) via outer-join + group_by. Mounted in `main.py`. `LocationRead`/`LocationCreate` added to `schemas.py`. Frontend now consumes via `useLocations()` hook. |
 | 2.4 | `constants.js` — location type config: labels, colors, icons (🔥 BBQ = orange, 🌱 Garden = green, 🍳 Kitchen = purple) | ✅ DONE | `LOCATION_TYPES` + `MAP_DEFAULTS` in `frontend/src/utils/constants.js`. Lucide icons (Flame/Sprout/ChefHat). |
 | 2.5 | `MapView.jsx` — Mapbox GL map (via `react-map-gl`) centred on Melbourne CBD (-37.8136, 144.9631, zoom 13). Install `mapbox-gl` + `react-map-gl`; remove `leaflet` + `react-leaflet`. Fetch locations from API, render colored markers by type | ✅ DONE | Style: `mapbox/light-v11`. Click-to-popup. Consumes mock seed from `utils/seedLocations.js` — swap to `/api/locations` once 2.3 ships. |
 | 2.6 | `LocationPin.jsx` — custom marker. Click opens popup with name, type badge, description, "See Events" button | ✅ DONE | Coloured pin + Lucide icon, scales on hover. "See Events" CTA deferred until events list exists. |

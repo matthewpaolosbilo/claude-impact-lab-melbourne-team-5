@@ -30,7 +30,7 @@ class HostSummary(BaseModel):
     name: str
 
 
-# ---------- Locations (Summary only; Dev 2 owns full LocationRead) ----------
+# ---------- Locations ----------
 
 
 class LocationSummary(BaseModel):
@@ -39,6 +39,31 @@ class LocationSummary(BaseModel):
     id: int
     name: str
     type: str
+
+
+class LocationCreate(BaseModel):
+    name: str = Field(min_length=1)
+    type: str = Field(min_length=1)
+    latitude: float = Field(ge=-90, le=90)
+    longitude: float = Field(ge=-180, le=180)
+    address: str
+    description: str
+    photo_url: Optional[str] = None
+
+
+class LocationRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    type: str
+    latitude: float
+    longitude: float
+    address: str
+    description: str
+    photo_url: Optional[str] = None
+    event_count: int = 0
+    created_at: datetime
 
 
 # ---------- Events ----------

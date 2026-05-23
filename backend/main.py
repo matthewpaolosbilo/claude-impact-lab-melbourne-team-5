@@ -1,12 +1,16 @@
 import os
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from database import init_db
+from routers import locations
+from seed import run_seed
+
 # Routers Dev 1 owns
 # from routers import users, events  # TODO Dev 1 Phase C/D — uncomment when routers exist
 # Routers other devs own — leave commented; uncomment when their PR merges.
-# from routers import locations  # TODO Dev 2 (feature/gis)
 # from routers import badges     # TODO Dev 4 (feature/social)
 
 CORS_ORIGINS = [
@@ -17,7 +21,15 @@ CORS_ORIGINS = [
     if origin.strip()
 ]
 
-app = FastAPI(title="Community Maxxing API", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    run_seed()
+    yield
+
+
+app = FastAPI(title="Community Maxxing API", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -33,7 +45,7 @@ def health() -> dict[str, bool]:
     return {"ok": True}
 
 
+app.include_router(locations.router)
 # app.include_router(users.router)
 # app.include_router(events.router)
-# app.include_router(locations.router)   # Dev 2
 # app.include_router(badges.router)      # Dev 4
