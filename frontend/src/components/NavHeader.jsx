@@ -11,10 +11,10 @@ export default function NavHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between border-b border-black/10 bg-white/80 px-6 py-3 backdrop-blur shadow-card">
+    <header className="sticky top-0 z-20 flex items-center justify-between gap-2 border-b border-black/10 bg-white/80 px-4 py-3 backdrop-blur shadow-card sm:px-6">
       <Link
         to="/"
-        className="cursor-pointer text-lg font-bold text-cm-charcoal hover:text-cm-orange"
+        className="cursor-pointer truncate text-lg font-bold text-cm-charcoal hover:text-cm-orange"
       >
         Community Maxxing
       </Link>

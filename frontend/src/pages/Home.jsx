@@ -102,7 +102,7 @@ export default function Home() {
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
-      <div className="border-b border-black/10 bg-white/70 px-6 py-3 backdrop-blur">
+      <div className="border-b border-black/10 bg-white/70 px-4 py-3 backdrop-blur sm:px-6">
         <div className="rounded-card bg-cm-cream/60 px-4 py-2 text-sm text-cm-warm-gray">
           {suggestedEventIds.length > 0
             ? `Maxxer is highlighting ${suggestedEventIds.length} pick${suggestedEventIds.length === 1 ? '' : 's'} below`
@@ -110,12 +110,12 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="min-h-0 basis-[60%]">
+      <div className="h-[45vh] min-h-0 sm:h-[50vh] lg:h-auto lg:basis-[60%]">
         {/* 3.7.2 contract: pass event IDs; Dev 2's MapView highlight resolves them. */}
         <MapView locations={locations} highlightedEventIds={suggestedEventIds} />
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto border-t border-black/10 bg-cm-cream px-6 py-4">
+      <div className="min-h-0 flex-1 overflow-y-auto border-t border-black/10 bg-cm-cream px-4 py-4 sm:px-6">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-cm-warm-gray">
           Upcoming events
         </h2>
@@ -124,7 +124,7 @@ export default function Home() {
             No events yet. Tap "Add event" to host one.
           </div>
         ) : (
-          <ul className="mt-3 space-y-3">
+          <ul className="mt-3 space-y-3 pb-24">
             {sortedEvents.map((event) => {
               const suggested = suggestedEventIds.includes(event.id)
               return (
@@ -143,11 +143,11 @@ export default function Home() {
       <button
         type="button"
         onClick={openCreate}
-        className="cursor-pointer absolute bottom-6 right-6 flex items-center gap-2 rounded-full bg-cm-orange px-5 py-3 text-sm font-semibold text-white shadow-card hover:bg-cm-orange/90"
+        className="cursor-pointer absolute bottom-6 right-4 flex items-center gap-2 rounded-full bg-cm-orange px-4 py-3 text-sm font-semibold text-white shadow-card hover:bg-cm-orange/90 sm:right-6 sm:px-5"
         aria-label="Add event"
       >
         <Plus className="h-5 w-5" />
-        <span>Add event</span>
+        <span className="hidden sm:inline">Add event</span>
       </button>
 
       <EventModal
