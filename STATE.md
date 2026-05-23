@@ -365,11 +365,11 @@ SEED_LOCATIONS = [
 | 3.7.2 | Home layout slot for `ChatPanel.jsx` | ⬜ TODO | Reserve right sidebar on desktop and bottom drawer area on mobile for Dev 4's `ChatPanel`; pass suggested event IDs down to MapView once available. |
 | 3.8 | `EventCard.jsx` — compact card: title, type pill, date/time, location name, RSVP button | ✅ DONE | `frontend/src/components/EventCard.jsx`. Click opens `EventModal` in view mode; RSVP button stubbed (real wiring in 3.10). Slots marked for Dev 4's 4.9 attendee avatars + 4.10 host badges. Branch: `feat-3.8-3.9`. |
 | 3.9 | `EventModal.jsx` — view/create event. Form: title, description, type, location, start/end, max attendees | ✅ DONE | `frontend/src/components/EventModal.jsx`. Dual-mode (view/create), Esc + backdrop close, native `datetime-local` inputs, required-field validation. Location dropdown consumes `locations` prop fed by Dev 2's `useLocations` hook. Branch: `feat-3.8-3.9`. |
-| 3.10 | Wire RSVP: "I'm Going" → `POST /api/events/{id}/rsvp` with user_id from localStorage | ⬜ TODO | Dev 4 adds badge-earn check on success |
+| 3.10 | Wire RSVP: "I'm Going" → `POST /api/events/{id}/rsvp` with user_id from localStorage | ✅ DONE | `rsvpToEvent(eventId, userId)` helper in `frontend/src/api.js` (sends `X-User-Id` header). `Home.jsx` does optimistic update + real POST + rollback on failure + success toast, and calls `useBadgeWatcher.triggerBadgeCheck()` on success or 409 (already-RSVP'd treated as success). Unsigned users get AuthModal popped via the `community-maxxing-open-auth` event. SEED_EVENTS → live `GET /api/events` swap deferred. Branch: `feat-3.10`. |
 | 3.11 | Empty states: no events yet, no search results — friendly copy + illustration | ⬜ TODO | |
 | 3.12 | Mobile responsive: stacks vertical, full-width cards | ⬜ TODO | |
 | 3.13 | `vite.config.js` — proxy `/api` to backend in dev | ✅ DONE | Done early as part of 3.1 — proxies `/api` to `http://localhost:8000`. |
-| 3.14 | `netlify.toml` — build command, publish dir, redirect `/api/*` to Render backend URL | ⬜ TODO | |
+| 3.14 | `netlify.toml` — build command, publish dir, redirect `/api/*` to Render backend URL | ✅ DONE | `frontend/netlify.toml`. Build cmd `npm run build`, publish `dist`. `/api/*` rewrites (status 200, force=true) to `https://commaxx-api.onrender.com/api/:splat`; SPA fallback `/* → /index.html` ordered after the API rule. Render `/api/locations` confirmed 200 from the rewrite target. Netlify site base directory should be set to `frontend`. Branch: `feat-3.14`. |
 | 3.15 | Deploy to Netlify, confirm app loads end-to-end | ⬜ TODO | Update STATE.md with live URL |
 
 **Frontend live URL:** `________________` (fill in after deploy)
@@ -597,10 +597,10 @@ VITE_MAPBOX_TOKEN=pk.xxxxxxxxxxxxxxxxxxxxxxxx  # public Mapbox token, scoped to 
 |------------|-----|--------|----------|---------|
 | Backend Foundation | Dev 1 | `feature/backend` | 🟡 In progress — 12/17 done (1.1–1.12 ✅; live at commaxx-api.onrender.com); Maxxer subtasks 1.10.1–1.10.5 TODO | Maxxer needs `ANTHROPIC_API_KEY` env + `routers/chat.py` (1.10.1–1.10.5) |
 | GIS / Mapping | Dev 2 (you) | `feature/gis` | ✅ Complete — 9/10 done (2.1–2.6, 2.8–2.10); 2.7 deferred | Bespoke SVG markers remain deferred until designers provide assets |
-| Frontend App | Dev 3 | `feature/frontend-app` | 🟡 In progress — 10/17 done (3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.13) | 3.10 next (RSVP wiring); 3.11/3.12 unblocked; Maxxer shell can use mock responses until `/api/chat` exists |
+| Frontend App | Dev 3 | `feature/frontend-app` | 🟡 In progress — 12/17 done (3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.13, 3.14) | 3.7.1/3.7.2 (Maxxer shell slots), 3.11/3.12 polish, and 3.15 deploy remain |
 | Badges & Social + Maxxer | Dev 4 | `feature/social` | 🟡 Badges/social done; Maxxer TODO (12/18 done) | Real Maxxer responses need Dev 1 `/api/chat` endpoints |
 
-**Last updated:** 2026-05-23 — Dev 2 GIS stream complete: SearchBar, location/event filtering, marker-to-event sync, selected pin highlighting/pan, and mobile map/search UX shipped; bespoke SVG markers remain deferred.
+**Last updated:** 2026-05-23 — Dev 2 GIS stream complete; merged latest Dev 3 status with 3.10 RSVP wiring and 3.14 Netlify config done. Remaining frontend work is Maxxer shell slots, empty/mobile polish, and deploy.
 
 ---
 
