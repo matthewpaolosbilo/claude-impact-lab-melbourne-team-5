@@ -1,6 +1,6 @@
 # Cross-Workstream Dependency Index
 
-**Last updated:** 2026-05-23 (3.5 nav + 3.7 home layout shipped on `feat-3.5`/`feat-3.7`)
+**Last updated:** 2026-05-23 (3.8 EventCard + 3.9 EventModal shipped on `feat-3.8-3.9`)
 **Source:** `STATE.md` (post-restructure, 4-dev split)
 
 > One-page index of how the four dev workstreams gate each other. Per-dev detail lives in `dev{1,2,3,4}-dependencies.md`. The graph below shows only **cross-workstream** edges — intra-dev chains are in each per-dev file.
@@ -11,7 +11,7 @@
 
 - [Dev 1 — Backend Foundation](dev1-dependencies.md) — Critical path: `1.1 → 1.2 → 1.3 → 1.6 → 1.7 → 1.9 → 1.11 → 1.12` (eight tasks; the foundation everyone is blocked on).
 - [Dev 2 — GIS / Mapping](dev2-dependencies.md) — Critical path: `2.1 → 2.3 → 2.5 → 2.6 → 2.9` (five tasks; spans backend + frontend, owns `GET /api/locations`).
-- [Dev 3 — Frontend Foundation](dev3-dependencies.md) — Critical path: `3.8 → 3.9 → 3.10 → 3.15` (four tasks; 3.1, 3.2, 3.3, 3.4, 3.5, 3.7, 3.13 already ✅ DONE).
+- [Dev 3 — Frontend Foundation](dev3-dependencies.md) — Critical path: `3.6 → 3.10 → 3.15` (three tasks; 3.1, 3.2, 3.3, 3.4, 3.5, 3.7, 3.8, 3.9, 3.13 already ✅ DONE).
 - [Dev 4 — Badges, Notifications, Social](dev4-dependencies.md) — Critical path: `4.1 → 4.2 → 4.4 → 4.8 → 4.12` (five tasks; every task has a cross-workstream blocker).
 
 ---
@@ -43,8 +43,8 @@ graph LR
         D3_4[3.4 App.jsx router ✅]
         D3_6[3.6 Auth flow]
         D3_7[3.7 Home.jsx ✅]
-        D3_8[3.8 EventCard]
-        D3_9[3.9 EventModal]
+        D3_8[3.8 EventCard ✅]
+        D3_9[3.9 EventModal ✅]
         D3_10[3.10 RSVP wiring]
         D3_14[3.14 netlify.toml]
         D3_15[3.15 Deploy Netlify]
