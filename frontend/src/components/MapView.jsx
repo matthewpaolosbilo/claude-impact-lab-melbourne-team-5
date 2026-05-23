@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Map, { Marker, Popup, NavigationControl } from 'react-map-gl/mapbox'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import LocationPin from './LocationPin'
@@ -6,8 +6,30 @@ import { LOCATION_TYPES, MAP_DEFAULTS } from '../utils/constants'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
-export default function MapView({ locations = [], onSelect }) {
+export default function MapView({
+  locations = [],
+  onSelect,
+  selectedLocationId = null,
+  highlightedLocationIds = [],
+}) {
+  const mapRef = useRef(null)
   const [selected, setSelected] = useState(null)
+  const highlightedSet = useMemo(
+    () => new Set(highlightedLocationIds),
+    [highlightedLocationIds],
+  )
+
+  useEffect(() => {
+    if (!selectedLocationId) return
+    const loc = locations.find((item) => item.id === selectedLocationId)
+    if (!loc) return
+    mapRef.current?.flyTo({
+      center: [loc.longitude, loc.latitude],
+      zoom: Math.max(MAP_DEFAULTS.zoom, 14),
+      duration: 650,
+      essential: true,
+    })
+  }, [locations, selectedLocationId])
 
   if (!MAPBOX_TOKEN) {
     return (
@@ -25,6 +47,7 @@ export default function MapView({ locations = [], onSelect }) {
 
   return (
     <Map
+      ref={mapRef}
       mapboxAccessToken={MAPBOX_TOKEN}
       initialViewState={{
         latitude: MAP_DEFAULTS.center.latitude,
@@ -47,7 +70,11 @@ export default function MapView({ locations = [], onSelect }) {
             handleSelect(loc)
           }}
         >
-          <LocationPin type={loc.type} />
+          <LocationPin
+            type={loc.type}
+            highlighted={highlightedSet.has(loc.id)}
+            selected={selectedLocationId === loc.id}
+          />
         </Marker>
       ))}
 

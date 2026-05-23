@@ -1,10 +1,10 @@
-# Dev 4 Dependency Map — Badges, Notifications, Social
+# Dev 4 Dependency Map — Badges, Notifications, Social + Maxxer
 
-**Last updated:** 2026-05-23
+**Last updated:** 2026-05-23 (drift fix: 4.1–4.12 flipped ✅; Maxxer subtasks 4.13–4.18 added per STATE.md restructure)
 **Source:** `STATE.md` (post-restructure, 4-dev split)
-**Workstream:** Dev 4, branch `feature/social` — Engagement layer (badges + profile + social affordances)
+**Workstream:** Dev 4, branch `feature/social` — Engagement layer (badges + profile + social affordances) + Maxxer agent UX
 
-> Dev 4 is the engagement layer that sits on top of everything else. No tasks are ✅ DONE yet. By design it merges last: STATE.md's merge order is Dev 1 → (Dev 2 + Dev 3 in parallel) → Dev 4. Every task has at least one cross-workstream blocker. The only standalone leaf is 4.3 (client badge metadata).
+> Badges and social layer ✅ shipped (4.1–4.12 all on main via PR #16). Remaining work is the Maxxer agent UX (4.13–4.18), which depends on Dev 1's chat endpoints (1.10.1–1.10.5) and a small Dev 3 slot (3.7.2 ChatPanel slot in `Home.jsx`).
 
 ---
 
@@ -12,18 +12,24 @@
 
 | Task | Title | Intra-Dev-4 deps | Cross-workstream deps | External deps | Data contracts |
 |------|-------|-------------------|------------------------|---------------|----------------|
-| 4.1 | Badge computation helpers (backend) | — | Blocked on Dev 1's 1.3 (RSVP, Event models) | SQLAlchemy | (pure functions over RSVP/Event) |
-| 4.2 | `routers/badges.py` — `GET /api/users/{id}/badges` | 4.1 | Blocked on Dev 1's 1.9 (mount); reads User from 1.3, RSVP from 1.3 | FastAPI | `GET /api/users/{id}/badges` schema in INTEGRATION POINTS |
-| 4.3 | `badges.js` — client badge metadata | — | Needs Dev 3's 3.1 ✅ (Vite project) | — | Mirrors BADGE_DEFINITIONS server-side (4.1) |
-| 4.4 | `BadgeShelf.jsx` — earned vs. locked grid | 4.3 | Needs Dev 3's 3.1 ✅, 3.2 ✅; blocked on 4.2 (endpoint) | lucide-react | `GET /api/users/{id}/badges` |
-| 4.5 | `ProfilePanel.jsx` — user stats | — | Needs Dev 3's 3.1 ✅, 3.2 ✅, 3.6 (auth provides user_id); blocked on Dev 1's 1.5 (`GET /api/users/{id}`) and 1.7 (RSVP data for "attended"/"hosted" counts) | — | `GET /api/users/{id}`, derived RSVP counts |
-| 4.6 | `Profile.jsx` page | 4.4, 4.5 | Mounts at `/profile` route — shared file with Dev 3's 3.4 (`App.jsx`) | react-router-dom | — |
-| 4.7 | Toast notifications | — | Needs Dev 3's 3.1 ✅; called from 3.10 (RSVP) and 4.8 (badge unlock) | (toast lib or custom) | — |
-| 4.8 | Badge unlock celebration | 4.4, 4.7 | Blocked on Dev 3's 3.10 (RSVP wiring) — hooks into its success callback; re-fetches 4.2 to detect new badges | (confetti lib or custom) | `GET /api/users/{id}/badges` |
-| 4.9 | Attendee surfacing on `EventCard` | — | Shared file with Dev 3's 3.8 (`EventCard.jsx`); blocked on Dev 1's 1.6 (`attendee_count` in response) | lucide-react | `GET /api/events` (`attendee_count`) |
-| 4.10 | Host attribution on `EventCard` + `EventModal` | 4.4 (for badge display on host) | Shared with Dev 3's 3.8, 3.9; blocked on Dev 1's 1.6 (`host` in response); needs 4.2 to fetch host's badges | — | `GET /api/events` (`host` field), `GET /api/users/{id}/badges` |
-| 4.11 | Community notification hooks (placeholder UI) | — | Needs Dev 3's 3.1 ✅; stub UI only, no backend wiring required | — | — |
-| 4.12 | `README.md` — project overview, setup, deploy URLs | — | Needs all deploy URLs: Dev 1's 1.12 (Render) and Dev 3's 3.15 (Netlify); shared closeout task | — | — |
+| 4.1 ✅ | Badge computation helpers (backend) | — | Uses Dev 1's RSVP/Event models (1.3 ✅) | SQLAlchemy | `backend/badge_logic.py` |
+| 4.2 ✅ | `routers/badges.py` — `GET /api/users/{id}/badges` + `/profile-stats` | 4.1 ✅ | Mounted in `main.py` (1.9 ✅) | FastAPI | `GET /api/users/{id}/badges`, `GET /api/users/{id}/profile-stats` |
+| 4.3 ✅ | `badges.js` — client badge metadata + `mergeBadgePayload` | — | Lives in Dev 3's Vite project (3.1 ✅) | — | Mirrors `BADGE_DEFINITIONS` (4.1 ✅) |
+| 4.4 ✅ | `BadgeShelf.jsx` — earned vs. locked grid | 4.3 ✅ | Hits 4.2 ✅; accepts `payload` prop for preview | lucide-react | `GET /api/users/{id}/badges` |
+| 4.5 ✅ | `ProfilePanel.jsx` — user stats | — | Hits Dev 1's 1.5 ✅ + 4.2 ✅ profile-stats | — | `GET /api/users/{id}`, profile-stats |
+| 4.6 ✅ | `Profile.jsx` page | 4.4 ✅, 4.5 ✅ | Mounted at `/profile` (Dev 3's 3.4 ✅); reads `cm.user_id` from localStorage | react-router-dom | — |
+| 4.7 ✅ | Toast notifications (`ToastProvider`, `useToast`, `Toaster`) | — | Used by 3.10 RSVP and 4.8 badge unlock | — | — |
+| 4.8 ✅ | Badge unlock celebration (`BadgeUnlockModal` + `useBadgeWatcher`) | 4.4 ✅, 4.7 ✅ | Triggered after RSVP via `triggerBadgeCheck()`; diff in `cm.badges.lastEarned` | — | `GET /api/users/{id}/badges` |
+| 4.9 ✅ | Attendee surfacing on `EventCard` (`AttendeeChips`) | — | Sub-component for Dev 3's 3.8 ✅ to drop in; consumes 1.6 ✅ `attendee_count` | lucide-react | `GET /api/events` (`attendee_count`) |
+| 4.10 ✅ | Host attribution (`HostBadge`) | 4.4 ✅ | Lazy-fetches host's top badges; for Dev 3's 3.8 ✅ / 3.9 ✅ | — | `GET /api/events` (`host`), `GET /api/users/{id}/badges` |
+| 4.11 ✅ | `NotificationFeed` stub | — | UI only; backend wiring future | — | — |
+| 4.12 ✅ | `README.md` — project overview | — | Draft committed; Dev 1 + 3 will fill live URLs after deploy | — | — |
+| 4.13 | `ChatPanel.jsx` — Maxxer collapsible chat | — | Blocked on Dev 1's 1.10.3 (`POST /api/chat`); slot reserved by Dev 3's 3.7.2 | — | `POST /api/chat` |
+| 4.14 | Inline Maxxer event recommendation cards | 4.13 | Parses `[EVENT:id]` from 1.10.5 ✅ system-prompt format; renders 3 `EventCard`s; RSVP via 3.10 when ready | — | Chat response payload (`[EVENT:id]` tags) |
+| 4.15 | `OnboardingChat.jsx` — fullscreen conversational onboarding | — | Blocked on Dev 1's 1.10.4 (`POST /api/chat/onboarding`); hands completion to Dev 3's 3.7.1 gate | — | `POST /api/chat/onboarding` |
+| 4.16 | Maxxer suggestion → map bridge | 4.13, 4.15 | Emits `suggested_event_ids` for Dev 2's MapView (per 2.5 follow-up) and Dev 3's `Home.jsx` (3.7.2 slot) | — | suggestion event IDs |
+| 4.17 | Proactive open-app suggestions and activity nudges | 4.13 | On app open hits 1.10.3; uses preferences (1.10.2) + past RSVPs + upcoming events | — | `POST /api/chat` (proactive context) |
+| 4.18 | Maxxer tone and safety QA pass | 4.13–4.17 | Sign-off task; requires real Maxxer responses (1.10.3–1.10.5) live | — | — |
 
 ---
 
@@ -31,60 +37,55 @@
 
 ```mermaid
 graph TD
-    4.1[4.1 Badge helpers] --> 4.2[4.2 badges router]
-    4.3[4.3 badges.js] --> 4.4[4.4 BadgeShelf]
-    4.4 --> 4.6[4.6 Profile.jsx]
-    4.5[4.5 ProfilePanel] --> 4.6
-    4.4 --> 4.8[4.8 Badge celebration]
-    4.7[4.7 Toasts] --> 4.8
-    4.4 --> 4.10[4.10 Host attribution]
-    4.9[4.9 Attendee surfacing]
-    4.11[4.11 Notification stubs]
-    4.12[4.12 README]
+    4.1[4.1 Badge helpers ✅] --> 4.2[4.2 badges router ✅]
+    4.3[4.3 badges.js ✅] --> 4.4[4.4 BadgeShelf ✅]
+    4.4 --> 4.6[4.6 Profile.jsx ✅]
+    4.5[4.5 ProfilePanel ✅] --> 4.6
+    4.4 --> 4.8[4.8 Badge celebration ✅]
+    4.7[4.7 Toasts ✅] --> 4.8
+    4.4 --> 4.10[4.10 Host attribution ✅]
+    4.9[4.9 Attendee surfacing ✅]
+    4.11[4.11 Notification stubs ✅]
+    4.12[4.12 README ✅]
+
+    4.13[4.13 ChatPanel] --> 4.14[4.14 Inline rec cards]
+    4.13 --> 4.16[4.16 Suggestion → map bridge]
+    4.15[4.15 OnboardingChat] --> 4.16
+    4.13 --> 4.17[4.17 Proactive picks]
+    4.14 --> 4.18[4.18 Tone + safety QA]
+    4.15 --> 4.18
+    4.16 --> 4.18
+    4.17 --> 4.18
 ```
 
 ---
 
 ## Critical Path
 
-`4.1 → 4.2 → 4.4 → 4.8` is the longest pure intra-Dev-4 chain (four tasks). But the practical critical path includes the cross-workstream gate to 3.10:
+**Badges/social path complete.** Original `4.1 → 4.2 → 4.4 → 4.8 → 4.12` chain is fully ✅.
 
-`(wait on 3.10) → 4.8` and `(wait on 1.6) → 4.9 / 4.10`.
-
-The deepest end-to-end chain Dev 4 actually executes: `4.1 → 4.2 → 4.4 → 4.8 → 4.12` (five tasks, with 4.8 also gated externally on Dev 3's 3.10).
+**Remaining Maxxer path:** `4.13 → 4.14 → 4.18` (three tasks). 4.15 (onboarding) is independent of 4.13 and lands in parallel; 4.16 and 4.17 fan in before 4.18.
 
 ---
 
-## Parallelizable Clusters
+## Parallelizable Clusters (remaining work)
 
-- **Backend branch:** 4.1 → 4.2 (two tasks, independent of frontend).
-- **Frontend metadata branch:** 4.3 → 4.4 (gated on 4.2 for live data, but UI scaffolding can land first with mocked data).
-- **Profile branch:** 4.5 is independent of 4.4 until 4.6 fans them in.
-- **EventCard enrichment:** 4.9 and 4.10 are siblings touching the same file (3.8). Should be sequenced or careful-merged to avoid conflicts (inferred).
-- **Standalone leaves:** 4.7 (toasts), 4.11 (notification stubs), 4.12 (README) have no intra-stream deps; 4.7 and 4.11 can land any time, 4.12 is last.
+- **Independent kick-offs:** 4.13 (ChatPanel) and 4.15 (OnboardingChat) are sibling entry points — both blocked on Dev 1's chat endpoints but not on each other.
+- **Fan-in:** 4.14, 4.16, 4.17 each consume 4.13 + their own backend dep (1.10.3 / 1.10.4 / 1.10.5).
+- **Sign-off:** 4.18 is the final QA pass — requires all Maxxer surfaces live.
 
 ---
 
-## Earliest Unblock Points (what other devs owe Dev 4)
+## Earliest Unblock Points (what remaining Dev 4 work owes other streams)
 
-1. **Dev 1's 1.3 (`models.py`)** — unblocks 4.1, which gates the entire backend branch.
-2. **Dev 1's 1.6 (`GET /api/events` with `host` and `attendee_count`)** — unblocks 4.9 and 4.10.
-3. **Dev 1's 1.5 (`GET /api/users/{id}`)** — unblocks 4.5.
-4. **Dev 1's 1.7 (RSVP endpoints with "attended" status)** — unblocks the "attended" count in 4.5 and the badge "check" lambdas in 4.1.
-5. **Dev 1's 1.9 (`main.py` mount)** — needed for 4.2 to be served.
-6. **Dev 3's 3.4 (`App.jsx` with `/profile` route)** — required for 4.6 to mount.
-7. **Dev 3's 3.6 (auth flow)** — provides the `user_id` in localStorage that 4.4, 4.5, 4.8 all read.
-8. **Dev 3's 3.8 (`EventCard.jsx`)** — base file that 4.9 and 4.10 enrich.
-9. **Dev 3's 3.10 (RSVP wiring)** — exposes the success callback that 4.8 attaches to.
-
-Practical sequencing: 4.3 and 4.11 can start immediately (Dev 3's 3.1 is done). 4.1 can start the moment Dev 1's 1.3 lands. Everything else compounds on Dev 1 and Dev 3 progress.
+1. **4.13 ChatPanel** — provides the live Maxxer surface for the app shell; consumed by Dev 3's 3.7.2 slot.
+2. **4.16 Suggestion → map bridge** — emits `suggested_event_ids` that Dev 2's MapView highlights (per 2.5's follow-up note).
+3. **4.15 OnboardingChat** — required for Dev 3's 3.7.1 gate to render meaningfully.
 
 ---
 
 ## Notes on Inferred Deps
 
-- 4.1's badge-check lambdas reference `count_attended`, `count_hosted`, etc. These need RSVP rows with `status="attended"`, which requires Dev 1's 1.7 (`PATCH /api/rsvps/{id}` to mark attended). If 1.7 is incomplete, all "attended" badges return 0.
-- 4.3 must stay in sync with 4.1 (server) — the badge `id`, `name`, `icon`, `description` fields are duplicated. Drift will cause locked/unlocked mismatches.
-- 4.9 and 4.10 both modify `EventCard.jsx`. Inferred — sequence them or coordinate the merge.
-- 4.10's "host's badges" pulls `GET /api/users/{id}/badges` for every event card. Potential N+1 (inferred — may want a bulk endpoint, but out of scope for today).
-- 4.12 (README) implicitly depends on every other dev finishing their tasks for accurate URLs and setup steps.
+- 4.14's "exactly 3 real events" enforcement leans on Dev 1's 1.10.5 (system prompt + parsing). If the backend can't constrain the model's choices to real event IDs, the UI will need its own filtering layer.
+- 4.16's map bridge is a soft coupling with Dev 2's 2.5 — adding `highlightedEventIds` (or location IDs) to MapView is a Dev 2 follow-up. Coordinate when 4.16 starts.
+- 4.17 (proactive picks) runs on app open, which means it lives in the app shell (Dev 3 owns `App.jsx`). Inferred — Dev 3 will need to host the trigger call.
