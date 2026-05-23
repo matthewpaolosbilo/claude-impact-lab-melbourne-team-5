@@ -4,32 +4,33 @@ import MapView from '../components/MapView'
 import EventCard from '../components/EventCard'
 import EventModal from '../components/EventModal'
 import SearchBar from '../components/SearchBar'
-import ChatPanelSlot from '../components/ChatPanelSlot'
-import { SEED_EVENTS } from '../utils/seedEvents'
+import ChatPanel from '../components/ChatPanel'
 import { useLocations } from '../utils/useLocations'
+import { useEvents } from '../utils/useEvents'
 import { useUser } from '../hooks/useUser'
 import { useToast } from '../hooks/useToast'
 import { useBadgeWatcher } from '../hooks/useBadgeWatcher'
 import { rsvpToEvent } from '../api'
 
-// 3.7 Home layout. Slots downstream:
-//   - Dev 2 SearchBar filters locations and current events by query/type
-//   - Event list uses 3.8 EventCard against SEED_EVENTS; swap to live GET /api/events as a follow-up
-//   - FAB opens 3.9 EventModal in create mode
-//   - 3.10 RSVP POSTs to /api/events/{id}/rsvp with X-User-Id header (optimistic + rollback)
-//   - 3.7.2 ChatPanelSlot can set suggestedEventIds; Dev 2 maps those to highlighted map pins
+// 3.7 Home layout + Dev 4 Maxxer wiring (4.13/4.14/4.16/4.17).
+// Dev 2 SearchBar filters locations and events, and MapView highlights selected
+// locations plus Maxxer suggested events mapped through their location IDs.
 export default function Home() {
-  const [events, setEvents] = useState(SEED_EVENTS)
+  const { user } = useUser()
+  const { events, setEvents } = useEvents()
+  const { locations, loading: locationsLoading, error: locationsError } = useLocations()
+  const toast = useToast()
+  const { triggerBadgeCheck } = useBadgeWatcher(user?.id)
+
   const [modal, setModal] = useState({ open: false, mode: 'view', event: null })
+  const [suggestedEventIds, setSuggestedEventIds] = useState([])
   const [query, setQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
   const [selectedLocationId, setSelectedLocationId] = useState(null)
-  const [suggestedEventIds, setSuggestedEventIds] = useState([])
   const eventRefs = useRef(new Map())
-  const { locations, loading, error } = useLocations()
-  const { user } = useUser()
-  const toast = useToast()
-  const { triggerBadgeCheck } = useBadgeWatcher(user?.id)
+
+  const eventsById = useMemo(() => new Map(events.map((e) => [e.id, e])), [events])
+
   const openView = (event) => setModal({ open: true, mode: 'view', event })
   const openCreate = () => setModal({ open: true, mode: 'create', event: null })
   const closeModal = () => setModal((m) => ({ ...m, open: false }))
@@ -67,15 +68,25 @@ export default function Home() {
     })
   }, [events, normalizedQuery, typeFilter])
 
+  const sortedEvents = useMemo(() => {
+    const suggested = new Set(suggestedEventIds)
+    return [...filteredEvents].sort((a, b) => {
+      const aS = suggested.has(a.id) ? 0 : 1
+      const bS = suggested.has(b.id) ? 0 : 1
+      if (aS !== bS) return aS - bS
+      return new Date(a.start_time) - new Date(b.start_time)
+    })
+  }, [filteredEvents, suggestedEventIds])
+
   const highlightedLocationIds = useMemo(() => {
     const ids = new Set()
     if (selectedLocationId) ids.add(selectedLocationId)
     suggestedEventIds.forEach((eventId) => {
-      const event = events.find((item) => item.id === eventId)
+      const event = eventsById.get(eventId)
       if (event?.location?.id) ids.add(event.location.id)
     })
     return Array.from(ids)
-  }, [events, selectedLocationId, suggestedEventIds])
+  }, [eventsById, selectedLocationId, suggestedEventIds])
 
   const handleClearSearch = () => {
     setQuery('')
@@ -85,7 +96,7 @@ export default function Home() {
 
   const handleLocationSelect = (location) => {
     setSelectedLocationId(location.id)
-    const matchingEvent = filteredEvents.find((event) => event.location?.id === location.id)
+    const matchingEvent = sortedEvents.find((event) => event.location?.id === location.id)
     if (!matchingEvent) return
 
     window.requestAnimationFrame(() => {
@@ -106,7 +117,6 @@ export default function Home() {
       return
     }
 
-    // 3.10 optimistic update; close modal if this event is open.
     const prev = {
       user_rsvp: event.user_rsvp,
       attendee_count: event.attendee_count,
@@ -133,7 +143,6 @@ export default function Home() {
   }
 
   const handleCreate = (draft) => {
-    // 3.9 stub: insert locally so the new card appears. Real POST lands with Dev 1's 1.6.
     const location = locations.find((l) => l.id === draft.location_id)
     const next = {
       id: Math.max(0, ...events.map((e) => e.id)) + 1,
@@ -154,51 +163,52 @@ export default function Home() {
     closeModal()
   }
 
-  const status = loading
+  const status = locationsLoading
     ? 'Loading locations...'
-    : error
+    : locationsError
       ? 'Failed to load locations (check VITE_API_URL + backend CORS)'
-      : `${filteredLocations.length} places · ${filteredEvents.length} events`
+      : `${filteredLocations.length} places · ${sortedEvents.length} events`
+
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col lg:flex-row">
-      <div className="relative flex min-h-0 flex-1 flex-col">
-        <div className="sticky top-[65px] z-20 border-b border-black/10 bg-white/85 px-4 py-3 backdrop-blur sm:px-6">
-          <SearchBar
-            query={query}
-            type={typeFilter}
-            onQueryChange={setQuery}
-            onTypeChange={(nextType) => {
-              setTypeFilter(nextType)
-              setSelectedLocationId(null)
-            }}
-            onClear={handleClearSearch}
-            resultLabel={status}
-            disabled={loading}
-          />
-        </div>
+    <div className="relative flex min-h-0 flex-1 flex-col">
+      <div className="sticky top-[65px] z-20 border-b border-black/10 bg-white/85 px-4 py-3 backdrop-blur sm:px-6">
+        <SearchBar
+          query={query}
+          type={typeFilter}
+          onQueryChange={setQuery}
+          onTypeChange={(nextType) => {
+            setTypeFilter(nextType)
+            setSelectedLocationId(null)
+          }}
+          onClear={handleClearSearch}
+          resultLabel={status}
+          disabled={locationsLoading}
+        />
+      </div>
 
-        {/* map: stable mobile height, roomier desktop split */}
-        <div className="min-h-[320px] basis-[48vh] sm:basis-[60%]">
-          <MapView
-            locations={filteredLocations}
-            onSelect={handleLocationSelect}
-            selectedLocationId={selectedLocationId}
-            highlightedLocationIds={highlightedLocationIds}
-          />
-        </div>
+      <div className="min-h-[320px] basis-[48vh] sm:basis-[60%]">
+        <MapView
+          locations={filteredLocations}
+          onSelect={handleLocationSelect}
+          selectedLocationId={selectedLocationId}
+          highlightedLocationIds={highlightedLocationIds}
+        />
+      </div>
 
-        {/* event list — 3.8 EventCard against seed data */}
-        <div className="min-h-0 flex-1 overflow-y-auto border-t border-black/10 bg-cm-cream px-4 py-4 sm:px-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-cm-warm-gray">
-            Upcoming events
-          </h2>
-          {filteredEvents.length === 0 ? (
-            <div className="mt-3 rounded-card bg-white/70 p-card text-sm text-cm-warm-gray shadow-card">
-              No matches yet. Try a different search, or tap "Add event" to host one.
-            </div>
-          ) : (
-            <ul className="mt-3 space-y-3">
-              {filteredEvents.map((event) => (
+      <div className="min-h-0 flex-1 overflow-y-auto border-t border-black/10 bg-cm-cream px-4 py-4 sm:px-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-cm-warm-gray">
+          Upcoming events
+        </h2>
+        {sortedEvents.length === 0 ? (
+          <div className="mt-3 rounded-card bg-white/70 p-card text-sm text-cm-warm-gray shadow-card">
+            No matches yet. Try a different search, or tap "Add event" to host one.
+          </div>
+        ) : (
+          <ul className="mt-3 space-y-3">
+            {sortedEvents.map((event) => {
+              const suggested = suggestedEventIds.includes(event.id)
+              const selected = selectedLocationId === event.location?.id
+              return (
                 <li
                   key={event.id}
                   ref={(node) => {
@@ -206,47 +216,28 @@ export default function Home() {
                     else eventRefs.current.delete(event.id)
                   }}
                   className={
-                    selectedLocationId === event.location?.id ||
-                    suggestedEventIds.includes(event.id)
+                    suggested || selected
                       ? 'rounded-card ring-2 ring-cm-gold ring-offset-2 ring-offset-cm-cream'
                       : ''
                   }
                 >
                   <EventCard event={event} onOpen={openView} onRsvp={handleRsvp} />
                 </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {/* 3.7.2 mobile drawer slot — visible <lg, hidden when sidebar is shown */}
-        <ChatPanelSlot
-          variant="drawer"
-          suggestedEventIds={suggestedEventIds}
-          onSuggestedEventIds={setSuggestedEventIds}
-          className="lg:hidden"
-        />
-
-        {/* FAB: opens 3.9 EventModal in create mode */}
-        <button
-          type="button"
-          onClick={openCreate}
-          className="cursor-pointer absolute bottom-4 right-4 flex items-center gap-2 rounded-full bg-cm-orange px-4 py-3 text-sm font-semibold text-white shadow-card hover:bg-cm-orange/90 sm:bottom-6 sm:right-6 sm:px-5"
-          aria-label="Add event"
-        >
-          <Plus className="h-5 w-5" />
-          <span>Add event</span>
-        </button>
+              )
+            })}
+          </ul>
+        )}
       </div>
 
-      {/* 3.7.2 desktop sidebar slot — hidden <lg */}
-      <aside className="hidden border-l border-black/10 bg-white/70 lg:flex lg:w-80 xl:w-96">
-        <ChatPanelSlot
-          variant="sidebar"
-          suggestedEventIds={suggestedEventIds}
-          onSuggestedEventIds={setSuggestedEventIds}
-        />
-      </aside>
+      <button
+        type="button"
+        onClick={openCreate}
+        className="cursor-pointer absolute bottom-4 right-4 flex items-center gap-2 rounded-full bg-cm-orange px-4 py-3 text-sm font-semibold text-white shadow-card hover:bg-cm-orange/90 sm:bottom-6 sm:right-6 sm:px-5"
+        aria-label="Add event"
+      >
+        <Plus className="h-5 w-5" />
+        <span>Add event</span>
+      </button>
 
       <EventModal
         open={modal.open}
@@ -257,6 +248,17 @@ export default function Home() {
         onSubmit={handleCreate}
         onRsvp={handleRsvp}
       />
+
+      {user && (
+        <ChatPanel
+          userId={user.id}
+          eventsById={eventsById}
+          onOpenEvent={openView}
+          onRsvp={handleRsvp}
+          onSuggestionsChange={setSuggestedEventIds}
+          proactiveOnMount
+        />
+      )}
     </div>
   )
 }

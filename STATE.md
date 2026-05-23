@@ -392,12 +392,13 @@ SEED_LOCATIONS = [
 | 4.10 | Host attribution on `EventCard` and `EventModal` — show host name + their badges | ✅ DONE | `HostBadge` sub-component — lazy-fetches host's top badges. |
 | 4.11 | Community notification hooks — placeholder UI for "new event near you" / "your friend RSVPed" | ✅ DONE | `NotificationFeed` stub with 3 sample entries, ready for backend wiring. |
 | 4.12 | README.md — project overview, setup instructions, env vars, deploy URLs | ✅ DONE | Draft committed; Dev 1 + 3 will fill in live URLs after deploy. |
-| 4.13 | `ChatPanel.jsx` — Maxxer collapsible chat sidebar / mobile bottom drawer | ⬜ TODO | Dev 4 owns primary Maxxer UX. Message thread, input, send button, loading/error states, and session-only React chat history. |
-| 4.14 | Inline Maxxer event recommendation cards | ⬜ TODO | Parse `[EVENT:id]` tags from agent text, render exactly 3 tappable `EventCard`-style suggestions, support RSVP directly when 3.10 exists. |
-| 4.15 | `OnboardingChat.jsx` — fullscreen conversational onboarding | ⬜ TODO | Conversational 4-6 message flow; no form UI. Calls `/api/chat/onboarding`, then hands completion to Dev 3's app-shell gate. |
-| 4.16 | Maxxer suggestion state bridge to map | ⬜ TODO | Emit `suggested_event_ids` from ChatPanel/OnboardingChat to `Home.jsx` so Dev 2's MapView can highlight and pan to the three suggested pins. |
-| 4.17 | Proactive Maxxer open-app suggestions and activity nudges | ⬜ TODO | On app open, ask `/api/chat` for 3 picks based on preferences, past RSVPs, and upcoming events; include gentle "haven't been in 2 weeks" style nudges. |
-| 4.18 | Maxxer tone and safety QA pass | ⬜ TODO | Warm Gen Z slang, supportive and culturally aware; never frames loneliness as failure; suggestions must be grounded in real DB events. |
+| 4.13 | `ChatPanel.jsx` — Maxxer collapsible chat sidebar / mobile bottom drawer | ✅ DONE | `frontend/src/components/ChatPanel.jsx`. Right sidebar on desktop, bottom drawer on mobile. Session-only history via `useMaxxer` hook. Floating "Ask Maxxer" pill stacks above the Add event FAB. |
+| 4.14 | Inline Maxxer event recommendation cards | ✅ DONE | `MaxxerEventSuggestion.jsx` + `utils/maxxerParse.js`. Each `[EVENT:id]` in agent text renders as a tappable card with View / I'm going. Falls back to a "Event reference not found" pill if the id isn't in the current events map. |
+| 4.15 | `OnboardingChat.jsx` — fullscreen conversational onboarding | ✅ DONE | `frontend/src/components/OnboardingChat.jsx`. Bootstraps via `useMaxxer({mode:'onboarding'})`; on `onboarding_complete` it hands extracted preferences to the host (Home.jsx's temp gate — see 3.7.1). |
+| 4.16 | Maxxer suggestion state bridge to map | 🟡 PARTIAL | State plumbing done: ChatPanel → Home → `MapView` via new `highlightedLocationIds` prop. Dev 2 still needs to wire the marker highlight + flyTo. Suggested events also get a gold ring in the list below. |
+| 4.17 | Proactive Maxxer open-app suggestions and activity nudges | ✅ DONE | `ChatPanel` accepts `proactiveOnMount`; calls `useMaxxer.bootstrap()` once which fires `/api/chat` with empty history and surfaces 3 picks. Nudge copy lives in the mock until Dev 1's `/api/chat` ships. |
+| 4.18 | Maxxer tone and safety QA pass | ⬜ TODO | Warm Gen Z slang, supportive and culturally aware; never frames loneliness as failure; suggestions must be grounded in real DB events. Needs a live-data review once Dev 1's `/api/chat` ships. |
+| 4.19 | Local mock for Dev 1's chat endpoints | ✅ DONE | `utils/maxxerMock.js` — picks 3 upcoming events from `/api/events` and embeds `[EVENT:id]` tags so the frontend Maxxer flow is demoable end-to-end. `api.js` falls through on 404/405/network errors. Delete once 1.10.3/1.10.4 land. |
 
 ---
 
@@ -597,9 +598,9 @@ VITE_MAPBOX_TOKEN=pk.xxxxxxxxxxxxxxxxxxxxxxxx  # public Mapbox token, scoped to 
 | Backend Foundation | Dev 1 | `feature/backend` | 🟡 In progress — 12/17 done (1.1–1.12 ✅; live at commaxx-api.onrender.com); Maxxer subtasks 1.10.1–1.10.5 TODO | Maxxer needs `ANTHROPIC_API_KEY` env + `routers/chat.py` (1.10.1–1.10.5) |
 | GIS / Mapping | Dev 2 (you) | `feature/gis` | ✅ Complete — 9/10 done (2.1–2.6, 2.8–2.10); 2.7 deferred | Bespoke SVG markers remain deferred until designers provide assets |
 | Frontend App | Dev 3 | `feature/frontend-app` | 🟡 In progress — 14/17 done (3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.7.1, 3.7.2, 3.8, 3.9, 3.10, 3.13, 3.14) | 3.11/3.12 polish and 3.15 deploy remain |
-| Badges & Social + Maxxer | Dev 4 | `feature/social` | 🟡 Badges/social done; Maxxer TODO (12/18 done) | Real Maxxer responses need Dev 1 `/api/chat` endpoints |
+| Badges & Social + Maxxer | Dev 4 | `feature/social` | 🟡 17/19 done — Maxxer frontend complete (4.13/4.14/4.15/4.17/4.19 ✅, 4.16 now wired through Dev 2 map highlights, 4.18 needs live-data QA) | Real Maxxer responses need Dev 1 `/api/chat` endpoints; mock adapter in `utils/maxxerMock.js` until then |
 
-**Last updated:** 2026-05-23 — Dev 2 GIS stream complete and integrated with Dev 3's Maxxer shell slots: SearchBar filters locations/events, marker/list sync works, and `suggestedEventIds` now map to highlighted pins/event cards.
+**Last updated:** 2026-05-23 — Dev 2 GIS stream complete and merged with Dev 4 Maxxer frontend: SearchBar filters live events/locations, marker/list sync works, and Maxxer `suggestedEventIds` now map to highlighted pins/event cards.
 
 ---
 
