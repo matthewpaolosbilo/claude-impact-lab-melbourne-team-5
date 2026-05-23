@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { UserCircle2 } from 'lucide-react'
 import { getInitials, OPEN_AUTH_EVENT, useUser } from '../hooks/useUser'
+import spacdLogo from '../assets/spacd-hero-dark.svg'
 
 // 3.5 nav header, made auth-aware in 3.6.
 export default function NavHeader() {
@@ -14,9 +15,14 @@ export default function NavHeader() {
     <header className="sticky top-0 z-20 flex items-center justify-between gap-2 border-b border-black/10 bg-white/80 px-4 py-3 backdrop-blur shadow-card sm:px-6">
       <Link
         to="/"
-        className="cursor-pointer truncate text-lg font-bold text-cm-charcoal hover:text-cm-orange"
+        className="cursor-pointer flex min-w-0 items-center"
+        aria-label="spacd home"
       >
-        spacd
+        <img
+          src={spacdLogo}
+          alt="spacd"
+          className="h-9 w-auto max-w-[150px] rounded-sm object-contain sm:max-w-[190px]"
+        />
       </Link>
 
       {user ? (
