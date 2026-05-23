@@ -8,14 +8,22 @@ import OnboardingChat from '../components/OnboardingChat'
 import { useLocations } from '../utils/useLocations'
 import { useEvents } from '../utils/useEvents'
 import { useUser } from '../hooks/useUser'
+import { useToast } from '../hooks/useToast'
+import { useBadgeWatcher } from '../hooks/useBadgeWatcher'
+import { rsvpToEvent } from '../api'
 
 // 3.7 Home layout + Dev 4 Maxxer wiring (4.13/4.14/4.15/4.16/4.17).
-// Temporary onboarding gate built here (Dev 3's 3.7.1) — handed off whenever Dev 3
-// formalises the app-shell version.
+// 3.10 RSVP wiring is real (POST /api/events/{id}/rsvp with X-User-Id, optimistic
+// + rollback, toast on success/failure, triggers badge re-check).
+// Onboarding gate is a temporary host for Dev 3's 3.7.1 — flip to the app-shell
+// version when that lands.
 export default function Home() {
   const { user, setUser } = useUser()
   const { events, setEvents } = useEvents()
   const { locations } = useLocations()
+  const toast = useToast()
+  const { triggerBadgeCheck } = useBadgeWatcher(user?.id)
+
   const [modal, setModal] = useState({ open: false, mode: 'view', event: null })
   const [suggestedEventIds, setSuggestedEventIds] = useState([])
 
@@ -47,15 +55,39 @@ export default function Home() {
   const openCreate = () => setModal({ open: true, mode: 'create', event: null })
   const closeModal = () => setModal((m) => ({ ...m, open: false }))
 
-  const handleRsvp = (event) => {
-    setEvents((list) =>
-      list.map((e) =>
-        e.id === event.id
-          ? { ...e, user_rsvp: 'going', attendee_count: e.attendee_count + 1 }
-          : e,
-      ),
-    )
+  const applyRsvpState = (eventId, patch) =>
+    setEvents((list) => list.map((e) => (e.id === eventId ? { ...e, ...patch } : e)))
+
+  const handleRsvp = async (event) => {
+    if (!user) {
+      window.dispatchEvent(new Event('community-maxxing-open-auth'))
+      toast.info('Sign in to RSVP')
+      return
+    }
+
+    const prev = {
+      user_rsvp: event.user_rsvp,
+      attendee_count: event.attendee_count,
+    }
+    applyRsvpState(event.id, {
+      user_rsvp: 'going',
+      attendee_count: event.attendee_count + 1,
+    })
     setModal((m) => (m.event?.id === event.id ? { ...m, open: false } : m))
+
+    try {
+      await rsvpToEvent(event.id, user.id)
+      toast.success("You're going!")
+      triggerBadgeCheck()
+    } catch (err) {
+      // 409 = already RSVP'd. Treat as success: keep optimistic state, no error noise.
+      if (err?.response?.status === 409) {
+        triggerBadgeCheck()
+        return
+      }
+      applyRsvpState(event.id, prev)
+      toast.error("Couldn't RSVP. Try again in a moment.")
+    }
   }
 
   const handleCreate = (draft) => {

@@ -36,6 +36,19 @@ export async function fetchUserHistory(userId) {
   }
 }
 
+// ---- 3.10 RSVP wiring ----
+
+// POST /api/events/{event_id}/rsvp with X-User-Id header.
+// Returns RSVPRead. 409 means user already RSVP'd; callers should treat that as success.
+export async function rsvpToEvent(eventId, userId) {
+  const { data } = await api.post(
+    `/api/events/${eventId}/rsvp`,
+    null,
+    { headers: { 'X-User-Id': userId } },
+  )
+  return data
+}
+
 // ---- Dev 4 (Maxxer AI agent) endpoints ----
 // Real endpoints are Dev 1's 1.10.3 / 1.10.4. Until they ship, the helpers below
 // fall through to a local mock that picks 3 events from /api/events and emits

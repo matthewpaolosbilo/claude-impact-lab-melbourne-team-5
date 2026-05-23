@@ -1,10 +1,12 @@
 # Dev 2 Dependency Map — GIS / Mapping
 
-**Last updated:** 2026-05-23
+**Last updated:** 2026-05-23 (drift fix: 2.1–2.6 flipped ✅, 2.7 ⏸ deferred, 2.5 Mapbox swap reflected)
 **Source:** `STATE.md` (post-restructure, 4-dev split)
 **Workstream:** Dev 2, branch `feature/gis` — Locations data + Map UI + Spatial UX
 
-> Scope changed materially in this revision. Dev 2 is no longer "frontend map only"; it now spans backend (Location model, seed, locations router) and frontend (map components, markers, search, sync, mobile UX). Frontend foundation tasks (Vite init, api.js, routing, auth, EventCard, EventModal, RSVP wiring, Netlify deploy) moved to Dev 3. Profile/badges/notifications moved to Dev 4.
+> Scope changed materially in an earlier revision: Dev 2 now spans backend (Location model, seed, locations router) and frontend (map components, markers, search, sync, mobile UX).
+>
+> Six tasks ✅ DONE: 2.1 (Location model), 2.2 (15 seed locations), 2.3 (`GET /api/locations` + `event_count`, merged via PR #12), 2.4 (`constants.js`), 2.5 (Mapbox `MapView` consuming API-fed locations via `useLocations`), 2.6 (`LocationPin`). 2.7 ⏸ DEFERRED (Lucide icons used inline instead of bespoke SVGs). Three tasks ⬜ TODO: 2.8 (SearchBar), 2.9 (map ↔ event list sync), 2.10 (mobile map UX) — plus an inferred Maxxer tie-in to accept `highlightedEventIds` from Dev 4's ChatPanel.
 
 ---
 
@@ -12,13 +14,13 @@
 
 | Task | Title | Intra-Dev-2 deps | Cross-workstream deps | External deps | Data contracts |
 |------|-------|------------------|------------------------|---------------|----------------|
-| 2.1 | `models.py` — Location model | — | Blocked on 1.3 (Dev 1 scaffolds `models.py` with User, Event, RSVP first); shared file | SQLAlchemy | DATA MODELS § Location |
-| 2.2 | `seed.py` — 15 Melbourne seed locations | 2.1 | Blocked on 1.4 (Dev 1 scaffolds `seed.py`); blocked on 1.2 (database/session); shared file | — | SEED DATA § Melbourne Locations |
-| 2.3 | `routers/locations.py` — `GET`/`POST /api/locations` (+ `event_count`) | 2.1 | Needs 1.9 (Dev 1 mounts router in `main.py`); `event_count` reads Event table from 1.3/1.6 | FastAPI, Pydantic | `GET /api/locations` response (incl. `event_count`) |
-| 2.4 | `constants.js` — location type config (labels, colors, icons) | — | Needs 3.1 (Dev 3 inits Vite app so `src/utils/` exists) | — | Mirrors Location.type enum from 2.1 (inferred) |
-| 2.5 | `MapView.jsx` — Leaflet map + colored markers | 2.3, 2.4 | Needs 3.1 (Vite + react-leaflet installed), 3.2 (`api.js` axios instance) | leaflet, react-leaflet, OpenStreetMap tiles | `GET /api/locations` |
-| 2.6 | `LocationPin.jsx` — custom marker + popup ("See Events" CTA) | 2.4, 2.5, 2.7 | Needs 3.1 (lucide-react installed); "See Events" CTA usable once 1.6 (`GET /api/events`) is live | lucide-react | `GET /api/locations` shape |
-| 2.7 | Custom SVG markers in `public/markers/` (bbq, garden, kitchen) | — | Needs 3.1 (Vite project so `public/` exists) | — | — |
+| 2.1 ✅ | `models.py` — Location model | — | Shared file with Dev 1's 1.3 ✅ | SQLAlchemy | DATA MODELS § Location |
+| 2.2 ✅ | `seed.py` — 15 Melbourne seed locations | 2.1 ✅ | Shares `seed.py` with Dev 1's 1.4 ✅ | — | SEED DATA § Melbourne Locations |
+| 2.3 ✅ | `routers/locations.py` — `GET`/`POST /api/locations` (+ `event_count`) | 2.1 ✅ | Mounted in `main.py` (1.9 ✅); `event_count` joins Event table from 1.6 ✅ | FastAPI, Pydantic | `GET /api/locations` response (incl. `event_count`) |
+| 2.4 ✅ | `constants.js` — location type config (labels, colors, icons) | — | Lives in Dev 3's Vite project (3.1 ✅) | — | Mirrors Location.type enum from 2.1 ✅ |
+| 2.5 ✅ | `MapView.jsx` — Mapbox map + colored markers (Mapbox swap from Leaflet) | 2.3 ✅, 2.4 ✅ | Consumes `useLocations()` against live `GET /api/locations` (2.3 ✅) | mapbox-gl, react-map-gl | `GET /api/locations` |
+| 2.6 ✅ | `LocationPin.jsx` — custom marker + popup ("See Events" CTA) | 2.4 ✅, 2.5 ✅ | "See Events" CTA deferred until events list integration | lucide-react | `GET /api/locations` shape |
+| 2.7 ⏸ | Custom SVG markers in `public/markers/` (bbq, garden, kitchen) | — | Lucide icons used inline instead; deferred until designers ship bespoke SVGs | — | — |
 | 2.8 | `SearchBar.jsx` — text input + type filter | 2.4 | Needs 3.1 + 3.2; coordinate with Dev 3 on placement (3.7 `Home.jsx`); hits 2.3 or Dev 1's 1.8 (`GET /api/search`) | — | `GET /api/locations` or `GET /api/search` |
 | 2.9 | Map ↔ event list sync (click marker → highlight/scroll matching events) | 2.5, 2.6, 2.8 | Blocked on Dev 3's 3.7 (`Home.jsx` exists with event list) and 3.8 (`EventCard` to highlight); reads 1.6 (`GET /api/events`) for `location.id` matching | — | `GET /api/events` (esp. `location.id`) |
 | 2.10 | Mobile map UX — full-width, sticky search, smooth pan/zoom | 2.5, 2.8 | Coordinate with Dev 3's 3.12 (mobile responsive shell) to avoid conflicting layout rules | tailwindcss | — |
@@ -29,14 +31,14 @@
 
 ```mermaid
 graph TD
-    2.1[2.1 Location model] --> 2.2[2.2 Seed locations]
-    2.1 --> 2.3[2.3 locations router]
-    2.3 --> 2.5[2.5 MapView]
-    2.4[2.4 constants.js] --> 2.5
-    2.4 --> 2.6[2.6 LocationPin]
+    2.1[2.1 Location model ✅] --> 2.2[2.2 Seed locations ✅]
+    2.1 --> 2.3[2.3 locations router ✅]
+    2.3 --> 2.5[2.5 MapView ✅]
+    2.4[2.4 constants.js ✅] --> 2.5
+    2.4 --> 2.6[2.6 LocationPin ✅]
     2.4 --> 2.8[2.8 SearchBar]
     2.5 --> 2.6
-    2.7[2.7 SVG markers] --> 2.6
+    2.7[2.7 SVG markers ⏸] --> 2.6
     2.5 --> 2.9[2.9 Map↔list sync]
     2.6 --> 2.9
     2.8 --> 2.9
@@ -48,9 +50,9 @@ graph TD
 
 ## Critical Path
 
-`2.1 → 2.3 → 2.5 → 2.6 → 2.9`
+With 2.1, 2.3, 2.5, 2.6 all ✅ shipped, the remaining critical path is:
 
-Five tasks. The backend chain (model → router) feeds the map (2.5), which feeds the pins (2.6), which feed the map ↔ list sync (2.9 — the most cross-cutting frontend task). 2.10 (mobile UX) is the same depth but parallel to 2.9.
+`2.8 → 2.9` (two tasks). 2.10 (mobile UX) is the same depth but parallel to 2.9. The backend/map chain is complete.
 
 ---
 
