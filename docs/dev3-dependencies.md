@@ -18,7 +18,7 @@
 | 3.4 ✅ | `App.jsx` — React Router | 3.1 ✅ | Shared file with Dev 4 (Dev 4 swaps the `/profile` placeholder for 4.6) | react-router-dom | — |
 | 3.5 ✅ | Nav header component | 3.1 ✅, 3.4 ✅ | — | lucide-react | — |
 | 3.6 ✅ | Auth flow (name + email modal) | 3.2 ✅, 3.5 ✅ | Satisfied by Dev 1's 1.5 (`POST /api/users`) now on main | localStorage | (user_id stored client-side) |
-| 3.7 ✅ | `Home.jsx` — layout (search + map + list + FAB) | 3.1 ✅, 3.4 ✅ | Consumes Dev 2's 2.5 (`MapView`) ✅ merged; SearchBar (2.8) and EventCard (3.8) slots still placeholders | — | — |
+| 3.7 ✅ | `Home.jsx` — layout (search + map + list + FAB) | 3.1 ✅, 3.4 ✅ | Consumes Dev 2's 2.5 (`MapView`) ✅ and 2.8 (`SearchBar`) ✅; EventCard (3.8) is wired | — | — |
 | 3.8 ✅ | `EventCard.jsx` — compact card | 3.1 ✅, 3.2 ✅, 3.3 ✅ | Shipped against `SEED_EVENTS` mock; shared file with Dev 4 (4.9 attendee surfacing, 4.10 host attribution) — slots marked in source | lucide-react | `GET /api/events` (mock today; swap when Dev 1's 1.6 lands) |
 | 3.9 ✅ | `EventModal.jsx` — view/create | 3.1 ✅, 3.2 ✅, 3.8 ✅ | Shipped against `SEED_EVENTS` mock; location dropdown consumes Dev 2's `useLocations` hook (live `GET /api/locations`) | — | `GET/POST /api/events` (mock today), `GET /api/locations` ✅ |
 | 3.10 | Wire RSVP | 3.2 ✅, 3.6, 3.8, 3.9 | Blocked on Dev 1's 1.7 (`POST /api/events/{id}/rsvp`); Dev 4's 4.8 hooks into success callback | localStorage | `POST /api/events/{id}/rsvp` |
@@ -98,7 +98,7 @@ The remaining work is small enough for one engineer: 3.6 → 3.10 → 3.15 is th
 1. **Dev 1's 1.5 (`POST /api/users`)** — unblocks 3.6 (auth flow), which gates 3.10 and the entire RSVP chain.
 2. **Dev 1's 1.7 (RSVP endpoints)** — unblocks 3.10 (currently optimistic-local-only in `Home.jsx`).
 3. **Dev 1's 1.6 (`GET /api/events`, `POST /api/events`)** — swap `SEED_EVENTS` and the local create stub in `Home.jsx` for live calls. Soft dep — 3.8/3.9 already ship against mocks.
-4. **Dev 2's 2.8 (SearchBar)** — slot-in component for 3.7's search-bar placeholder. Independent of remaining Dev 3 work.
+4. **Dev 2's 2.8 (SearchBar)** — satisfied; `Home.jsx` now has live search/type filtering for places and events.
 5. **Dev 1's 1.12 (Render deploy)** — final gate for 3.14 (netlify.toml redirect target) and 3.15 (end-to-end live).
 6. **Dev 1's 1.9 (CORS in main.py)** — needs the Netlify domain from 3.15, circular soft coupling. Use env var.
 

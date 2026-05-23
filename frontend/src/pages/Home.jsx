@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Plus } from 'lucide-react'
 import MapView from '../components/MapView'
 import EventCard from '../components/EventCard'
 import EventModal from '../components/EventModal'
+import SearchBar from '../components/SearchBar'
 import { SEED_EVENTS } from '../utils/seedEvents'
 import { useLocations } from '../utils/useLocations'
 import { useUser } from '../hooks/useUser'
@@ -18,6 +19,10 @@ import { rsvpToEvent } from '../api'
 export default function Home() {
   const [events, setEvents] = useState(SEED_EVENTS)
   const [modal, setModal] = useState({ open: false, mode: 'view', event: null })
+  const [query, setQuery] = useState('')
+  const [typeFilter, setTypeFilter] = useState('all')
+  const [selectedLocationId, setSelectedLocationId] = useState(null)
+  const eventRefs = useRef(new Map())
   const { locations, loading, error } = useLocations()
   const { user } = useUser()
   const toast = useToast()
@@ -25,6 +30,64 @@ export default function Home() {
   const openView = (event) => setModal({ open: true, mode: 'view', event })
   const openCreate = () => setModal({ open: true, mode: 'create', event: null })
   const closeModal = () => setModal((m) => ({ ...m, open: false }))
+
+  const normalizedQuery = query.trim().toLowerCase()
+  const filteredLocations = useMemo(() => {
+    return locations.filter((loc) => {
+      const matchesType = typeFilter === 'all' || loc.type === typeFilter
+      const matchesQuery =
+        !normalizedQuery ||
+        [loc.name, loc.address, loc.description, loc.type]
+          .filter(Boolean)
+          .some((value) => value.toLowerCase().includes(normalizedQuery))
+      return matchesType && matchesQuery
+    })
+  }, [locations, normalizedQuery, typeFilter])
+
+  const filteredEvents = useMemo(() => {
+    return events.filter((event) => {
+      const matchesType =
+        typeFilter === 'all' || event.location?.type === typeFilter
+      const matchesQuery =
+        !normalizedQuery ||
+        [
+          event.title,
+          event.description,
+          event.event_type,
+          event.host?.name,
+          event.location?.name,
+          event.location?.type,
+        ]
+          .filter(Boolean)
+          .some((value) => value.toLowerCase().includes(normalizedQuery))
+      return matchesType && matchesQuery
+    })
+  }, [events, normalizedQuery, typeFilter])
+
+  const highlightedLocationIds = useMemo(() => {
+    const ids = new Set()
+    if (selectedLocationId) ids.add(selectedLocationId)
+    return Array.from(ids)
+  }, [selectedLocationId])
+
+  const handleClearSearch = () => {
+    setQuery('')
+    setTypeFilter('all')
+    setSelectedLocationId(null)
+  }
+
+  const handleLocationSelect = (location) => {
+    setSelectedLocationId(location.id)
+    const matchingEvent = filteredEvents.find((event) => event.location?.id === location.id)
+    if (!matchingEvent) return
+
+    window.requestAnimationFrame(() => {
+      eventRefs.current.get(matchingEvent.id)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      })
+    })
+  }
 
   const applyRsvpState = (eventId, patch) =>
     setEvents((list) => list.map((e) => (e.id === eventId ? { ...e, ...patch } : e)))
@@ -88,33 +151,58 @@ export default function Home() {
     ? 'Loading locations…'
     : error
       ? 'Failed to load locations (check VITE_API_URL + backend CORS)'
-      : `${locations.length} locations`
+      : `${filteredLocations.length} places · ${filteredEvents.length} events`
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
-      <div className="border-b border-black/10 bg-white/70 px-6 py-3 backdrop-blur">
-        <div className="rounded-card bg-cm-cream/60 px-4 py-2 text-sm text-cm-warm-gray">
-          Search bar slot — 2.8 SearchBar drops in here · {status}
-        </div>
+      <div className="sticky top-[65px] z-20 border-b border-black/10 bg-white/85 px-4 py-3 backdrop-blur sm:px-6">
+        <SearchBar
+          query={query}
+          type={typeFilter}
+          onQueryChange={setQuery}
+          onTypeChange={(nextType) => {
+            setTypeFilter(nextType)
+            setSelectedLocationId(null)
+          }}
+          onClear={handleClearSearch}
+          resultLabel={status}
+          disabled={loading}
+        />
       </div>
 
       {/* map: ~60% of viewport height */}
-      <div className="min-h-0 basis-[60%]">
-        <MapView locations={locations} />
+      <div className="min-h-[320px] basis-[48vh] sm:basis-[60%]">
+        <MapView
+          locations={filteredLocations}
+          onSelect={handleLocationSelect}
+          selectedLocationId={selectedLocationId}
+          highlightedLocationIds={highlightedLocationIds}
+        />
       </div>
 
       {/* event list — 3.8 EventCard against seed data */}
-      <div className="min-h-0 flex-1 overflow-y-auto border-t border-black/10 bg-cm-cream px-6 py-4">
+      <div className="min-h-0 flex-1 overflow-y-auto border-t border-black/10 bg-cm-cream px-4 py-4 sm:px-6">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-cm-warm-gray">
           Upcoming events
         </h2>
-        {events.length === 0 ? (
+        {filteredEvents.length === 0 ? (
           <div className="mt-3 rounded-card bg-white/70 p-card text-sm text-cm-warm-gray shadow-card">
-            No events yet. Tap "Add event" to host one.
+            No matches yet. Try a different search, or tap "Add event" to host one.
           </div>
         ) : (
           <ul className="mt-3 space-y-3">
-            {events.map((event) => (
-              <li key={event.id}>
+            {filteredEvents.map((event) => (
+              <li
+                key={event.id}
+                ref={(node) => {
+                  if (node) eventRefs.current.set(event.id, node)
+                  else eventRefs.current.delete(event.id)
+                }}
+                className={
+                  selectedLocationId === event.location?.id
+                    ? 'rounded-card ring-2 ring-cm-gold ring-offset-2 ring-offset-cm-cream'
+                    : ''
+                }
+              >
                 <EventCard event={event} onOpen={openView} onRsvp={handleRsvp} />
               </li>
             ))}
@@ -126,7 +214,7 @@ export default function Home() {
       <button
         type="button"
         onClick={openCreate}
-        className="cursor-pointer absolute bottom-6 right-6 flex items-center gap-2 rounded-full bg-cm-orange px-5 py-3 text-sm font-semibold text-white shadow-card hover:bg-cm-orange/90"
+        className="cursor-pointer absolute bottom-4 right-4 flex items-center gap-2 rounded-full bg-cm-orange px-4 py-3 text-sm font-semibold text-white shadow-card hover:bg-cm-orange/90 sm:bottom-6 sm:right-6 sm:px-5"
         aria-label="Add event"
       >
         <Plus className="h-5 w-5" />

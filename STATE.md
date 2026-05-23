@@ -340,12 +340,12 @@ SEED_LOCATIONS = [
 | 2.2 | `seed.py` — insert all 15 Melbourne seed locations | ✅ DONE | Idempotent; called from `main.py` lifespan after `init_db()`. Logs `[seed] inserted 15 locations` on cold start. |
 | 2.3 | `routers/locations.py` — `GET /api/locations` (list, filter by type), `POST /api/locations`; include `event_count` | ✅ DONE | `event_count` = upcoming events (`start_time >= now`) via outer-join + group_by. Mounted in `main.py`. `LocationRead`/`LocationCreate` added to `schemas.py`. Frontend now consumes via `useLocations()` hook. |
 | 2.4 | `constants.js` — location type config: labels, colors, icons (🔥 BBQ = orange, 🌱 Garden = green, 🍳 Kitchen = purple) | ✅ DONE | `LOCATION_TYPES` + `MAP_DEFAULTS` in `frontend/src/utils/constants.js`. Lucide icons (Flame/Sprout/ChefHat). |
-| 2.5 | `MapView.jsx` — Mapbox GL map (via `react-map-gl`) centred on Melbourne CBD (-37.8136, 144.9631, zoom 13). Install `mapbox-gl` + `react-map-gl`; remove `leaflet` + `react-leaflet`. Fetch locations from API, render colored markers by type | ✅ DONE | Style: `mapbox/light-v11`. Click-to-popup. `Home.jsx` passes API-fed locations from `useLocations()` / `/api/locations`. Follow-up: accept `highlightedEventIds` / highlighted location IDs from the Maxxer so suggested pins can pulse, enlarge, or pan/zoom into view. |
+| 2.5 | `MapView.jsx` — Mapbox GL map (via `react-map-gl`) centred on Melbourne CBD (-37.8136, 144.9631, zoom 13). Install `mapbox-gl` + `react-map-gl`; remove `leaflet` + `react-leaflet`. Fetch locations from API, render colored markers by type | ✅ DONE | Style: `mapbox/light-v11`. Click-to-popup. `Home.jsx` passes API-fed locations from `useLocations()` / `/api/locations`. Accepts `selectedLocationId` + `highlightedLocationIds`, pulses suggested pins, and pans/zooms selected locations into view. |
 | 2.6 | `LocationPin.jsx` — custom marker. Click opens popup with name, type badge, description, "See Events" button | ✅ DONE | Coloured pin + Lucide icon, scales on hover. "See Events" CTA deferred until events list exists. |
 | 2.7 | Custom SVG markers in `public/markers/` (bbq, garden, kitchen) | ⏸ DEFERRED | Using Lucide icons inline for now. Add bespoke SVGs if/when designers hand them over. |
-| 2.8 | `SearchBar.jsx` — text input + type filter dropdown (All / BBQ / Garden / Kitchen). Hooks into `GET /api/locations` or `GET /api/search` | ⬜ TODO | Coordinate with Dev 3 on placement |
-| 2.9 | Map ↔ event list sync — clicking marker scrolls/highlights matching events; viewport-based filtering optional | ⬜ TODO | Wire into Dev 3's `Home.jsx` |
-| 2.10 | Mobile map UX — full-width on small screens, sticky search, smooth pan/zoom | ⬜ TODO | |
+| 2.8 | `SearchBar.jsx` — text input + type filter dropdown (All / BBQ / Garden / Kitchen). Hooks into `GET /api/locations` or `GET /api/search` | ✅ DONE | Added `frontend/src/components/SearchBar.jsx`; filters API-fed locations plus current event list by query/type in `Home.jsx`. |
+| 2.9 | Map ↔ event list sync — clicking marker scrolls/highlights matching events; viewport-based filtering optional | ✅ DONE | Marker click selects a location, pans/zooms the map, pulses the pin, and scrolls/highlights the first matching event card. |
+| 2.10 | Mobile map UX — full-width on small screens, sticky search, smooth pan/zoom | ✅ DONE | Search is sticky; map has stable mobile height; event list/FAB spacing adjusted for small screens. |
 
 ---
 
@@ -360,7 +360,7 @@ SEED_LOCATIONS = [
 | 3.4 | `App.jsx` — React Router: `/` → Home, `/profile` → Profile (Dev 4 owns Profile page) | ✅ DONE | `BrowserRouter` with `/` and `/profile` routes wired. Inline placeholders mark slots for 3.7 (Home) and Dev 4's 4.6 (Profile). Branch: `feat-3.4`. |
 | 3.5 | Nav header component — logo/title left, profile avatar/name right (links to Profile) | ✅ DONE | `NavHeader.jsx` sticky top bar mounted in `App.jsx` above `<Routes>`. Logo links to `/`; "Sign in" pill links to `/profile` (slot for 3.6 auth-aware avatar + name). Lucide `UserCircle2`. Branch: `feat-3.5`. |
 | 3.6 | Simple auth flow: first-visit modal asks name + email → `POST /api/users` → store `user_id` in localStorage. Show name in header thereafter | ✅ DONE | `AuthModal.jsx` + `useUser` hook (localStorage key `community-maxxing-user`, same-tab sync via custom event). NavHeader swaps "Sign in" pill for initials avatar + name when a user exists. Inline error on POST failure. Dev 1's `POST /api/users` now on main so submissions work end-to-end. Branch: `feat-3.6` (PR #14, implemented in a separate worktree). |
-| 3.7 | `Home.jsx` — layout: search bar top, map (Dev 2's `MapView`) 60% height, scrollable event list below, "Add Event" FAB bottom-right | ✅ DONE | `frontend/src/pages/Home.jsx` wired into `/`. SearchBar slot waits on 2.8; event list + modal now consume seeded/API events from Dev 3's 3.8/3.9 work. Consumes Dev 2's merged `MapView` with API-fed locations. Branch: `feat-3.7` (stacked on `feat-3.5`). |
+| 3.7 | `Home.jsx` — layout: search bar top, map (Dev 2's `MapView`) 60% height, scrollable event list below, "Add Event" FAB bottom-right | ✅ DONE | `frontend/src/pages/Home.jsx` wired into `/`. Dev 2's SearchBar now filters locations/events; event list + modal consume seeded/API events from Dev 3's 3.8/3.9 work. Consumes Dev 2's merged `MapView` with API-fed locations. Branch: `feat-3.7` (stacked on `feat-3.5`). |
 | 3.7.1 | App shell gate for `OnboardingChat.jsx` | ⬜ TODO | If signed-in user has no `preferences`, render Dev 4's `OnboardingChat` fullscreen instead of Home. Can be built with mocked user preferences until Dev 1 endpoint lands. |
 | 3.7.2 | Home layout slot for `ChatPanel.jsx` | ⬜ TODO | Reserve right sidebar on desktop and bottom drawer area on mobile for Dev 4's `ChatPanel`; pass suggested event IDs down to MapView once available. |
 | 3.8 | `EventCard.jsx` — compact card: title, type pill, date/time, location name, RSVP button | ✅ DONE | `frontend/src/components/EventCard.jsx`. Click opens `EventModal` in view mode; RSVP button stubbed (real wiring in 3.10). Slots marked for Dev 4's 4.9 attendee avatars + 4.10 host badges. Branch: `feat-3.8-3.9`. |
@@ -596,11 +596,11 @@ VITE_MAPBOX_TOKEN=pk.xxxxxxxxxxxxxxxxxxxxxxxx  # public Mapbox token, scoped to 
 | Workstream | Dev | Branch | Progress | Blocker |
 |------------|-----|--------|----------|---------|
 | Backend Foundation | Dev 1 | `feature/backend` | 🟡 In progress — 12/17 done (1.1–1.12 ✅; live at commaxx-api.onrender.com); Maxxer subtasks 1.10.1–1.10.5 TODO | Maxxer needs `ANTHROPIC_API_KEY` env + `routers/chat.py` (1.10.1–1.10.5) |
-| GIS / Mapping | Dev 2 (you) | `feature/gis` | 🟡 In progress — 6/10 done (2.1, 2.2, 2.3, 2.4, 2.5, 2.6); 2.7 deferred | SearchBar + map/event-list sync + mobile UX + Maxxer highlighted pins remain |
+| GIS / Mapping | Dev 2 (you) | `feature/gis` | ✅ Complete — 9/10 done (2.1–2.6, 2.8–2.10); 2.7 deferred | Bespoke SVG markers remain deferred until designers provide assets |
 | Frontend App | Dev 3 | `feature/frontend-app` | 🟡 In progress — 10/17 done (3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.13) | 3.10 next (RSVP wiring); 3.11/3.12 unblocked; Maxxer shell can use mock responses until `/api/chat` exists |
 | Badges & Social + Maxxer | Dev 4 | `feature/social` | 🟡 Badges/social done; Maxxer TODO (12/18 done) | Real Maxxer responses need Dev 1 `/api/chat` endpoints |
 
-**Last updated:** 2026-05-23 — Drift fix: Dev 1 rows 1.1–1.12 flipped ✅ (backend live at commaxx-api.onrender.com); Dev 1 tracker row corrected from "Partial foundation present" to 12/17 with Maxxer subtasks outstanding.
+**Last updated:** 2026-05-23 — Dev 2 GIS stream complete: SearchBar, location/event filtering, marker-to-event sync, selected pin highlighting/pan, and mobile map/search UX shipped; bespoke SVG markers remain deferred.
 
 ---
 
