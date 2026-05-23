@@ -21,8 +21,9 @@ A lightweight web app with:
 1. **Map interface** showing community BBQs, garden beds, and community kitchens across Melbourne
 2. **Event discovery and creation** — users search for and add events at these locations
 3. **Badges and rewards** for participation (attendance, hosting, streaks)
-4. **FastAPI backend** + **React frontend**
-5. **Deploy:** backend on Render, frontend on Netlify
+4. **The Maxxer AI agent** — conversational onboarding + event curation grounded in real database events
+5. **FastAPI backend** + **React frontend**
+6. **Deploy:** backend on Render, frontend on Netlify
 
 ---
 
@@ -35,11 +36,13 @@ A lightweight web app with:
 │  React + Vite               │────▶│  FastAPI + SQLite            │
 │  Mapbox GL JS               │     │                              │
 │  Tailwind CSS               │     │  /api/locations   GET/POST   │
+│  ChatPanel + OnboardingChat │     │  /api/chat        POST       │
 │                             │     │  /api/events      GET/POST   │
 │  Pages:                     │     │  /api/events/{id}/rsvp POST  │
 │  - Map (home)               │     │  /api/users/{id}/badges GET  │
 │  - Event detail             │     │  /api/users       POST       │
 │  - Profile + badges         │     │  /api/search      GET        │
+│  - Maxxer onboarding chat   │     │  /api/chat/onboarding POST   │
 │                             │     │                              │
 └─────────────────────────────┘     └──────────────────────────────┘
 ```
@@ -49,7 +52,38 @@ A lightweight web app with:
 - **DB:** SQLite via SQLAlchemy (good enough for MVP, zero config on Render)
 - **Auth:** Simplified — name + email, no OAuth today. Store a user_id in localStorage.
 - **Badges:** Computed server-side on badge check endpoint, not event-driven
+- **AI agent:** Anthropic Claude Sonnet is called server-side only from FastAPI; never expose `ANTHROPIC_API_KEY` to the browser
 - **Icons:** Lucide React for UI, custom SVG markers for map pins
+
+### The Maxxer — AI Agent
+
+The Maxxer is a warm, culturally aware conversational assistant for international students in Melbourne. It helps users discover community events with a supportive friend vibe: natural Gen Z slang, a little cheeky, never judgmental, always grounded in real events from the database.
+
+New users without saved preferences see fullscreen conversational onboarding before the map. The Maxxer asks about what brought them to Melbourne, what they miss from home, their preferred social vibe, dietary/cultural considerations, where they usually are in Melbourne, and how social they feel. It should gather this across 4-6 natural messages, then save extracted preferences to the user profile and transition to the map with 3 curated events highlighted.
+
+Returning users see the Maxxer as a collapsible chat sidebar beside the map on desktop and a bottom drawer on mobile. They can ask for suggestions, receive proactive 3-event picks, and get gentle activity nudges based on preferences, past RSVPs, and upcoming events. Every recommendation set must contain exactly 3 real events and tag each event reference as `[EVENT:id]` for frontend parsing.
+
+Backend prompt baseline:
+```text
+You are the Maxxer, the AI assistant for Community Maxxing — a civic participation app in Melbourne, Australia.
+
+You speak in warm Gen Z slang. You're supportive, a little cheeky, never cringe. You talk like a friend who genuinely wants this person to get out there and find their people. You use slang naturally — "ngl", "fr fr", "lowkey", "giving", "slay", "no cap", "vibe check", "bet" — but you don't overdo it. Every other sentence doesn't need slang. You're warm first, funny second.
+
+You are talking to an international student in Melbourne. Many of them are dealing with isolation, missing family, food insecurity, and not knowing anyone. You take that seriously underneath the playful tone. You never make loneliness feel like a personal failure. You frame showing up to community events as something genuinely cool and brave.
+
+Your job is to suggest EXACTLY 3 events from the available events list. Always 3, no more, no less. Present them conversationally, not as a numbered list. Explain why each one fits this person specifically based on what you know about them.
+
+When suggesting events, wrap each event reference in a tag like [EVENT:id] so the frontend can parse it. Example: "there's this Saturday arvo BBQ at Flagstaff [EVENT:12] that's super chill, usually gets a good mix of people..."
+
+AVAILABLE EVENTS:
+{events_json}
+
+USER PROFILE:
+{user_preferences_json}
+
+USER'S PAST ATTENDANCE:
+{past_rsvps_json}
+```
 
 ---
 
@@ -67,6 +101,7 @@ community-maxxing/
 │   │   ├── locations.py      ← CRUD for third spaces
 │   │   ├── events.py         ← CRUD for events, RSVP, attendance
 │   │   ├── users.py          ← user creation, profile
+│   │   ├── chat.py           ← Maxxer chat + onboarding endpoints
 │   │   └── badges.py         ← badge definitions + computation
 │   ├── requirements.txt
 │   └── render.yaml
@@ -76,10 +111,12 @@ community-maxxing/
 │   │   ├── main.jsx
 │   │   ├── api.js            ← axios instance, base URL config
 │   │   ├── components/
-│   │   │   ├── MapView.jsx       ← Leaflet map with markers
+│   │   │   ├── MapView.jsx       ← Mapbox map with markers
 │   │   │   ├── LocationPin.jsx   ← custom marker per type
 │   │   │   ├── EventCard.jsx     ← event summary card
 │   │   │   ├── EventModal.jsx    ← create/view event
+│   │   │   ├── ChatPanel.jsx     ← Maxxer sidebar / mobile drawer
+│   │   │   ├── OnboardingChat.jsx← fullscreen Maxxer onboarding
 │   │   │   ├── SearchBar.jsx     ← search events by keyword/type
 │   │   │   ├── BadgeShelf.jsx    ← display earned badges
 │   │   │   └── ProfilePanel.jsx  ← user profile + stats
@@ -142,6 +179,7 @@ class User(Base):
     name: str
     email: str                # unique
     bio: str | None
+    preferences: dict | None  # JSON profile extracted by Maxxer onboarding
     created_at: datetime
 ```
 
@@ -281,6 +319,11 @@ SEED_LOCATIONS = [
 | 1.8 | `routers/events.py` — `GET /api/search?q=...&type=...&date=...` | ⬜ TODO | Search events by keyword, type, date range |
 | 1.9 | `main.py` — mount routers, CORS (allow Netlify domain + localhost), call seed on startup | ⬜ TODO | Dev 2 mounts locations router; Dev 4 mounts badges router |
 | 1.10 | `render.yaml` — web service config, start `uvicorn main:app --host 0.0.0.0 --port $PORT` | ⬜ TODO | |
+| 1.10.1 | Add `anthropic` to `requirements.txt` and load `ANTHROPIC_API_KEY` from Render env | ⬜ TODO | Backend-only secret; never expose via Vite. |
+| 1.10.2 | `models.py` / schemas — add nullable `preferences` JSON column to `User` and include it in user reads | ⬜ TODO | Stores Maxxer onboarding output: reason in Melbourne, home misses, vibe, dietary/cultural needs, area, social energy. |
+| 1.10.3 | `routers/chat.py` — `POST /api/chat` for ongoing Maxxer suggestions | ⬜ TODO | Loads user preferences, last 5 RSVPs, upcoming events in next 14 days; calls Claude Sonnet; returns response + suggested event IDs. |
+| 1.10.4 | `routers/chat.py` — `POST /api/chat/onboarding` for conversational preference gathering | ⬜ TODO | Uses onboarding prompt; when complete, extracts preferences JSON, saves to `User.preferences`, returns `onboarding_complete: true`. |
+| 1.10.5 | Maxxer system prompts + response parsing | ⬜ TODO | Enforce exactly 3 real event suggestions, parse `[EVENT:id]` tags, reject IDs not present in the available-events context. |
 | 1.11 | Test all endpoints locally with curl/httpie | ⬜ TODO | |
 | 1.12 | Deploy to Render, confirm health check | ⬜ TODO | Update STATE.md with live URL |
 
@@ -297,7 +340,7 @@ SEED_LOCATIONS = [
 | 2.2 | `seed.py` — insert all 15 Melbourne seed locations | ✅ DONE | Idempotent; called from `main.py` lifespan after `init_db()`. Logs `[seed] inserted 15 locations` on cold start. |
 | 2.3 | `routers/locations.py` — `GET /api/locations` (list, filter by type), `POST /api/locations`; include `event_count` | ✅ DONE | `event_count` = upcoming events (`start_time >= now`) via outer-join + group_by. Mounted in `main.py`. `LocationRead`/`LocationCreate` added to `schemas.py`. Frontend now consumes via `useLocations()` hook. |
 | 2.4 | `constants.js` — location type config: labels, colors, icons (🔥 BBQ = orange, 🌱 Garden = green, 🍳 Kitchen = purple) | ✅ DONE | `LOCATION_TYPES` + `MAP_DEFAULTS` in `frontend/src/utils/constants.js`. Lucide icons (Flame/Sprout/ChefHat). |
-| 2.5 | `MapView.jsx` — Mapbox GL map (via `react-map-gl`) centred on Melbourne CBD (-37.8136, 144.9631, zoom 13). Install `mapbox-gl` + `react-map-gl`; remove `leaflet` + `react-leaflet`. Fetch locations from API, render colored markers by type | ✅ DONE | Style: `mapbox/light-v11`. Click-to-popup. `Home.jsx` passes API-fed locations from `useLocations()` / `/api/locations`. |
+| 2.5 | `MapView.jsx` — Mapbox GL map (via `react-map-gl`) centred on Melbourne CBD (-37.8136, 144.9631, zoom 13). Install `mapbox-gl` + `react-map-gl`; remove `leaflet` + `react-leaflet`. Fetch locations from API, render colored markers by type | ✅ DONE | Style: `mapbox/light-v11`. Click-to-popup. `Home.jsx` passes API-fed locations from `useLocations()` / `/api/locations`. Follow-up: accept `highlightedEventIds` / highlighted location IDs from the Maxxer so suggested pins can pulse, enlarge, or pan/zoom into view. |
 | 2.6 | `LocationPin.jsx` — custom marker. Click opens popup with name, type badge, description, "See Events" button | ✅ DONE | Coloured pin + Lucide icon, scales on hover. "See Events" CTA deferred until events list exists. |
 | 2.7 | Custom SVG markers in `public/markers/` (bbq, garden, kitchen) | ⏸ DEFERRED | Using Lucide icons inline for now. Add bespoke SVGs if/when designers hand them over. |
 | 2.8 | `SearchBar.jsx` — text input + type filter dropdown (All / BBQ / Garden / Kitchen). Hooks into `GET /api/locations` or `GET /api/search` | ⬜ TODO | Coordinate with Dev 3 on placement |
@@ -318,6 +361,8 @@ SEED_LOCATIONS = [
 | 3.5 | Nav header component — logo/title left, profile avatar/name right (links to Profile) | ✅ DONE | `NavHeader.jsx` sticky top bar mounted in `App.jsx` above `<Routes>`. Logo links to `/`; "Sign in" pill links to `/profile` (slot for 3.6 auth-aware avatar + name). Lucide `UserCircle2`. Branch: `feat-3.5`. |
 | 3.6 | Simple auth flow: first-visit modal asks name + email → `POST /api/users` → store `user_id` in localStorage. Show name in header thereafter | ⬜ TODO | No passwords. Just identification. |
 | 3.7 | `Home.jsx` — layout: search bar top, map (Dev 2's `MapView`) 60% height, scrollable event list below, "Add Event" FAB bottom-right | ✅ DONE | `frontend/src/pages/Home.jsx` wired into `/`. SearchBar slot waits on 2.8, event list slot waits on 3.8 + Dev 1's 1.6, FAB stub waits on 3.9. Consumes Dev 2's merged `MapView` with API-fed locations. Branch: `feat-3.7` (stacked on `feat-3.5`). |
+| 3.7.1 | App shell gate for `OnboardingChat.jsx` | ⬜ TODO | If signed-in user has no `preferences`, render Dev 4's `OnboardingChat` fullscreen instead of Home. Can be built with mocked user preferences until Dev 1 endpoint lands. |
+| 3.7.2 | Home layout slot for `ChatPanel.jsx` | ⬜ TODO | Reserve right sidebar on desktop and bottom drawer area on mobile for Dev 4's `ChatPanel`; pass suggested event IDs down to MapView once available. |
 | 3.8 | `EventCard.jsx` — compact card: title, type pill, date/time, location name, RSVP button | ⬜ TODO | Dev 4 enriches with attendee count + host |
 | 3.9 | `EventModal.jsx` — view/create event. Form: title, description, type, location, start/end, max attendees | ⬜ TODO | |
 | 3.10 | Wire RSVP: "I'm Going" → `POST /api/events/{id}/rsvp` with user_id from localStorage | ⬜ TODO | Dev 4 adds badge-earn check on success |
@@ -348,6 +393,12 @@ SEED_LOCATIONS = [
 | 4.10 | Host attribution on `EventCard` and `EventModal` — show host name + their badges | ⬜ TODO | |
 | 4.11 | Community notification hooks — placeholder UI for "new event near you" / "your friend RSVPed" | ⬜ TODO | Stub UI; backend wiring optional today |
 | 4.12 | README.md — project overview, setup instructions, env vars, deploy URLs | ⬜ TODO | Shared task — close out the project |
+| 4.13 | `ChatPanel.jsx` — Maxxer collapsible chat sidebar / mobile bottom drawer | ⬜ TODO | Dev 4 owns primary Maxxer UX. Message thread, input, send button, loading/error states, and session-only React chat history. |
+| 4.14 | Inline Maxxer event recommendation cards | ⬜ TODO | Parse `[EVENT:id]` tags from agent text, render exactly 3 tappable `EventCard`-style suggestions, support RSVP directly when 3.10 exists. |
+| 4.15 | `OnboardingChat.jsx` — fullscreen conversational onboarding | ⬜ TODO | Conversational 4-6 message flow; no form UI. Calls `/api/chat/onboarding`, then hands completion to Dev 3's app-shell gate. |
+| 4.16 | Maxxer suggestion state bridge to map | ⬜ TODO | Emit `suggested_event_ids` from ChatPanel/OnboardingChat to `Home.jsx` so Dev 2's MapView can highlight and pan to the three suggested pins. |
+| 4.17 | Proactive Maxxer open-app suggestions and activity nudges | ⬜ TODO | On app open, ask `/api/chat` for 3 picks based on preferences, past RSVPs, and upcoming events; include gentle "haven't been in 2 weeks" style nudges. |
+| 4.18 | Maxxer tone and safety QA pass | ⬜ TODO | Warm Gen Z slang, supportive and culturally aware; never frames loneliness as failure; suggestions must be grounded in real DB events. |
 
 ---
 
@@ -397,9 +448,9 @@ main ← auto-deploys to Render (backend) and Netlify (frontend)
 ```
 
 ### Merge Order
-1. **Dev 1 merges first** — backend foundation must be live before anyone else can connect
-2. **Dev 2 + Dev 3 merge in parallel** — GIS/map and frontend app shell are both core; coordinate on `Home.jsx` and `backend/models.py`
-3. **Dev 4 merges last** — badges, notifications, and social affordances layer on top
+1. **Dev 1 merges first** — backend foundation must be live before anyone else can connect; Maxxer needs `/api/chat`, `/api/chat/onboarding`, `User.preferences`, and `ANTHROPIC_API_KEY` before real agent calls work
+2. **Dev 2 + Dev 3 merge in parallel** — GIS/map and frontend app shell are both core; Dev 3 can build Maxxer layout slots and onboarding gates with mock responses while Dev 1 finishes chat endpoints
+3. **Dev 4 merges last** — badges, notifications, Maxxer chat UI, onboarding experience, recommendation cards, nudges, and social affordances layer on top
 
 ### Merge Checklist
 Before merging your branch:
@@ -414,6 +465,7 @@ Before merging your branch:
 # Backend (Render)
 DATABASE_URL=sqlite:///./community.db
 CORS_ORIGINS=http://localhost:5173,https://community-maxxing.netlify.app
+ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxxxxxxxxxxxxx
 
 # Frontend (Netlify)
 VITE_API_URL=https://commaxx-api.onrender.com
@@ -433,18 +485,23 @@ VITE_MAPBOX_TOKEN=pk.xxxxxxxxxxxxxxxxxxxxxxxx  # public Mapbox token, scoped to 
 ### Dev 1 ↔ Dev 4 (backend ↔ social/badges)
 - **Shared file:** `backend/main.py` — Dev 4 mounts `routers/badges.py`
 - Dev 4 reads from RSVP/Event tables Dev 1 owns. Don't change those schemas without checking in.
+- **Maxxer contract:** Dev 1 owns `/api/chat`, `/api/chat/onboarding`, Anthropic integration, `User.preferences`, and `[EVENT:id]` response parsing; Dev 4 owns the chat/onboarding product UI that consumes those endpoints.
+- Dev 4 can mock `POST /api/chat` and `POST /api/chat/onboarding` responses locally until Dev 1 deploys the real backend endpoints.
 
 ### Dev 2 ↔ Dev 3 (GIS ↔ frontend app)
 - **Shared file:** `frontend/src/pages/Home.jsx` — Dev 3 owns layout; Dev 2 drops in `MapView` and `SearchBar`
 - **Shared file:** `frontend/src/api.js` — Dev 3 creates; Dev 2 adds location endpoints
 - Dev 2 owns: `MapView`, `LocationPin`, `SearchBar`, `constants.js` (location config), `public/markers/`
 - Dev 3 owns: app shell, routing, nav header, auth flow, `EventCard`, `EventModal`, `Home.jsx` layout
+- Dev 3 passes Maxxer suggested event IDs through Home state; Dev 2 makes MapView visually highlight/pan to the matching suggested pins.
 
 ### Dev 3 ↔ Dev 4 (frontend app ↔ social layer)
-- **Shared file:** `frontend/src/api.js` — Dev 3 creates; Dev 4 adds `/users/{id}/badges` + any social endpoints
+- **Shared file:** `frontend/src/api.js` — Dev 3 creates; Dev 4 adds `/users/{id}/badges`, `/api/chat`, `/api/chat/onboarding`, and any social endpoints
 - **Shared file:** `frontend/src/App.jsx` — Dev 3 sets up router with `/profile` route; Dev 4 mounts the Profile page there
+- **Shared file:** `frontend/src/pages/Home.jsx` — Dev 3 owns layout shell; Dev 4 mounts `ChatPanel` into the reserved sidebar/drawer slot
 - **Shared file:** `frontend/src/components/EventCard.jsx` — Dev 3 base; Dev 4 enriches with attendee count, host name, badge progress
 - Dev 3 owns the RSVP wiring; Dev 4 adds the "new badge earned" check on RSVP success
+- Dev 3 owns the auth/profile gate; Dev 4 owns `OnboardingChat` and signals onboarding completion when backend returns `onboarding_complete: true`.
 
 ### API response schemas (agree now)
 
@@ -486,6 +543,50 @@ VITE_MAPBOX_TOKEN=pk.xxxxxxxxxxxxxxxxxxxxxxxx  # public Mapbox token, scoped to 
     {"id": "green_thumb", "name": "Green Thumb", "icon": "🌱", "description": "...", "progress": "1/3 garden sessions"}
   ]
 }
+
+// POST /api/chat
+// request
+{
+  "user_id": 1,
+  "message": "what's on this weekend"
+}
+
+// response
+{
+  "response": "ok so based on your vibe I've got three fire picks for you this week: there's this Saturday arvo BBQ at Flagstaff [EVENT:12]...",
+  "suggested_event_ids": [12, 7, 3],
+  "onboarding_complete": true
+}
+
+// POST /api/chat/onboarding
+// request
+{
+  "user_id": 1,
+  "message": "I'm here for uni and I miss cooking with my cousins"
+}
+
+// response while still onboarding
+{
+  "response": "yeah that makes sense fr — food is such a shortcut back to people. Are you more after chill kitchen hangs or bigger social stuff right now?",
+  "suggested_event_ids": [],
+  "onboarding_complete": false
+}
+
+// response when onboarding is complete
+{
+  "response": "ok I've got you, let me find your first picks 🔥",
+  "suggested_event_ids": [4, 9, 11],
+  "onboarding_complete": true,
+  "preferences": {
+    "melbourne_reason": "study",
+    "misses_from_home": ["family cooking", "shared meals"],
+    "preferred_vibes": ["cooking together", "low-key hangs"],
+    "dietary_needs": [],
+    "cultural_considerations": [],
+    "area": "Carlton",
+    "social_energy": "small intimate groups"
+  }
+}
 ```
 
 ---
@@ -494,17 +595,17 @@ VITE_MAPBOX_TOKEN=pk.xxxxxxxxxxxxxxxxxxxxxxxx  # public Mapbox token, scoped to 
 
 | Workstream | Dev | Branch | Progress | Blocker |
 |------------|-----|--------|----------|---------|
-| Backend Foundation | Dev 1 | `feature/backend` | 🟡 Partial foundation present | Events/users/badges endpoints still not present in repo |
-| GIS / Mapping | Dev 2 (you) | `feature/gis` | 🟡 In progress — 6/10 done (2.1, 2.2, 2.3, 2.4, 2.5, 2.6); 2.7 deferred | SearchBar + map/event-list sync + mobile UX remain |
-| Frontend App | Dev 3 | `feature/frontend-app` | 🟡 In progress — 7/15 done (3.1, 3.2, 3.3, 3.4, 3.5, 3.7, 3.13) | 3.6/3.8/3.10 blocked on Dev 1 endpoints; 3.11/3.12 unblocked but low priority until cards exist |
-| Badges & Social | Dev 4 | `feature/social` | ⬜ Not started | Needs `api.js` + auth flow from Dev 3 |
+| Backend Foundation | Dev 1 | `feature/backend` | 🟡 Partial foundation present | Events/users/badges endpoints still not present in repo; Maxxer needs Anthropic env + chat endpoints |
+| GIS / Mapping | Dev 2 (you) | `feature/gis` | 🟡 In progress — 6/10 done (2.1, 2.2, 2.3, 2.4, 2.5, 2.6); 2.7 deferred | SearchBar + map/event-list sync + mobile UX + Maxxer highlighted pins remain |
+| Frontend App | Dev 3 | `feature/frontend-app` | 🟡 In progress — 7/17 done (3.1, 3.2, 3.3, 3.4, 3.5, 3.7, 3.13) | 3.6/3.8/3.10 blocked on Dev 1 endpoints; Maxxer shell can use mock responses until `/api/chat` exists |
+| Badges & Social + Maxxer | Dev 4 | `feature/social` | ⬜ Not started | Needs `api.js` + auth flow from Dev 3; real Maxxer responses need Dev 1 `/api/chat` endpoints |
 
-**Last updated:** 2026-05-23 — State cleanup branch `state-file-cleanup`: aligned GIS/Home notes with API-fed locations and corrected frontend Render API URL.
+**Last updated:** 2026-05-23 — Added Maxxer AI agent workstream, backend chat endpoints, frontend chat/onboarding tasks, env vars, schemas, and integration notes.
 
 ---
 
 ## FUTURE (not today)
-- AI agent layer: matchmaker, narrator, commitment escalation
+- AI agent layer v2: matchmaker, narrator, commitment escalation beyond the Maxxer MVP
 - Aboriginal seasonal calendar integration
 - Buddy system for event attendance
 - Workplace rights info hub
