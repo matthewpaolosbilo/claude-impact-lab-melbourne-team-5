@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: community-maxxing-backend
+    runtime: python
+    region: oregon
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.7
+      - key: DATABASE_URL
+        value: sqlite:///./community.db
+      - key: CORS_ORIGINS
+        value: http://localhost:5173,https://community-maxxing.netlify.app
