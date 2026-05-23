@@ -4,7 +4,6 @@ import MapView from '../components/MapView'
 import EventCard from '../components/EventCard'
 import EventModal from '../components/EventModal'
 import ChatPanel from '../components/ChatPanel'
-import OnboardingChat from '../components/OnboardingChat'
 import { useLocations } from '../utils/useLocations'
 import { useEvents } from '../utils/useEvents'
 import { useUser } from '../hooks/useUser'
@@ -12,13 +11,14 @@ import { useToast } from '../hooks/useToast'
 import { useBadgeWatcher } from '../hooks/useBadgeWatcher'
 import { rsvpToEvent } from '../api'
 
-// 3.7 Home layout + Dev 4 Maxxer wiring (4.13/4.14/4.15/4.16/4.17).
+// 3.7 Home layout + Dev 4 Maxxer wiring (4.13/4.14/4.16/4.17).
 // 3.10 RSVP wiring is real (POST /api/events/{id}/rsvp with X-User-Id, optimistic
 // + rollback, toast on success/failure, triggers badge re-check).
-// Onboarding gate is a temporary host for Dev 3's 3.7.1 — flip to the app-shell
-// version when that lands.
+// Onboarding gating happens upstream in Dev 3's 3.7.1 OnboardingGate (App.jsx).
+// Maxxer surfaces as a floating panel rather than the inline sidebar/drawer
+// slots from 3.7.2 — see PR notes for follow-up if we want to inline it.
 export default function Home() {
-  const { user, setUser } = useUser()
+  const { user } = useUser()
   const { events, setEvents } = useEvents()
   const { locations } = useLocations()
   const toast = useToast()
@@ -28,28 +28,6 @@ export default function Home() {
   const [suggestedEventIds, setSuggestedEventIds] = useState([])
 
   const eventsById = useMemo(() => new Map(events.map((e) => [e.id, e])), [events])
-  const suggestedLocationIds = useMemo(
-    () =>
-      suggestedEventIds
-        .map((id) => eventsById.get(id)?.location?.id)
-        .filter((x) => x != null),
-    [suggestedEventIds, eventsById],
-  )
-
-  // Gate: signed-in user without preferences → fullscreen onboarding (4.15).
-  // When Dev 1's 1.10.2 lands, `user.preferences` will arrive on GET /api/users/{id}.
-  if (user && !user.preferences) {
-    return (
-      <OnboardingChat
-        userId={user.id}
-        onComplete={(prefs) => {
-          // Stash on the local user so the gate flips. Real backend persists
-          // server-side; the next GET /api/users/{id} will hydrate the same shape.
-          setUser({ ...user, preferences: prefs ?? { onboarded: true } })
-        }}
-      />
-    )
-  }
 
   const openView = (event) => setModal({ open: true, mode: 'view', event })
   const openCreate = () => setModal({ open: true, mode: 'create', event: null })
@@ -133,8 +111,8 @@ export default function Home() {
       </div>
 
       <div className="min-h-0 basis-[60%]">
-        {/* 4.16: passing suggestedLocationIds for future Dev 2 map-highlight prop. */}
-        <MapView locations={locations} highlightedLocationIds={suggestedLocationIds} />
+        {/* 3.7.2 contract: pass event IDs; Dev 2's MapView highlight resolves them. */}
+        <MapView locations={locations} highlightedEventIds={suggestedEventIds} />
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto border-t border-black/10 bg-cm-cream px-6 py-4">
