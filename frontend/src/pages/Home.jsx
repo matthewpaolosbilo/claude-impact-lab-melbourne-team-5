@@ -3,6 +3,7 @@ import { Plus } from 'lucide-react'
 import MapView from '../components/MapView'
 import EventCard from '../components/EventCard'
 import EventModal from '../components/EventModal'
+import ChatPanelSlot from '../components/ChatPanelSlot'
 import { SEED_EVENTS } from '../utils/seedEvents'
 import { useLocations } from '../utils/useLocations'
 import { useUser } from '../hooks/useUser'
@@ -18,6 +19,8 @@ import { rsvpToEvent } from '../api'
 export default function Home() {
   const [events, setEvents] = useState(SEED_EVENTS)
   const [modal, setModal] = useState({ open: false, mode: 'view', event: null })
+  // 3.7.2 shared state: Maxxer (Dev 4's 4.13/4.16) sets these, MapView (Dev 2's 2.5 follow-up) highlights them.
+  const [suggestedEventIds, setSuggestedEventIds] = useState([])
   const { locations, loading, error } = useLocations()
   const { user } = useUser()
   const toast = useToast()
@@ -90,48 +93,71 @@ export default function Home() {
       ? 'Failed to load locations (check VITE_API_URL + backend CORS)'
       : `${locations.length} locations`
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col">
-      <div className="border-b border-black/10 bg-white/70 px-6 py-3 backdrop-blur">
-        <div className="rounded-card bg-cm-cream/60 px-4 py-2 text-sm text-cm-warm-gray">
-          Search bar slot — 2.8 SearchBar drops in here · {status}
-        </div>
-      </div>
-
-      {/* map: ~60% of viewport height */}
-      <div className="min-h-0 basis-[60%]">
-        <MapView locations={locations} />
-      </div>
-
-      {/* event list — 3.8 EventCard against seed data */}
-      <div className="min-h-0 flex-1 overflow-y-auto border-t border-black/10 bg-cm-cream px-6 py-4">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-cm-warm-gray">
-          Upcoming events
-        </h2>
-        {events.length === 0 ? (
-          <div className="mt-3 rounded-card bg-white/70 p-card text-sm text-cm-warm-gray shadow-card">
-            No events yet. Tap "Add event" to host one.
+    <div className="relative flex min-h-0 flex-1 flex-col lg:flex-row">
+      {/* LEFT column: existing search + map + list + FAB + mobile drawer slot */}
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        <div className="border-b border-black/10 bg-white/70 px-6 py-3 backdrop-blur">
+          <div className="rounded-card bg-cm-cream/60 px-4 py-2 text-sm text-cm-warm-gray">
+            Search bar slot — 2.8 SearchBar drops in here · {status}
           </div>
-        ) : (
-          <ul className="mt-3 space-y-3">
-            {events.map((event) => (
-              <li key={event.id}>
-                <EventCard event={event} onOpen={openView} onRsvp={handleRsvp} />
-              </li>
-            ))}
-          </ul>
-        )}
+        </div>
+
+        {/* map: ~60% of viewport height */}
+        <div className="min-h-0 basis-[60%]">
+          <MapView
+            locations={locations}
+            highlightedEventIds={suggestedEventIds}
+          />
+        </div>
+
+        {/* event list — 3.8 EventCard against seed data */}
+        <div className="min-h-0 flex-1 overflow-y-auto border-t border-black/10 bg-cm-cream px-6 py-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-cm-warm-gray">
+            Upcoming events
+          </h2>
+          {events.length === 0 ? (
+            <div className="mt-3 rounded-card bg-white/70 p-card text-sm text-cm-warm-gray shadow-card">
+              No events yet. Tap "Add event" to host one.
+            </div>
+          ) : (
+            <ul className="mt-3 space-y-3">
+              {events.map((event) => (
+                <li key={event.id}>
+                  <EventCard event={event} onOpen={openView} onRsvp={handleRsvp} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* 3.7.2 mobile drawer slot — visible <lg, hidden when sidebar is shown */}
+        <ChatPanelSlot
+          variant="drawer"
+          suggestedEventIds={suggestedEventIds}
+          onSuggestedEventIds={setSuggestedEventIds}
+          className="lg:hidden"
+        />
+
+        {/* FAB: opens 3.9 EventModal in create mode */}
+        <button
+          type="button"
+          onClick={openCreate}
+          className="cursor-pointer absolute bottom-6 right-6 flex items-center gap-2 rounded-full bg-cm-orange px-5 py-3 text-sm font-semibold text-white shadow-card hover:bg-cm-orange/90"
+          aria-label="Add event"
+        >
+          <Plus className="h-5 w-5" />
+          <span>Add event</span>
+        </button>
       </div>
 
-      {/* FAB: opens 3.9 EventModal in create mode */}
-      <button
-        type="button"
-        onClick={openCreate}
-        className="cursor-pointer absolute bottom-6 right-6 flex items-center gap-2 rounded-full bg-cm-orange px-5 py-3 text-sm font-semibold text-white shadow-card hover:bg-cm-orange/90"
-        aria-label="Add event"
-      >
-        <Plus className="h-5 w-5" />
-        <span>Add event</span>
-      </button>
+      {/* 3.7.2 desktop sidebar slot — hidden <lg */}
+      <aside className="hidden border-l border-black/10 bg-white/70 lg:flex lg:w-80 xl:w-96">
+        <ChatPanelSlot
+          variant="sidebar"
+          suggestedEventIds={suggestedEventIds}
+          onSuggestedEventIds={setSuggestedEventIds}
+        />
+      </aside>
 
       <EventModal
         open={modal.open}
