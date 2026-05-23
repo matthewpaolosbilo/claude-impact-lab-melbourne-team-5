@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
-import { useUser } from '../hooks/useUser'
+import { OPEN_AUTH_EVENT, useUser } from '../hooks/useUser'
 
 // 3.6 first-visit auth modal. No passwords; just name + email.
 // POSTs to /api/users (Dev 1 contract: returns existing user if email matches,
@@ -20,9 +20,9 @@ export default function AuthModal() {
     function openHandler() {
       setOpen(true)
     }
-    window.addEventListener('community-maxxing-open-auth', openHandler)
+    window.addEventListener(OPEN_AUTH_EVENT, openHandler)
     return () => {
-      window.removeEventListener('community-maxxing-open-auth', openHandler)
+      window.removeEventListener(OPEN_AUTH_EVENT, openHandler)
     }
   }, [user])
 
@@ -72,7 +72,7 @@ export default function AuthModal() {
           id="auth-modal-title"
           className="text-2xl font-bold text-cm-charcoal"
         >
-          Welcome to Community Maxxing
+          Welcome to spacd
         </h2>
         <p className="mt-2 text-sm text-cm-warm-gray">
           Tell us who you are so we can credit your RSVPs and check-ins. No

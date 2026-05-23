@@ -53,7 +53,7 @@ export const BADGES = [
   },
   {
     id: 'ten_acts',
-    name: 'Community Maxxer',
+    name: 'spacd Regular',
     icon: '💪',
     description: '10 total acts of civic participation',
     criteria: 'Attend 10 events',

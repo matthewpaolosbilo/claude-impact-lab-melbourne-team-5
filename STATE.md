@@ -1,4 +1,4 @@
-# STATE.md — Community Maxxing
+# STATE.md — spacd
 ## Strava for Acts of Public Service — Melbourne MVP
 
 > **Claude Code handoff file.** Four developers, one day, one app.
@@ -8,7 +8,7 @@
 
 ## PROJECT CONTEXT
 
-Community Maxxing is a civic participation platform for the City of Melbourne. It connects international students (and all residents) to community third spaces — barbecues, garden beds, and community kitchens — hosted in public parks and underutilised office spaces. Users discover and create events at these spaces, earn badges for participation, and build a visible civic profile.
+spacd is a civic participation platform for the City of Melbourne. It connects international students (and all residents) to community third spaces — barbecues, garden beds, and community kitchens — hosted in public parks and underutilised office spaces. Users discover and create events at these spaces, earn badges for participation, and build a visible civic profile.
 
 ### Core User Stories (from real student interviews)
 - "I need to find cheaper groceries and free community meals"
@@ -65,7 +65,7 @@ Returning users see the Maxxer as a collapsible chat sidebar beside the map on d
 
 Backend prompt baseline:
 ```text
-You are the Maxxer, the AI assistant for Community Maxxing — a civic participation app in Melbourne, Australia.
+You are the Maxxer, the AI assistant for spacd — a civic participation app in Melbourne, Australia.
 
 You speak in warm Gen Z slang. You're supportive, a little cheeky, never cringe. You talk like a friend who genuinely wants this person to get out there and find their people. You use slang naturally — "ngl", "fr fr", "lowkey", "giving", "slay", "no cap", "vibe check", "bet" — but you don't overdo it. Every other sentence doesn't need slang. You're warm first, funny second.
 
@@ -90,7 +90,7 @@ USER'S PAST ATTENDANCE:
 ## REPO STRUCTURE
 
 ```
-community-maxxing/
+spacd/
 ├── STATE.md                  ← you are here
 ├── backend/
 │   ├── main.py               ← FastAPI app, CORS, mount routes
@@ -241,7 +241,7 @@ BADGE_DEFINITIONS = [
     },
     {
         "id": "ten_acts",
-        "name": "Community Maxxer",
+        "name": "spacd Regular",
         "description": "10 total acts of civic participation",
         "icon": "💪",
         "check": lambda user_id: count_attended(user_id) >= 10
@@ -364,7 +364,7 @@ SEED_LOCATIONS = [
 | 3.7.2 | Home layout slot for `ChatPanel.jsx` | ✅ DONE | `ChatPanelSlot.jsx` placeholder mounted in desktop right sidebar (`lg:w-80 xl:w-96`) and mobile drawer strip below the event list. `suggestedEventIds` state lifted into `Home.jsx`; Dev 2 maps these to highlighted locations for `MapView` and also highlights matching event cards. Branch: `feat-3.7.2`. |
 | 3.8 | `EventCard.jsx` — compact card: title, type pill, date/time, location name, RSVP button | ✅ DONE | `frontend/src/components/EventCard.jsx`. Click opens `EventModal` in view mode; RSVP button stubbed (real wiring in 3.10). Slots marked for Dev 4's 4.9 attendee avatars + 4.10 host badges. Branch: `feat-3.8-3.9`. |
 | 3.9 | `EventModal.jsx` — view/create event. Form: title, description, type, location, start/end, max attendees | ✅ DONE | `frontend/src/components/EventModal.jsx`. Dual-mode (view/create), Esc + backdrop close, native `datetime-local` inputs, required-field validation. Location dropdown consumes `locations` prop fed by Dev 2's `useLocations` hook. Branch: `feat-3.8-3.9`. |
-| 3.10 | Wire RSVP: "I'm Going" → `POST /api/events/{id}/rsvp` with user_id from localStorage | ✅ DONE | `rsvpToEvent(eventId, userId)` helper in `frontend/src/api.js` (sends `X-User-Id` header). `Home.jsx` does optimistic update + real POST + rollback on failure + success toast, and calls `useBadgeWatcher.triggerBadgeCheck()` on success or 409 (already-RSVP'd treated as success). Unsigned users get AuthModal popped via the `community-maxxing-open-auth` event. SEED_EVENTS → live `GET /api/events` swap deferred. Branch: `feat-3.10`. |
+| 3.10 | Wire RSVP: "I'm Going" → `POST /api/events/{id}/rsvp` with user_id from localStorage | ✅ DONE | `rsvpToEvent(eventId, userId)` helper in `frontend/src/api.js` (sends `X-User-Id` header). `Home.jsx` does optimistic update + real POST + rollback on failure + success toast, and calls `useBadgeWatcher.triggerBadgeCheck()` on success or 409 (already-RSVP'd treated as success). Unsigned users get AuthModal popped via the `spacd-open-auth` event. SEED_EVENTS → live `GET /api/events` swap deferred. Branch: `feat-3.10`. |
 | 3.11 | Empty states: no events yet, no search results — friendly copy + illustration | ⬜ TODO | |
 | 3.12 | Mobile responsive: stacks vertical, full-width cards | ⬜ TODO | |
 | 3.13 | `vite.config.js` — proxy `/api` to backend in dev | ✅ DONE | Done early as part of 3.1 — proxies `/api` to `http://localhost:8000`. |
@@ -405,7 +405,7 @@ SEED_LOCATIONS = [
 ## DESIGN TOKENS
 
 ```
-Brand: Community Maxxing
+Brand: spacd
 
 Colors:
   --cm-orange:    #F97316   (BBQ / warmth / energy)

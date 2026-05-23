@@ -30,7 +30,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Community Maxxing API", version="0.1.0", lifespan=lifespan
+    title="spacd API", version="0.1.0", lifespan=lifespan
 )
 
 app.add_middleware(

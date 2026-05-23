@@ -50,7 +50,7 @@ export async function mockChatReply({ messages }) {
 // Scripted 5-turn onboarding. Each user turn advances state by one. After the 5th
 // user message we mark complete and return a synthesized preferences object.
 const ONBOARDING_TURNS = [
-  "hey hey, welcome to community maxxing. ngl Melbourne can be a lot when you're new — what brought you here? studying, working, something else?",
+  "hey hey, welcome to spacd. ngl Melbourne can be a lot when you're new — what brought you here? studying, working, something else?",
   "ok bet. what's something you actually miss from home — like a food, a routine, a vibe? doesn't have to be deep.",
   'fair fr. what kind of social energy are you giving rn — big group cooking sesh, chill garden potter, or low-key tag-along to a bbq?',
   'any dietary stuff or cultural things i should know? halal, veg, dairy-free, anything that makes a spot feel like home?',

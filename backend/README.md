@@ -1,4 +1,4 @@
-# Community Maxxing — Backend
+# spacd — Backend
 
 FastAPI + SQLite. Owned by Dev 1 on `feature/backend`. Locations router is Dev 2's
 (`feature/gis`); badges router is Dev 4's (`feature/social`). All three branches share
