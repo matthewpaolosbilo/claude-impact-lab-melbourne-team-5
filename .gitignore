@@ -62,6 +62,10 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
+# Backend SQLite (community-maxxing)
+backend/community.db
+backend/community.db-journal
+
 # Flask stuff:
 instance/
 .webassets-cache
