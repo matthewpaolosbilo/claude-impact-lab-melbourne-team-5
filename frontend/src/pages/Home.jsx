@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, Flame, Sprout, ChefHat } from 'lucide-react'
 import MapView from '../components/MapView'
 import EventCard from '../components/EventCard'
 import EventModal from '../components/EventModal'
@@ -200,8 +200,36 @@ export default function Home() {
           Upcoming events
         </h2>
         {sortedEvents.length === 0 ? (
-          <div className="mt-3 rounded-card bg-white/70 p-card text-sm text-cm-warm-gray shadow-card">
-            No matches yet. Try a different search, or tap "Add event" to host one.
+          // 3.11 empty state — filter-aware copy after Dev 2's 2.8 SearchBar landed.
+          <div className="mt-3 rounded-card bg-white/70 p-card text-center shadow-card">
+            <div className="flex justify-center gap-3">
+              <Flame aria-hidden className="h-6 w-6 text-cm-orange/80" />
+              <Sprout aria-hidden className="h-6 w-6 text-cm-green/80" />
+              <ChefHat aria-hidden className="h-6 w-6 text-cm-purple/80" />
+            </div>
+            {normalizedQuery || typeFilter !== 'all' ? (
+              <>
+                <h3 className="mt-3 text-base font-semibold text-cm-charcoal">
+                  Nothing matches yet
+                </h3>
+                <p className="mt-1 text-sm text-cm-warm-gray">
+                  Try a different search or filter, or tap{' '}
+                  <span className="font-semibold text-cm-charcoal">Add event</span>{' '}
+                  below to start something.
+                </p>
+              </>
+            ) : (
+              <>
+                <h3 className="mt-3 text-base font-semibold text-cm-charcoal">
+                  No events up yet, no stress
+                </h3>
+                <p className="mt-1 text-sm text-cm-warm-gray">
+                  The spots are ready, the city's waiting. Drop the first one with{' '}
+                  <span className="font-semibold text-cm-charcoal">Add event</span>{' '}
+                  below.
+                </p>
+              </>
+            )}
           </div>
         ) : (
           <ul className="mt-3 space-y-3">
