@@ -4,7 +4,7 @@
 **Source:** `STATE.md` (post-restructure, 4-dev split)
 **Workstream:** Dev 3, branch `feature/frontend-app` — App shell + Auth + Event UI + Deploy
 
-> Three tasks already ✅ DONE: 3.1 (Vite + React 19 + Tailwind v4 with brand tokens), 3.2 (`api.js` axios instance + `.env.example`), 3.13 (vite proxy `/api` → `localhost:8000`). These satisfy frontend prerequisites for Dev 2 (map components) and Dev 4 (badge UI) — every downstream frontend task in any stream now has its scaffolding. Dev 3 is the integration hub: it owns three shared files (`api.js`, `App.jsx`, `EventCard.jsx`) and the Netlify deploy tail.
+> Four tasks ✅ DONE: 3.1 (Vite + React 19 + Tailwind v4 with brand tokens), 3.2 (`api.js` axios instance + `.env.example`), 3.4 (`App.jsx` router with `/` and `/profile` placeholder routes, branch `feat-3.4`), 3.13 (vite proxy `/api` → `localhost:8000`). These satisfy frontend prerequisites for Dev 2 (map components) and Dev 4 (badge UI + `/profile` mount point). Dev 3 is the integration hub: it owns three shared files (`api.js`, `App.jsx`, `EventCard.jsx`) and the Netlify deploy tail.
 
 ---
 
@@ -15,7 +15,7 @@
 | 3.1 ✅ | Init Vite + install deps | — | — | npm: react, vite, react-leaflet, leaflet, axios, react-router-dom, tailwindcss, lucide-react | — |
 | 3.2 ✅ | `api.js` axios instance | 3.1 ✅ | Shared with Dev 2 (adds location endpoints) and Dev 4 (adds badge endpoints) | env: `VITE_API_URL` | — |
 | 3.3 | Tailwind config + design tokens | 3.1 ✅ | — | tailwindcss | DESIGN TOKENS § |
-| 3.4 | `App.jsx` — React Router | 3.1 ✅ | Shared file with Dev 4 (Dev 4 mounts `/profile` route for 4.6) | react-router-dom | — |
+| 3.4 ✅ | `App.jsx` — React Router | 3.1 ✅ | Shared file with Dev 4 (Dev 4 swaps the `/profile` placeholder for 4.6) | react-router-dom | — |
 | 3.5 | Nav header component | 3.1 ✅, 3.4 | — | lucide-react | — |
 | 3.6 | Auth flow (name + email modal) | 3.2 ✅, 3.5 | Blocked on Dev 1's 1.5 (`POST /api/users`) | localStorage | (user_id stored client-side) |
 | 3.7 | `Home.jsx` — layout (search + map + list + FAB) | 3.1 ✅, 3.4 | Slot for Dev 2's 2.5 (`MapView`) and 2.8 (`SearchBar`); shared file with Dev 2 | — | — |
@@ -35,7 +35,7 @@
 ```mermaid
 graph TD
     3.1[3.1 Init Vite ✅] --> 3.3[3.3 Tailwind tokens]
-    3.1 --> 3.4[3.4 App.jsx router]
+    3.1 --> 3.4[3.4 App.jsx router ✅]
     3.1 --> 3.13[3.13 vite proxy ✅]
     3.1 --> 3.14[3.14 netlify.toml]
     3.2[3.2 api.js ✅] --> 3.6[3.6 Auth flow]
@@ -72,9 +72,11 @@ graph TD
 
 ## Critical Path (remaining TODO work)
 
-`3.4 → 3.5 → 3.6 → 3.10 → 3.15` runs five tasks deep, but the practical critical path goes through `3.3 → 3.8 → 3.9 → 3.10 → 3.15` because 3.10 needs both auth (3.6) AND modal (3.9) AND card (3.8). The longest unavoidable chain is:
+With 3.4 ✅ shipped, the router branch shortens. The longest unavoidable chain is now:
 
-`3.3 → 3.8 → 3.9 → 3.10 → 3.15` (five tasks, all blocked downstream of EventCard).
+`3.3 → 3.8 → 3.9 → 3.10 → 3.15` (five tasks, downstream of EventCard).
+
+The router-branch chain `3.5 → 3.6 → 3.10 → 3.15` is now four tasks (3.4 dropped off the front). Either way, 3.10 is the fan-in, and 3.15 is the final gate.
 
 3.12 (mobile) and 3.11 (empty states) also block 3.15 but are independent leaves of similar depth.
 
