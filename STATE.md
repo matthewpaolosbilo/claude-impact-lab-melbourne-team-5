@@ -311,8 +311,8 @@ SEED_LOCATIONS = [
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 3.1 | Init React app with Vite, install deps: `react-leaflet`, `leaflet`, `axios`, `react-router-dom`, `tailwindcss`, `lucide-react` | ⬜ TODO | |
-| 3.2 | `api.js` — axios instance with `baseURL` from env var `VITE_API_URL` (default `http://localhost:8000`) | ⬜ TODO | Dev 2 + Dev 4 will add their endpoints here |
+| 3.1 | Init React app with Vite, install deps: `react-leaflet`, `leaflet`, `axios`, `react-router-dom`, `tailwindcss`, `lucide-react` | ✅ DONE | Vite 8 + React 19, Tailwind v4 with brand tokens registered via `@theme` in `src/index.css`. Leaflet icon-fix applied in `main.jsx`. |
+| 3.2 | `api.js` — axios instance with `baseURL` from env var `VITE_API_URL` (default `http://localhost:8000`) | ✅ DONE | `.env.example` committed with `VITE_API_URL=http://localhost:8000`. Dev 2 + Dev 4 will add their endpoints here. |
 | 3.3 | Tailwind config + design tokens applied (see DESIGN TOKENS below) | ⬜ TODO | Warm palette, rounded cards, smooth transitions |
 | 3.4 | `App.jsx` — React Router: `/` → Home, `/profile` → Profile (Dev 4 owns Profile page) | ⬜ TODO | |
 | 3.5 | Nav header component — logo/title left, profile avatar/name right (links to Profile) | ⬜ TODO | |
@@ -323,7 +323,7 @@ SEED_LOCATIONS = [
 | 3.10 | Wire RSVP: "I'm Going" → `POST /api/events/{id}/rsvp` with user_id from localStorage | ⬜ TODO | Dev 4 adds badge-earn check on success |
 | 3.11 | Empty states: no events yet, no search results — friendly copy + illustration | ⬜ TODO | |
 | 3.12 | Mobile responsive: stacks vertical, full-width cards | ⬜ TODO | |
-| 3.13 | `vite.config.js` — proxy `/api` to backend in dev | ⬜ TODO | |
+| 3.13 | `vite.config.js` — proxy `/api` to backend in dev | ✅ DONE | Done early as part of 3.1 — proxies `/api` to `http://localhost:8000`. |
 | 3.14 | `netlify.toml` — build command, publish dir, redirect `/api/*` to Render backend URL | ⬜ TODO | |
 | 3.15 | Deploy to Netlify, confirm app loads end-to-end | ⬜ TODO | Update STATE.md with live URL |
 
