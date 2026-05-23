@@ -1,4 +1,4 @@
-# Community Maxxing
+# spacd
 
 > Strava for acts of public service — Melbourne MVP.
 
@@ -99,7 +99,7 @@ CORS_ORIGINS=http://localhost:5173,https://community-maxxing.netlify.app
 
 **Frontend (Netlify):**
 ```
-VITE_API_URL=https://community-maxxing.onrender.com
+VITE_API_URL=https://commaxx-api.onrender.com
 ```
 
 ## API surface (current)

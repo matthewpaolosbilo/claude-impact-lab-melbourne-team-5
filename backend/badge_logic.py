@@ -258,7 +258,7 @@ BADGE_DEFINITIONS: List[dict] = [
     },
     {
         "id": "ten_acts",
-        "name": "Community Maxxer",
+        "name": "spacd Regular",
         "icon": "💪",
         "description": "10 total acts of civic participation",
         "check": lambda db, uid: count_attended(db, uid) >= 10,

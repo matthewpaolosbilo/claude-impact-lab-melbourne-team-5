@@ -28,7 +28,7 @@ const MOCK_PAYLOAD = {
     { id: 'green_thumb', name: 'Green Thumb', icon: '🌱', description: 'Attended 3 garden bed sessions', progress: '1/3 garden sessions' },
     { id: 'community_chef', name: 'Community Chef', icon: '🍳', description: 'Attended 3 community kitchen events', progress: '2/3 kitchen events' },
     { id: 'week_streak', name: 'Weekly Regular', icon: '📅', description: 'Attended events 3 weeks in a row', progress: '2/3 weeks in a row' },
-    { id: 'ten_acts', name: 'Community Maxxer', icon: '💪', description: '10 total acts of civic participation', progress: '4/10 acts of participation' },
+    { id: 'ten_acts', name: 'spacd Regular', icon: '💪', description: '10 total acts of civic participation', progress: '4/10 acts of participation' },
     { id: 'welcomer', name: 'Welcomer', icon: '🤗', description: 'Hosted an event with 5+ attendees', progress: 'Host an event with 5+ attendees (best so far: 3)' },
   ],
 }
