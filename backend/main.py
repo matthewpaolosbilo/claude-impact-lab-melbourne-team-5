@@ -4,11 +4,14 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from database import SessionLocal, init_db
-from routers import events, users
+from database import init_db, SessionLocal
+from routers import locations, events, users
+from seed import run_seed
 
-# Routers other devs own — uncomment when their PR merges.
-# from routers import locations  # TODO Dev 2 (feature/gis)
+
+# Routers Dev 1 owns
+# from routers import users, events  # TODO Dev 1 Phase C/D — uncomment when routers exist
+# Routers other devs own — leave commented; uncomment when their PR merges.
 # from routers import badges     # TODO Dev 4 (feature/social)
 from seed import seed_if_empty
 
@@ -54,5 +57,5 @@ app.include_router(users.router)
 app.include_router(events.router)
 app.include_router(events.rsvps_router)
 app.include_router(events.search_router)
-# app.include_router(locations.router)   # Dev 2
-# app.include_router(badges.router)      # Dev 4
+app.include_router(locations.router)   
+# app.include_router(badges.router)       # Dev 4

@@ -33,7 +33,7 @@ A lightweight web app with:
 │  FRONTEND (Netlify)         │     │  BACKEND (Render)            │
 │                             │     │                              │
 │  React + Vite               │────▶│  FastAPI + SQLite            │
-│  Leaflet map (OpenStreetMap)│     │                              │
+│  Mapbox GL JS               │     │                              │
 │  Tailwind CSS               │     │  /api/locations   GET/POST   │
 │                             │     │  /api/events      GET/POST   │
 │  Pages:                     │     │  /api/events/{id}/rsvp POST  │
@@ -45,7 +45,7 @@ A lightweight web app with:
 ```
 
 ### Tech Decisions (locked, don't revisit)
-- **Map:** Leaflet + OpenStreetMap (free, no API key)
+- **Map:** Mapbox GL JS via `react-map-gl` (requires public token, generous free tier). Token lives in `VITE_MAPBOX_TOKEN`.
 - **DB:** SQLite via SQLAlchemy (good enough for MVP, zero config on Render)
 - **Auth:** Simplified — name + email, no OAuth today. Store a user_id in localStorage.
 - **Badges:** Computed server-side on badge check endpoint, not event-driven
@@ -284,7 +284,7 @@ SEED_LOCATIONS = [
 | 1.11 | Test all endpoints locally with curl/httpie | ⬜ TODO | |
 | 1.12 | Deploy to Render, confirm health check | ⬜ TODO | Update STATE.md with live URL |
 
-**Backend live URL:** `________________` (fill in after deploy)
+**Backend live URL:** https://commaxx-api.onrender.com/ (interactive docs at `/docs`)
 
 ---
 
@@ -293,13 +293,13 @@ SEED_LOCATIONS = [
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 2.1 | `models.py` — Location model | ⬜ TODO | Add to file Dev 1 scaffolds; see Data Models above |
-| 2.2 | `seed.py` — insert all 15 Melbourne seed locations | ⬜ TODO | See Seed Data above |
-| 2.3 | `routers/locations.py` — `GET /api/locations` (list, filter by type), `POST /api/locations`; include `event_count` | ⬜ TODO | |
-| 2.4 | `constants.js` — location type config: labels, colors, icons (🔥 BBQ = orange, 🌱 Garden = green, 🍳 Kitchen = purple) | ⬜ TODO | |
-| 2.5 | `MapView.jsx` — Leaflet map centred on Melbourne CBD (-37.8136, 144.9631, zoom 13). Fetch locations from API, render colored markers by type | ⬜ TODO | Use CircleMarker or custom DivIcon |
-| 2.6 | `LocationPin.jsx` — custom marker. Click opens popup with name, type badge, description, "See Events" button | ⬜ TODO | |
-| 2.7 | Custom SVG markers in `public/markers/` (bbq, garden, kitchen) | ⬜ TODO | |
+| 2.1 | `models.py` — Location model | ✅ DONE | Scaffolded by Dev 1 to unblock Event FK; columns match STATE.md spec. |
+| 2.2 | `seed.py` — insert all 15 Melbourne seed locations | ✅ DONE | Idempotent; called from `main.py` lifespan after `init_db()`. Logs `[seed] inserted 15 locations` on cold start. |
+| 2.3 | `routers/locations.py` — `GET /api/locations` (list, filter by type), `POST /api/locations`; include `event_count` | ✅ DONE | `event_count` = upcoming events (`start_time >= now`) via outer-join + group_by. Mounted in `main.py`. `LocationRead`/`LocationCreate` added to `schemas.py`. Frontend now consumes via `useLocations()` hook. |
+| 2.4 | `constants.js` — location type config: labels, colors, icons (🔥 BBQ = orange, 🌱 Garden = green, 🍳 Kitchen = purple) | ✅ DONE | `LOCATION_TYPES` + `MAP_DEFAULTS` in `frontend/src/utils/constants.js`. Lucide icons (Flame/Sprout/ChefHat). |
+| 2.5 | `MapView.jsx` — Mapbox GL map (via `react-map-gl`) centred on Melbourne CBD (-37.8136, 144.9631, zoom 13). Install `mapbox-gl` + `react-map-gl`; remove `leaflet` + `react-leaflet`. Fetch locations from API, render colored markers by type | ✅ DONE | Style: `mapbox/light-v11`. Click-to-popup. Consumes mock seed from `utils/seedLocations.js` — swap to `/api/locations` once 2.3 ships. |
+| 2.6 | `LocationPin.jsx` — custom marker. Click opens popup with name, type badge, description, "See Events" button | ✅ DONE | Coloured pin + Lucide icon, scales on hover. "See Events" CTA deferred until events list exists. |
+| 2.7 | Custom SVG markers in `public/markers/` (bbq, garden, kitchen) | ⏸ DEFERRED | Using Lucide icons inline for now. Add bespoke SVGs if/when designers hand them over. |
 | 2.8 | `SearchBar.jsx` — text input + type filter dropdown (All / BBQ / Garden / Kitchen). Hooks into `GET /api/locations` or `GET /api/search` | ⬜ TODO | Coordinate with Dev 3 on placement |
 | 2.9 | Map ↔ event list sync — clicking marker scrolls/highlights matching events; viewport-based filtering optional | ⬜ TODO | Wire into Dev 3's `Home.jsx` |
 | 2.10 | Mobile map UX — full-width on small screens, sticky search, smooth pan/zoom | ⬜ TODO | |
@@ -313,11 +313,11 @@ SEED_LOCATIONS = [
 |---|------|--------|-------|
 | 3.1 | Init React app with Vite, install deps: `react-leaflet`, `leaflet`, `axios`, `react-router-dom`, `tailwindcss`, `lucide-react` | ✅ DONE | Vite 8 + React 19, Tailwind v4 with brand tokens registered via `@theme` in `src/index.css`. Leaflet icon-fix applied in `main.jsx`. |
 | 3.2 | `api.js` — axios instance with `baseURL` from env var `VITE_API_URL` (default `http://localhost:8000`) | ✅ DONE | `.env.example` committed with `VITE_API_URL=http://localhost:8000`. Dev 2 + Dev 4 will add their endpoints here. |
-| 3.3 | Tailwind config + design tokens applied (see DESIGN TOKENS below) | ⬜ TODO | Warm palette, rounded cards, smooth transitions |
-| 3.4 | `App.jsx` — React Router: `/` → Home, `/profile` → Profile (Dev 4 owns Profile page) | ⬜ TODO | |
-| 3.5 | Nav header component — logo/title left, profile avatar/name right (links to Profile) | ⬜ TODO | |
+| 3.3 | Tailwind config + design tokens applied (see DESIGN TOKENS below) | ✅ DONE | Inter font import added; `@theme` in `src/index.css` extended with `--font-sans`, `--radius-card`, `--shadow-card`, `--spacing-card`. Base layer sets `body` background, text color, and font. Demo pill in `App.jsx` uses `rounded-card shadow-card p-card` as smoke test. Branch: `feat-3.3`. |
+| 3.4 | `App.jsx` — React Router: `/` → Home, `/profile` → Profile (Dev 4 owns Profile page) | ✅ DONE | `BrowserRouter` with `/` and `/profile` routes wired. Inline placeholders mark slots for 3.7 (Home) and Dev 4's 4.6 (Profile). Branch: `feat-3.4`. |
+| 3.5 | Nav header component — logo/title left, profile avatar/name right (links to Profile) | ✅ DONE | `NavHeader.jsx` sticky top bar mounted in `App.jsx` above `<Routes>`. Logo links to `/`; "Sign in" pill links to `/profile` (slot for 3.6 auth-aware avatar + name). Lucide `UserCircle2`. Branch: `feat-3.5`. |
 | 3.6 | Simple auth flow: first-visit modal asks name + email → `POST /api/users` → store `user_id` in localStorage. Show name in header thereafter | ⬜ TODO | No passwords. Just identification. |
-| 3.7 | `Home.jsx` — layout: search bar top, map (Dev 2's `MapView`) 60% height, scrollable event list below, "Add Event" FAB bottom-right | ⬜ TODO | Shared with Dev 2 — leave a slot for MapView |
+| 3.7 | `Home.jsx` — layout: search bar top, map (Dev 2's `MapView`) 60% height, scrollable event list below, "Add Event" FAB bottom-right | ✅ DONE | `frontend/src/pages/Home.jsx` wired into `/`. SearchBar slot waits on 2.8, event list slot waits on 3.8 + Dev 1's 1.6, FAB stub waits on 3.9. Consumes Dev 2's merged `MapView` with `SEED_LOCATIONS` mock. Branch: `feat-3.7` (stacked on `feat-3.5`). |
 | 3.8 | `EventCard.jsx` — compact card: title, type pill, date/time, location name, RSVP button | ⬜ TODO | Dev 4 enriches with attendee count + host |
 | 3.9 | `EventModal.jsx` — view/create event. Form: title, description, type, location, start/end, max attendees | ⬜ TODO | |
 | 3.10 | Wire RSVP: "I'm Going" → `POST /api/events/{id}/rsvp` with user_id from localStorage | ⬜ TODO | Dev 4 adds badge-earn check on success |
@@ -370,10 +370,12 @@ Typography:
   Body: Inter or system-ui, regular
 
 Map:
-  Tile layer: https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
+  Provider: Mapbox GL JS (via react-map-gl)
+  Style: mapbox://styles/mapbox/light-v11 (default; switch to custom later)
   Centre: -37.8136, 144.9631 (Melbourne CBD)
   Default zoom: 13
   Marker sizes: 12px radius for locations
+  Token env var: VITE_MAPBOX_TOKEN (public token, pk.*)
 
 Cards:
   Border radius: 12px
@@ -415,6 +417,7 @@ CORS_ORIGINS=http://localhost:5173,https://community-maxxing.netlify.app
 
 # Frontend (Netlify)
 VITE_API_URL=https://community-maxxing.onrender.com
+VITE_MAPBOX_TOKEN=pk.xxxxxxxxxxxxxxxxxxxxxxxx  # public Mapbox token, scoped to *.netlify.app + localhost
 ```
 
 ---
@@ -493,10 +496,10 @@ VITE_API_URL=https://community-maxxing.onrender.com
 |------------|-----|--------|----------|---------|
 | Backend Foundation | Dev 1 | `feature/backend` | ⬜ Not started | — |
 | GIS / Mapping | Dev 2 (you) | `feature/gis` | ⬜ Not started | Coordinate `models.py` with Dev 1 |
-| Frontend App | Dev 3 | `feature/frontend-app` | ⬜ Not started | Needs API live + `GET /api/locations` from Dev 2 |
+| Frontend App | Dev 3 | `feature/frontend-app` | 🟡 In progress — 7/15 done (3.1, 3.2, 3.3, 3.4, 3.5, 3.7, 3.13) | 3.6/3.8/3.10 blocked on Dev 1 endpoints; 3.11/3.12 unblocked but low priority until cards exist |
 | Badges & Social | Dev 4 | `feature/social` | ⬜ Not started | Needs `api.js` + auth flow from Dev 3 |
 
-**Last updated:** 2026-05-23 — restructured for 4 devs (GIS split out, social/badges as own stream)
+**Last updated:** 2026-05-23 — 3.5 NavHeader (branch `feat-3.5`) and 3.7 Home layout (branch `feat-3.7`, stacked on `feat-3.5`) shipped
 
 ---
 
