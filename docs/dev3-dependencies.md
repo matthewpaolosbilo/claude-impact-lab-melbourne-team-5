@@ -4,7 +4,7 @@
 **Source:** `STATE.md` (post-restructure, 4-dev split)
 **Workstream:** Dev 3, branch `feature/frontend-app` — App shell + Auth + Event UI + Deploy
 
-> Nine tasks ✅ DONE: 3.1 (Vite + React 19 + Tailwind v4 with brand tokens), 3.2 (`api.js` axios instance + `.env.example`), 3.3 (design tokens applied), 3.4 (`App.jsx` router with `/` and `/profile` placeholder routes, branch `feat-3.4`), 3.5 (`NavHeader.jsx` global sticky top bar, branch `feat-3.5`), 3.7 (`Home.jsx` layout with map + slots + FAB, branch `feat-3.7`), 3.8 + 3.9 (`EventCard.jsx` + dual-mode `EventModal.jsx`, branch `feat-3.8-3.9`, wired against `SEED_EVENTS` mock and Dev 2's `useLocations` hook), 3.13 (vite proxy `/api` → `localhost:8000`). The frontend now renders a clickable end-to-end map + event list + create flow against mocks; remaining work hinges on Dev 1's users/RSVP endpoints (3.6, 3.10) and the deploy tail. Dev 3 owns three shared files (`api.js`, `App.jsx`, `EventCard.jsx`) and the Netlify deploy tail.
+> Ten tasks ✅ DONE: 3.1 (Vite + React 19 + Tailwind v4 with brand tokens), 3.2 (`api.js` axios instance + `.env.example`), 3.3 (design tokens applied), 3.4 (`App.jsx` router with `/` and `/profile` placeholder routes, branch `feat-3.4`), 3.5 (`NavHeader.jsx` global sticky top bar, branch `feat-3.5`), 3.6 (`AuthModal.jsx` + `useUser` hook, user-aware NavHeader, branch `feat-3.6` PR #14), 3.7 (`Home.jsx` layout with map + slots + FAB, branch `feat-3.7`), 3.8 + 3.9 (`EventCard.jsx` + dual-mode `EventModal.jsx`, branch `feat-3.8-3.9`, wired against `SEED_EVENTS` mock and Dev 2's `useLocations` hook), 3.13 (vite proxy `/api` → `localhost:8000`). The frontend now renders a clickable map + event list + create flow plus first-visit identification against a real backend (Dev 1's users/events/locations endpoints have merged). Remaining work is 3.10 (RSVP wiring) and the deploy tail (3.11, 3.12, 3.14, 3.15). Dev 3 owns three shared files (`api.js`, `App.jsx`, `EventCard.jsx`) and the Netlify deploy tail.
 
 ---
 
@@ -17,7 +17,7 @@
 | 3.3 | Tailwind config + design tokens | 3.1 ✅ | — | tailwindcss | DESIGN TOKENS § |
 | 3.4 ✅ | `App.jsx` — React Router | 3.1 ✅ | Shared file with Dev 4 (Dev 4 swaps the `/profile` placeholder for 4.6) | react-router-dom | — |
 | 3.5 ✅ | Nav header component | 3.1 ✅, 3.4 ✅ | — | lucide-react | — |
-| 3.6 | Auth flow (name + email modal) | 3.2 ✅, 3.5 | Blocked on Dev 1's 1.5 (`POST /api/users`) | localStorage | (user_id stored client-side) |
+| 3.6 ✅ | Auth flow (name + email modal) | 3.2 ✅, 3.5 ✅ | Satisfied by Dev 1's 1.5 (`POST /api/users`) now on main | localStorage | (user_id stored client-side) |
 | 3.7 ✅ | `Home.jsx` — layout (search + map + list + FAB) | 3.1 ✅, 3.4 ✅ | Consumes Dev 2's 2.5 (`MapView`) ✅ merged; SearchBar (2.8) and EventCard (3.8) slots still placeholders | — | — |
 | 3.8 ✅ | `EventCard.jsx` — compact card | 3.1 ✅, 3.2 ✅, 3.3 ✅ | Shipped against `SEED_EVENTS` mock; shared file with Dev 4 (4.9 attendee surfacing, 4.10 host attribution) — slots marked in source | lucide-react | `GET /api/events` (mock today; swap when Dev 1's 1.6 lands) |
 | 3.9 ✅ | `EventModal.jsx` — view/create | 3.1 ✅, 3.2 ✅, 3.8 ✅ | Shipped against `SEED_EVENTS` mock; location dropdown consumes Dev 2's `useLocations` hook (live `GET /api/locations`) | — | `GET/POST /api/events` (mock today), `GET /api/locations` ✅ |
@@ -38,7 +38,7 @@ graph TD
     3.1 --> 3.4[3.4 App.jsx router ✅]
     3.1 --> 3.13[3.13 vite proxy ✅]
     3.1 --> 3.14[3.14 netlify.toml]
-    3.2[3.2 api.js ✅] --> 3.6[3.6 Auth flow]
+    3.2[3.2 api.js ✅] --> 3.6[3.6 Auth flow ✅]
     3.3 --> 3.8[3.8 EventCard ✅]
     3.4 --> 3.5[3.5 Nav header ✅]
     3.4 --> 3.7[3.7 Home.jsx ✅]
@@ -72,13 +72,13 @@ graph TD
 
 ## Critical Path (remaining TODO work)
 
-With 3.8 and 3.9 ✅ shipped on `feat-3.8-3.9`, the data-UI branch collapses. The longest unavoidable chain is now:
+With 3.6 ✅ shipped on `feat-3.6`, the auth gate is cleared. The longest unavoidable chain is now:
 
-`3.6 → 3.10 → 3.15` (three tasks; the auth-then-RSVP-then-deploy spine).
+`3.10 → 3.15` (two tasks; the RSVP-then-deploy spine).
 
-3.10 still gates the live RSVP path and waits on Dev 1's 1.7. 3.15 remains the final fan-in.
+3.10 still gates the live RSVP path; Dev 1's 1.7 endpoint is merged so it's fully unblocked. 3.15 remains the final fan-in.
 
-3.11 (empty states) and 3.12 (mobile) are now both meaningfully startable because real cards exist; they remain independent leaves before 3.15.
+3.11 (empty states), 3.12 (mobile), and 3.14 (netlify.toml) are all meaningfully startable now; they remain independent leaves before 3.15.
 
 ---
 
