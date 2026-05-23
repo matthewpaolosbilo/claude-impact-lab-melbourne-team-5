@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import NavHeader from './components/NavHeader'
 import AuthModal from './components/AuthModal'
+import OnboardingGate from './components/OnboardingGate'
 import Home from './pages/Home'
 import Profile from './pages/Profile'
 import Toaster from './components/Toaster'
@@ -15,7 +16,14 @@ export default function App() {
           <NavHeader />
           <AuthModal />
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route
+              path="/"
+              element={
+                <OnboardingGate>
+                  <Home />
+                </OnboardingGate>
+              }
+            />
             <Route path="/profile" element={<Profile />} />
             {import.meta.env.DEV && (
               <Route path="/_dev/social" element={<DevSocialPreview />} />

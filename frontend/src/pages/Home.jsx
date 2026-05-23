@@ -1,30 +1,34 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Plus, Flame, Sprout, ChefHat } from 'lucide-react'
 import MapView from '../components/MapView'
 import EventCard from '../components/EventCard'
 import EventModal from '../components/EventModal'
-import ChatPanelSlot from '../components/ChatPanelSlot'
-import { SEED_EVENTS } from '../utils/seedEvents'
+import ChatPanel from '../components/ChatPanel'
 import { useLocations } from '../utils/useLocations'
+import { useEvents } from '../utils/useEvents'
 import { useUser } from '../hooks/useUser'
 import { useToast } from '../hooks/useToast'
 import { useBadgeWatcher } from '../hooks/useBadgeWatcher'
 import { rsvpToEvent } from '../api'
 
-// 3.7 Home layout. Slots downstream:
-//   - SearchBar slot waits on Dev 2's 2.8
-//   - Event list uses 3.8 EventCard against SEED_EVENTS; swap to live GET /api/events as a follow-up
-//   - FAB opens 3.9 EventModal in create mode
-//   - 3.10 RSVP now POSTs to /api/events/{id}/rsvp with X-User-Id header (optimistic + rollback)
+// 3.7 Home layout + Dev 4 Maxxer wiring (4.13/4.14/4.16/4.17).
+// 3.10 RSVP wiring is real (POST /api/events/{id}/rsvp with X-User-Id, optimistic
+// + rollback, toast on success/failure, triggers badge re-check).
+// Onboarding gating happens upstream in Dev 3's 3.7.1 OnboardingGate (App.jsx).
+// Maxxer surfaces as a floating panel rather than the inline sidebar/drawer
+// slots from 3.7.2 — see PR notes for follow-up if we want to inline it.
 export default function Home() {
-  const [events, setEvents] = useState(SEED_EVENTS)
-  const [modal, setModal] = useState({ open: false, mode: 'view', event: null })
-  // 3.7.2 shared state: Maxxer (Dev 4's 4.13/4.16) sets these, MapView (Dev 2's 2.5 follow-up) highlights them.
-  const [suggestedEventIds, setSuggestedEventIds] = useState([])
-  const { locations, loading, error } = useLocations()
   const { user } = useUser()
+  const { events, setEvents } = useEvents()
+  const { locations } = useLocations()
   const toast = useToast()
   const { triggerBadgeCheck } = useBadgeWatcher(user?.id)
+
+  const [modal, setModal] = useState({ open: false, mode: 'view', event: null })
+  const [suggestedEventIds, setSuggestedEventIds] = useState([])
+
+  const eventsById = useMemo(() => new Map(events.map((e) => [e.id, e])), [events])
+
   const openView = (event) => setModal({ open: true, mode: 'view', event })
   const openCreate = () => setModal({ open: true, mode: 'create', event: null })
   const closeModal = () => setModal((m) => ({ ...m, open: false }))
@@ -39,7 +43,6 @@ export default function Home() {
       return
     }
 
-    // 3.10 optimistic update; close modal if this event is open.
     const prev = {
       user_rsvp: event.user_rsvp,
       attendee_count: event.attendee_count,
@@ -66,7 +69,6 @@ export default function Home() {
   }
 
   const handleCreate = (draft) => {
-    // 3.9 stub: insert locally so the new card appears. Real POST lands with Dev 1's 1.6.
     const location = locations.find((l) => l.id === draft.location_id)
     const next = {
       id: Math.max(0, ...events.map((e) => e.id)) + 1,
@@ -87,90 +89,79 @@ export default function Home() {
     closeModal()
   }
 
-  const status = loading
-    ? 'Loading locations…'
-    : error
-      ? 'Failed to load locations (check VITE_API_URL + backend CORS)'
-      : `${locations.length} locations`
+  // Sort: suggested events first, then chronological.
+  const sortedEvents = useMemo(() => {
+    const suggested = new Set(suggestedEventIds)
+    return [...events].sort((a, b) => {
+      const aS = suggested.has(a.id) ? 0 : 1
+      const bS = suggested.has(b.id) ? 0 : 1
+      if (aS !== bS) return aS - bS
+      return new Date(a.start_time) - new Date(b.start_time)
+    })
+  }, [events, suggestedEventIds])
+
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col lg:flex-row">
-      {/* LEFT column: existing search + map + list + FAB + mobile drawer slot */}
-      <div className="relative flex min-h-0 flex-1 flex-col">
-        <div className="border-b border-black/10 bg-white/70 px-6 py-3 backdrop-blur">
-          {/* 3.11 follow-up: no-search-results empty state lands with Dev 2's 2.8 SearchBar. */}
-          <div className="rounded-card bg-cm-cream/60 px-4 py-2 text-sm text-cm-warm-gray">
-            Search bar slot — 2.8 SearchBar drops in here · {status}
-          </div>
+    <div className="relative flex min-h-0 flex-1 flex-col">
+      <div className="border-b border-black/10 bg-white/70 px-6 py-3 backdrop-blur">
+        {/* 3.11 follow-up: no-search-results empty state lands with Dev 2's 2.8 SearchBar. */}
+        <div className="rounded-card bg-cm-cream/60 px-4 py-2 text-sm text-cm-warm-gray">
+          {suggestedEventIds.length > 0
+            ? `Maxxer is highlighting ${suggestedEventIds.length} pick${suggestedEventIds.length === 1 ? '' : 's'} below`
+            : 'Search bar slot — 2.8 SearchBar drops in here'}
         </div>
-
-        {/* map: ~60% of viewport height */}
-        <div className="min-h-0 basis-[60%]">
-          <MapView
-            locations={locations}
-            highlightedEventIds={suggestedEventIds}
-          />
-        </div>
-
-        {/* event list — 3.8 EventCard against seed data */}
-        <div className="min-h-0 flex-1 overflow-y-auto border-t border-black/10 bg-cm-cream px-6 py-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-cm-warm-gray">
-            Upcoming events
-          </h2>
-          {events.length === 0 ? (
-            // 3.11 empty state — no events yet. Scoped to event list only; search-zero waits on 2.8.
-            <div className="mt-3 rounded-card bg-white/70 p-card text-center shadow-card">
-              <div className="flex justify-center gap-3">
-                <Flame aria-hidden className="h-6 w-6 text-cm-orange/80" />
-                <Sprout aria-hidden className="h-6 w-6 text-cm-green/80" />
-                <ChefHat aria-hidden className="h-6 w-6 text-cm-purple/80" />
-              </div>
-              <h3 className="mt-3 text-base font-semibold text-cm-charcoal">
-                No events up yet, no stress
-              </h3>
-              <p className="mt-1 text-sm text-cm-warm-gray">
-                The spots are ready, the city's waiting. Drop the first one with{' '}
-                <span className="font-semibold text-cm-charcoal">Add event</span> below.
-              </p>
-            </div>
-          ) : (
-            <ul className="mt-3 space-y-3">
-              {events.map((event) => (
-                <li key={event.id}>
-                  <EventCard event={event} onOpen={openView} onRsvp={handleRsvp} />
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {/* 3.7.2 mobile drawer slot — visible <lg, hidden when sidebar is shown */}
-        <ChatPanelSlot
-          variant="drawer"
-          suggestedEventIds={suggestedEventIds}
-          onSuggestedEventIds={setSuggestedEventIds}
-          className="lg:hidden"
-        />
-
-        {/* FAB: opens 3.9 EventModal in create mode */}
-        <button
-          type="button"
-          onClick={openCreate}
-          className="cursor-pointer absolute bottom-6 right-6 flex items-center gap-2 rounded-full bg-cm-orange px-5 py-3 text-sm font-semibold text-white shadow-card hover:bg-cm-orange/90"
-          aria-label="Add event"
-        >
-          <Plus className="h-5 w-5" />
-          <span>Add event</span>
-        </button>
       </div>
 
-      {/* 3.7.2 desktop sidebar slot — hidden <lg */}
-      <aside className="hidden border-l border-black/10 bg-white/70 lg:flex lg:w-80 xl:w-96">
-        <ChatPanelSlot
-          variant="sidebar"
-          suggestedEventIds={suggestedEventIds}
-          onSuggestedEventIds={setSuggestedEventIds}
-        />
-      </aside>
+      <div className="min-h-0 basis-[60%]">
+        {/* 3.7.2 contract: pass event IDs; Dev 2's MapView highlight resolves them. */}
+        <MapView locations={locations} highlightedEventIds={suggestedEventIds} />
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto border-t border-black/10 bg-cm-cream px-6 py-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-cm-warm-gray">
+          Upcoming events
+        </h2>
+        {sortedEvents.length === 0 ? (
+          // 3.11 empty state — no events yet. Scoped to event list only; search-zero waits on 2.8.
+          <div className="mt-3 rounded-card bg-white/70 p-card text-center shadow-card">
+            <div className="flex justify-center gap-3">
+              <Flame aria-hidden className="h-6 w-6 text-cm-orange/80" />
+              <Sprout aria-hidden className="h-6 w-6 text-cm-green/80" />
+              <ChefHat aria-hidden className="h-6 w-6 text-cm-purple/80" />
+            </div>
+            <h3 className="mt-3 text-base font-semibold text-cm-charcoal">
+              No events up yet, no stress
+            </h3>
+            <p className="mt-1 text-sm text-cm-warm-gray">
+              The spots are ready, the city's waiting. Drop the first one with{' '}
+              <span className="font-semibold text-cm-charcoal">Add event</span> below.
+            </p>
+          </div>
+        ) : (
+          <ul className="mt-3 space-y-3">
+            {sortedEvents.map((event) => {
+              const suggested = suggestedEventIds.includes(event.id)
+              return (
+                <li
+                  key={event.id}
+                  className={suggested ? 'rounded-card ring-2 ring-cm-gold' : ''}
+                >
+                  <EventCard event={event} onOpen={openView} onRsvp={handleRsvp} />
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </div>
+
+      <button
+        type="button"
+        onClick={openCreate}
+        className="cursor-pointer absolute bottom-6 right-6 flex items-center gap-2 rounded-full bg-cm-orange px-5 py-3 text-sm font-semibold text-white shadow-card hover:bg-cm-orange/90"
+        aria-label="Add event"
+      >
+        <Plus className="h-5 w-5" />
+        <span>Add event</span>
+      </button>
 
       <EventModal
         open={modal.open}
@@ -181,6 +172,17 @@ export default function Home() {
         onSubmit={handleCreate}
         onRsvp={handleRsvp}
       />
+
+      {user && (
+        <ChatPanel
+          userId={user.id}
+          eventsById={eventsById}
+          onOpenEvent={openView}
+          onRsvp={handleRsvp}
+          onSuggestionsChange={setSuggestedEventIds}
+          proactiveOnMount
+        />
+      )}
     </div>
   )
 }
