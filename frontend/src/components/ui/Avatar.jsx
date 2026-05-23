@@ -19,7 +19,7 @@ function hashSeed(seed) {
   return Math.abs(h)
 }
 
-export function pickPalette(seed) {
+function pickPalette(seed) {
   return ACCENT_PALETTE[hashSeed(seed) % ACCENT_PALETTE.length]
 }
 

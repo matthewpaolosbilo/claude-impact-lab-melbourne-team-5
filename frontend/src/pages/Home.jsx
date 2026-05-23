@@ -6,6 +6,7 @@ import EventModal from '../components/EventModal'
 import SearchBar from '../components/SearchBar'
 import ChatPanel from '../components/ChatPanel'
 import RsvpConfirmationModal from '../components/RsvpConfirmationModal'
+import PixelDivider from '../components/ui/PixelDivider'
 import { useLocations } from '../utils/useLocations'
 import { useEvents } from '../utils/useEvents'
 import { OPEN_AUTH_EVENT, useUser } from '../hooks/useUser'
@@ -13,9 +14,6 @@ import { useToast } from '../hooks/useToast'
 import { useBadgeWatcher } from '../hooks/useBadgeWatcher'
 import { rsvpToEvent } from '../api'
 
-// 3.7 Home layout + Dev 4 Maxxer wiring (4.13/4.14/4.16/4.17).
-// Dev 2 SearchBar filters locations and events, and MapView highlights selected
-// locations plus Maxxer suggested events mapped through their location IDs.
 export default function Home() {
   const { user } = useUser()
   const { events, setEvents } = useEvents()
@@ -131,11 +129,10 @@ export default function Home() {
 
     try {
       await rsvpToEvent(event.id, user.id)
-      toast.success("You're going!")
+      toast.success("You're going! 🎉")
       setRsvpConfirmEvent(event)
       triggerBadgeCheck()
     } catch (err) {
-      // 409 = already RSVP'd. Treat as success: keep optimistic state, no error noise.
       if (err?.response?.status === 409) {
         triggerBadgeCheck()
         return
@@ -167,14 +164,21 @@ export default function Home() {
   }
 
   const status = locationsLoading
-    ? 'Loading locations...'
+    ? 'Loading…'
     : locationsError
-      ? 'Failed to load locations (check VITE_API_URL + backend CORS)'
+      ? 'Failed to load (check VITE_API_URL + backend CORS)'
       : `${filteredLocations.length} places · ${sortedEvents.length} events`
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
-      <div className="sticky top-[65px] z-20 border-b border-black/10 bg-white/85 px-4 py-3 backdrop-blur sm:px-6">
+      <div
+        className="sticky z-20 px-4 py-3 sm:px-6"
+        style={{
+          top: 65,
+          background: 'var(--color-surface)',
+          borderBottom: '2px solid var(--color-text-primary)',
+        }}
+      >
         <SearchBar
           query={query}
           type={typeFilter}
@@ -198,38 +202,53 @@ export default function Home() {
         />
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto border-t border-black/10 bg-cm-cream px-4 py-4 sm:px-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-cm-warm-gray">
+      <PixelDivider />
+
+      <div
+        className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6"
+        style={{ background: 'var(--color-bg-primary)' }}
+      >
+        <h2
+          className="font-brand uppercase"
+          style={{ fontSize: 14, color: 'var(--color-text-primary)', letterSpacing: '0.06em' }}
+        >
           Upcoming events
         </h2>
         {sortedEvents.length === 0 ? (
-          // 3.11 empty state — filter-aware copy after Dev 2's 2.8 SearchBar landed.
-          <div className="mt-3 rounded-card bg-white/70 p-card text-center shadow-card">
+          <div
+            className="mt-3 text-center"
+            style={{
+              background: 'var(--color-surface)',
+              outline: '2px solid var(--color-text-primary)',
+              boxShadow: 'var(--shadow-pixel)',
+              padding: 20,
+            }}
+          >
             <div className="flex justify-center gap-3">
-              <Flame aria-hidden className="h-6 w-6 text-cm-orange/80" />
-              <Sprout aria-hidden className="h-6 w-6 text-cm-green/80" />
-              <ChefHat aria-hidden className="h-6 w-6 text-cm-purple/80" />
+              <Flame aria-hidden className="h-6 w-6" style={{ color: 'var(--color-coral)' }} />
+              <Sprout aria-hidden className="h-6 w-6" style={{ color: 'var(--color-mint)' }} />
+              <ChefHat aria-hidden className="h-6 w-6" style={{ color: 'var(--color-electric)' }} />
             </div>
             {normalizedQuery || typeFilter !== 'all' ? (
               <>
-                <h3 className="mt-3 text-base font-semibold text-cm-charcoal">
+                <h3 className="font-brand uppercase mt-3" style={{ fontSize: 16 }}>
                   Nothing matches yet
                 </h3>
-                <p className="mt-1 text-sm text-cm-warm-gray">
+                <p className="font-body mt-2" style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
                   Try a different search or filter, or tap{' '}
-                  <span className="font-semibold text-cm-charcoal">Add event</span>{' '}
-                  below to start something.
+                  <span className="font-brand" style={{ color: 'var(--color-text-primary)' }}>Add event</span>{' '}
+                  below to start something 🚩
                 </p>
               </>
             ) : (
               <>
-                <h3 className="mt-3 text-base font-semibold text-cm-charcoal">
+                <h3 className="font-brand uppercase mt-3" style={{ fontSize: 16 }}>
                   No events up yet, no stress
                 </h3>
-                <p className="mt-1 text-sm text-cm-warm-gray">
+                <p className="font-body mt-2" style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
                   The spots are ready, the city's waiting. Drop the first one with{' '}
-                  <span className="font-semibold text-cm-charcoal">Add event</span>{' '}
-                  below.
+                  <span className="font-brand" style={{ color: 'var(--color-text-primary)' }}>Add event</span>{' '}
+                  below 🚩
                 </p>
               </>
             )}
@@ -246,10 +265,10 @@ export default function Home() {
                     if (node) eventRefs.current.set(event.id, node)
                     else eventRefs.current.delete(event.id)
                   }}
-                  className={
+                  style={
                     suggested || selected
-                      ? 'rounded-card ring-2 ring-cm-gold ring-offset-2 ring-offset-cm-cream'
-                      : ''
+                      ? { outline: '2px solid var(--color-lime)', outlineOffset: 4 }
+                      : undefined
                   }
                 >
                   <EventCard event={event} onOpen={openView} onRsvp={handleRsvp} />
@@ -263,7 +282,20 @@ export default function Home() {
       <button
         type="button"
         onClick={openCreate}
-        className="cursor-pointer absolute bottom-4 right-4 flex items-center gap-2 rounded-full bg-cm-orange px-4 py-3 text-sm font-semibold text-white shadow-card hover:bg-cm-orange/90 sm:bottom-6 sm:right-6 sm:px-5"
+        className="cursor-pointer absolute flex items-center gap-2 font-brand uppercase"
+        style={{
+          bottom: 16,
+          right: 16,
+          fontSize: 13,
+          letterSpacing: '0.04em',
+          background: 'var(--color-coral)',
+          color: '#ffffff',
+          padding: '12px 16px',
+          outline: '2px solid var(--color-text-primary)',
+          border: 'none',
+          boxShadow: 'var(--shadow-pixel)',
+          borderRadius: 0,
+        }}
         aria-label="Add event"
       >
         <Plus className="h-5 w-5" />
