@@ -399,6 +399,7 @@ SEED_LOCATIONS = [
 | 4.17 | Proactive Maxxer open-app suggestions and activity nudges | ✅ DONE | `ChatPanel` accepts `proactiveOnMount`; calls `useMaxxer.bootstrap()` once which fires `/api/chat` with empty history and surfaces 3 picks. Nudge copy lives in the mock until Dev 1's `/api/chat` ships. |
 | 4.18 | Maxxer tone and safety QA pass | ⬜ TODO | Warm Gen Z slang, supportive and culturally aware; never frames loneliness as failure; suggestions must be grounded in real DB events. Needs a live-data review once Dev 1's `/api/chat` ships. |
 | 4.19 | Local mock for Dev 1's chat endpoints | ✅ DONE | `utils/maxxerMock.js` — picks 3 upcoming events from `/api/events` and embeds `[EVENT:id]` tags so the frontend Maxxer flow is demoable end-to-end. `api.js` falls through on 404/405/network errors. Delete once 1.10.3/1.10.4 land. |
+| 4.20 | RSVP confirmation image modal | ✅ DONE | `RsvpConfirmationModal.jsx` — full-screen modal fired from `handleRsvp` success path. Uses `frontend/public/confirmation_image.jpeg` (square pixel-art rendered with `image-rendering: pixelated`); CSS-only fallback if asset missing. ESC + backdrop close. |
 
 ---
 
