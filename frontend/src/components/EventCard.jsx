@@ -77,7 +77,7 @@ export default function EventCard({ event, onOpen, onRsvp }) {
             }
           }}
           aria-disabled={isFull || isGoing}
-          className={`cursor-pointer rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+          className={`cursor-pointer rounded-full px-4 py-2 text-xs font-semibold transition sm:px-3 sm:py-1.5 ${
             isGoing
               ? 'bg-cm-green/15 text-cm-green'
               : isFull

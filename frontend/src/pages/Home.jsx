@@ -232,7 +232,7 @@ export default function Home() {
             )}
           </div>
         ) : (
-          <ul className="mt-3 space-y-3">
+          <ul className="mt-3 space-y-3 pb-24">
             {sortedEvents.map((event) => {
               const suggested = suggestedEventIds.includes(event.id)
               const selected = selectedLocationId === event.location?.id
@@ -264,7 +264,7 @@ export default function Home() {
         aria-label="Add event"
       >
         <Plus className="h-5 w-5" />
-        <span>Add event</span>
+        <span className="hidden sm:inline">Add event</span>
       </button>
 
       <EventModal
