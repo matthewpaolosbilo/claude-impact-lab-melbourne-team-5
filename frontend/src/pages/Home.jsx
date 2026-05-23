@@ -199,6 +199,7 @@ export default function Home() {
         <h2 className="text-sm font-semibold uppercase tracking-wide text-cm-warm-gray">
           Upcoming events
         </h2>
+        {sortedEvents.length === 0 ? (
           // 3.11 empty state — filter-aware copy after Dev 2's 2.8 SearchBar landed.
           <div className="mt-3 rounded-card bg-white/70 p-card text-center shadow-card">
             <div className="flex justify-center gap-3">
