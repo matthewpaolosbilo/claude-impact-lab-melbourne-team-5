@@ -4,6 +4,7 @@ import MapView from '../components/MapView'
 import EventCard from '../components/EventCard'
 import EventModal from '../components/EventModal'
 import SearchBar from '../components/SearchBar'
+import ChatPanelSlot from '../components/ChatPanelSlot'
 import { SEED_EVENTS } from '../utils/seedEvents'
 import { useLocations } from '../utils/useLocations'
 import { useUser } from '../hooks/useUser'
@@ -12,16 +13,18 @@ import { useBadgeWatcher } from '../hooks/useBadgeWatcher'
 import { rsvpToEvent } from '../api'
 
 // 3.7 Home layout. Slots downstream:
-//   - SearchBar slot waits on Dev 2's 2.8
+//   - Dev 2 SearchBar filters locations and current events by query/type
 //   - Event list uses 3.8 EventCard against SEED_EVENTS; swap to live GET /api/events as a follow-up
 //   - FAB opens 3.9 EventModal in create mode
-//   - 3.10 RSVP now POSTs to /api/events/{id}/rsvp with X-User-Id header (optimistic + rollback)
+//   - 3.10 RSVP POSTs to /api/events/{id}/rsvp with X-User-Id header (optimistic + rollback)
+//   - 3.7.2 ChatPanelSlot can set suggestedEventIds; Dev 2 maps those to highlighted map pins
 export default function Home() {
   const [events, setEvents] = useState(SEED_EVENTS)
   const [modal, setModal] = useState({ open: false, mode: 'view', event: null })
   const [query, setQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
   const [selectedLocationId, setSelectedLocationId] = useState(null)
+  const [suggestedEventIds, setSuggestedEventIds] = useState([])
   const eventRefs = useRef(new Map())
   const { locations, loading, error } = useLocations()
   const { user } = useUser()
@@ -67,8 +70,12 @@ export default function Home() {
   const highlightedLocationIds = useMemo(() => {
     const ids = new Set()
     if (selectedLocationId) ids.add(selectedLocationId)
+    suggestedEventIds.forEach((eventId) => {
+      const event = events.find((item) => item.id === eventId)
+      if (event?.location?.id) ids.add(event.location.id)
+    })
     return Array.from(ids)
-  }, [selectedLocationId])
+  }, [events, selectedLocationId, suggestedEventIds])
 
   const handleClearSearch = () => {
     setQuery('')
@@ -148,78 +155,98 @@ export default function Home() {
   }
 
   const status = loading
-    ? 'Loading locations…'
+    ? 'Loading locations...'
     : error
       ? 'Failed to load locations (check VITE_API_URL + backend CORS)'
       : `${filteredLocations.length} places · ${filteredEvents.length} events`
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col">
-      <div className="sticky top-[65px] z-20 border-b border-black/10 bg-white/85 px-4 py-3 backdrop-blur sm:px-6">
-        <SearchBar
-          query={query}
-          type={typeFilter}
-          onQueryChange={setQuery}
-          onTypeChange={(nextType) => {
-            setTypeFilter(nextType)
-            setSelectedLocationId(null)
-          }}
-          onClear={handleClearSearch}
-          resultLabel={status}
-          disabled={loading}
+    <div className="relative flex min-h-0 flex-1 flex-col lg:flex-row">
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        <div className="sticky top-[65px] z-20 border-b border-black/10 bg-white/85 px-4 py-3 backdrop-blur sm:px-6">
+          <SearchBar
+            query={query}
+            type={typeFilter}
+            onQueryChange={setQuery}
+            onTypeChange={(nextType) => {
+              setTypeFilter(nextType)
+              setSelectedLocationId(null)
+            }}
+            onClear={handleClearSearch}
+            resultLabel={status}
+            disabled={loading}
+          />
+        </div>
+
+        {/* map: stable mobile height, roomier desktop split */}
+        <div className="min-h-[320px] basis-[48vh] sm:basis-[60%]">
+          <MapView
+            locations={filteredLocations}
+            onSelect={handleLocationSelect}
+            selectedLocationId={selectedLocationId}
+            highlightedLocationIds={highlightedLocationIds}
+          />
+        </div>
+
+        {/* event list — 3.8 EventCard against seed data */}
+        <div className="min-h-0 flex-1 overflow-y-auto border-t border-black/10 bg-cm-cream px-4 py-4 sm:px-6">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-cm-warm-gray">
+            Upcoming events
+          </h2>
+          {filteredEvents.length === 0 ? (
+            <div className="mt-3 rounded-card bg-white/70 p-card text-sm text-cm-warm-gray shadow-card">
+              No matches yet. Try a different search, or tap "Add event" to host one.
+            </div>
+          ) : (
+            <ul className="mt-3 space-y-3">
+              {filteredEvents.map((event) => (
+                <li
+                  key={event.id}
+                  ref={(node) => {
+                    if (node) eventRefs.current.set(event.id, node)
+                    else eventRefs.current.delete(event.id)
+                  }}
+                  className={
+                    selectedLocationId === event.location?.id ||
+                    suggestedEventIds.includes(event.id)
+                      ? 'rounded-card ring-2 ring-cm-gold ring-offset-2 ring-offset-cm-cream'
+                      : ''
+                  }
+                >
+                  <EventCard event={event} onOpen={openView} onRsvp={handleRsvp} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* 3.7.2 mobile drawer slot — visible <lg, hidden when sidebar is shown */}
+        <ChatPanelSlot
+          variant="drawer"
+          suggestedEventIds={suggestedEventIds}
+          onSuggestedEventIds={setSuggestedEventIds}
+          className="lg:hidden"
         />
+
+        {/* FAB: opens 3.9 EventModal in create mode */}
+        <button
+          type="button"
+          onClick={openCreate}
+          className="cursor-pointer absolute bottom-4 right-4 flex items-center gap-2 rounded-full bg-cm-orange px-4 py-3 text-sm font-semibold text-white shadow-card hover:bg-cm-orange/90 sm:bottom-6 sm:right-6 sm:px-5"
+          aria-label="Add event"
+        >
+          <Plus className="h-5 w-5" />
+          <span>Add event</span>
+        </button>
       </div>
 
-      {/* map: ~60% of viewport height */}
-      <div className="min-h-[320px] basis-[48vh] sm:basis-[60%]">
-        <MapView
-          locations={filteredLocations}
-          onSelect={handleLocationSelect}
-          selectedLocationId={selectedLocationId}
-          highlightedLocationIds={highlightedLocationIds}
+      {/* 3.7.2 desktop sidebar slot — hidden <lg */}
+      <aside className="hidden border-l border-black/10 bg-white/70 lg:flex lg:w-80 xl:w-96">
+        <ChatPanelSlot
+          variant="sidebar"
+          suggestedEventIds={suggestedEventIds}
+          onSuggestedEventIds={setSuggestedEventIds}
         />
-      </div>
-
-      {/* event list — 3.8 EventCard against seed data */}
-      <div className="min-h-0 flex-1 overflow-y-auto border-t border-black/10 bg-cm-cream px-4 py-4 sm:px-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-cm-warm-gray">
-          Upcoming events
-        </h2>
-        {filteredEvents.length === 0 ? (
-          <div className="mt-3 rounded-card bg-white/70 p-card text-sm text-cm-warm-gray shadow-card">
-            No matches yet. Try a different search, or tap "Add event" to host one.
-          </div>
-        ) : (
-          <ul className="mt-3 space-y-3">
-            {filteredEvents.map((event) => (
-              <li
-                key={event.id}
-                ref={(node) => {
-                  if (node) eventRefs.current.set(event.id, node)
-                  else eventRefs.current.delete(event.id)
-                }}
-                className={
-                  selectedLocationId === event.location?.id
-                    ? 'rounded-card ring-2 ring-cm-gold ring-offset-2 ring-offset-cm-cream'
-                    : ''
-                }
-              >
-                <EventCard event={event} onOpen={openView} onRsvp={handleRsvp} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      {/* FAB: opens 3.9 EventModal in create mode */}
-      <button
-        type="button"
-        onClick={openCreate}
-        className="cursor-pointer absolute bottom-4 right-4 flex items-center gap-2 rounded-full bg-cm-orange px-4 py-3 text-sm font-semibold text-white shadow-card hover:bg-cm-orange/90 sm:bottom-6 sm:right-6 sm:px-5"
-        aria-label="Add event"
-      >
-        <Plus className="h-5 w-5" />
-        <span>Add event</span>
-      </button>
+      </aside>
 
       <EventModal
         open={modal.open}
