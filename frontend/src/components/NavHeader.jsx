@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { UserCircle2, Moon, Sun } from 'lucide-react'
 import { getInitials, OPEN_AUTH_EVENT, useUser } from '../hooks/useUser'
+import spacdLogo from '../assets/spacd-hero-dark.svg'
 import { useTheme } from '../hooks/useTheme'
 import { InitialsAvatar } from './ui/Avatar'
 
@@ -24,15 +25,14 @@ export default function NavHeader() {
     >
       <Link
         to="/"
-        className="cursor-pointer truncate font-brand uppercase"
-        style={{
-          fontSize: 22,
-          letterSpacing: '0.04em',
-          color: 'var(--color-text-primary)',
-          textDecoration: 'none',
-        }}
+        className="cursor-pointer flex min-w-0 items-center"
+        aria-label="spacd home"
       >
-        spacd
+        <img
+          src={spacdLogo}
+          alt="spacd"
+          className="h-9 w-auto max-w-[150px] rounded-sm object-contain sm:max-w-[190px]"
+        />
       </Link>
 
       <div className="flex items-center gap-2">

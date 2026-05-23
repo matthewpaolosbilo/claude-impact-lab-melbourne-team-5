@@ -93,7 +93,7 @@ export default function RsvpConfirmationModal({ event, imageSrc = '/confirmation
                 padding: '2px 8px',
               }}
             >
-              You're going ✨
+              You earned your first badge!
             </span>
           </p>
           <h2
