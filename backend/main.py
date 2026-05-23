@@ -4,8 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 # Routers Dev 1 owns
-from routers import users
-# from routers import events  # TODO Dev 1 Phase D — uncomment when events router lands
+from routers import events, users
 # Routers other devs own — leave commented; uncomment when their PR merges.
 # from routers import locations  # TODO Dev 2 (feature/gis)
 # from routers import badges     # TODO Dev 4 (feature/social)
@@ -35,6 +34,8 @@ def health() -> dict[str, bool]:
 
 
 app.include_router(users.router)
-# app.include_router(events.router)
+app.include_router(events.router)
+app.include_router(events.rsvps_router)
+app.include_router(events.search_router)
 # app.include_router(locations.router)   # Dev 2
 # app.include_router(badges.router)      # Dev 4
