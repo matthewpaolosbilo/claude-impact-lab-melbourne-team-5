@@ -20,6 +20,7 @@ class UserRead(BaseModel):
     name: str
     email: EmailStr
     bio: Optional[str] = None
+    preferences: Optional[dict] = None
     created_at: datetime
 
 

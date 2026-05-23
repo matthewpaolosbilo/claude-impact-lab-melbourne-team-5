@@ -1,4 +1,5 @@
 from sqlalchemy import (
+    JSON,
     Column,
     DateTime,
     Float,
@@ -20,6 +21,7 @@ class User(Base):
     name = Column(String, nullable=False)
     email = Column(String, nullable=False, unique=True, index=True)
     bio = Column(String, nullable=True)
+    preferences = Column(JSON, nullable=True)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
 
 

@@ -57,6 +57,8 @@ def list_events(
     event_type: Optional[str] = None,
     date_from: Optional[datetime] = None,
     date_to: Optional[datetime] = None,
+    user_id: Optional[int] = None,
+    attended: Optional[bool] = None,
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_user_optional),
 ):
@@ -69,6 +71,12 @@ def list_events(
         query = query.filter(Event.start_time >= date_from)
     if date_to is not None:
         query = query.filter(Event.start_time <= date_to)
+    if user_id is not None:
+        query = query.join(RSVP, RSVP.event_id == Event.id).filter(
+            RSVP.user_id == user_id
+        )
+        if attended:
+            query = query.filter(RSVP.status == "attended")
     events = query.order_by(Event.start_time).all()
     return [_to_event_read(e, db, current_user) for e in events]
 
