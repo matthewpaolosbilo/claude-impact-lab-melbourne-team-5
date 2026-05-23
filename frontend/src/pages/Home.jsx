@@ -7,7 +7,7 @@ import SearchBar from '../components/SearchBar'
 import ChatPanel from '../components/ChatPanel'
 import { useLocations } from '../utils/useLocations'
 import { useEvents } from '../utils/useEvents'
-import { useUser } from '../hooks/useUser'
+import { OPEN_AUTH_EVENT, useUser } from '../hooks/useUser'
 import { useToast } from '../hooks/useToast'
 import { useBadgeWatcher } from '../hooks/useBadgeWatcher'
 import { rsvpToEvent } from '../api'
@@ -112,7 +112,7 @@ export default function Home() {
 
   const handleRsvp = async (event) => {
     if (!user) {
-      window.dispatchEvent(new Event('community-maxxing-open-auth'))
+      window.dispatchEvent(new Event(OPEN_AUTH_EVENT))
       toast.info('Sign in to RSVP')
       return
     }
@@ -232,7 +232,7 @@ export default function Home() {
             )}
           </div>
         ) : (
-          <ul className="mt-3 space-y-3">
+          <ul className="mt-3 space-y-3 pb-24">
             {sortedEvents.map((event) => {
               const suggested = suggestedEventIds.includes(event.id)
               const selected = selectedLocationId === event.location?.id
@@ -264,7 +264,7 @@ export default function Home() {
         aria-label="Add event"
       >
         <Plus className="h-5 w-5" />
-        <span>Add event</span>
+        <span className="hidden sm:inline">Add event</span>
       </button>
 
       <EventModal

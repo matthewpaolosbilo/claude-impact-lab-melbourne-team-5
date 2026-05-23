@@ -1,22 +1,22 @@
 import { Link } from 'react-router-dom'
 import { UserCircle2 } from 'lucide-react'
-import { getInitials, useUser } from '../hooks/useUser'
+import { getInitials, OPEN_AUTH_EVENT, useUser } from '../hooks/useUser'
 
 // 3.5 nav header, made auth-aware in 3.6.
 export default function NavHeader() {
   const { user } = useUser()
 
   function openAuth() {
-    window.dispatchEvent(new Event('community-maxxing-open-auth'))
+    window.dispatchEvent(new Event(OPEN_AUTH_EVENT))
   }
 
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between border-b border-black/10 bg-white/80 px-6 py-3 backdrop-blur shadow-card">
+    <header className="sticky top-0 z-20 flex items-center justify-between gap-2 border-b border-black/10 bg-white/80 px-4 py-3 backdrop-blur shadow-card sm:px-6">
       <Link
         to="/"
-        className="cursor-pointer text-lg font-bold text-cm-charcoal hover:text-cm-orange"
+        className="cursor-pointer truncate text-lg font-bold text-cm-charcoal hover:text-cm-orange"
       >
-        Community Maxxing
+        spacd
       </Link>
 
       {user ? (

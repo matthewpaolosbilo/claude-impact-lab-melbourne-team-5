@@ -1,4 +1,4 @@
-# STATE.md — Community Maxxing
+# STATE.md — spacd
 ## Strava for Acts of Public Service — Melbourne MVP
 
 > **Claude Code handoff file.** Four developers, one day, one app.
@@ -8,7 +8,7 @@
 
 ## PROJECT CONTEXT
 
-Community Maxxing is a civic participation platform for the City of Melbourne. It connects international students (and all residents) to community third spaces — barbecues, garden beds, and community kitchens — hosted in public parks and underutilised office spaces. Users discover and create events at these spaces, earn badges for participation, and build a visible civic profile.
+spacd is a civic participation platform for the City of Melbourne. It connects international students (and all residents) to community third spaces — barbecues, garden beds, and community kitchens — hosted in public parks and underutilised office spaces. Users discover and create events at these spaces, earn badges for participation, and build a visible civic profile.
 
 ### Core User Stories (from real student interviews)
 - "I need to find cheaper groceries and free community meals"
@@ -65,7 +65,7 @@ Returning users see the Maxxer as a collapsible chat sidebar beside the map on d
 
 Backend prompt baseline:
 ```text
-You are the Maxxer, the AI assistant for Community Maxxing — a civic participation app in Melbourne, Australia.
+You are the Maxxer, the AI assistant for spacd — a civic participation app in Melbourne, Australia.
 
 You speak in warm Gen Z slang. You're supportive, a little cheeky, never cringe. You talk like a friend who genuinely wants this person to get out there and find their people. You use slang naturally — "ngl", "fr fr", "lowkey", "giving", "slay", "no cap", "vibe check", "bet" — but you don't overdo it. Every other sentence doesn't need slang. You're warm first, funny second.
 
@@ -90,7 +90,7 @@ USER'S PAST ATTENDANCE:
 ## REPO STRUCTURE
 
 ```
-community-maxxing/
+spacd/
 ├── STATE.md                  ← you are here
 ├── backend/
 │   ├── main.py               ← FastAPI app, CORS, mount routes
@@ -241,7 +241,7 @@ BADGE_DEFINITIONS = [
     },
     {
         "id": "ten_acts",
-        "name": "Community Maxxer",
+        "name": "spacd Regular",
         "description": "10 total acts of civic participation",
         "icon": "💪",
         "check": lambda user_id: count_attended(user_id) >= 10
@@ -319,11 +319,11 @@ SEED_LOCATIONS = [
 | 1.8 | `routers/events.py` — `GET /api/search?q=...&type=...&date=...` | ✅ DONE | Search endpoint in `events.py`; `test_search.py` passes. |
 | 1.9 | `main.py` — mount routers, CORS (allow Netlify domain + localhost), call seed on startup | ✅ DONE | `backend/main.py` mounts users/events/locations/badges routers; CORS configured; seed on startup. |
 | 1.10 | `render.yaml` — web service config, start `uvicorn main:app --host 0.0.0.0 --port $PORT` | ✅ DONE | `backend/render.yaml` on main. |
-| 1.10.1 | Add `anthropic` to `requirements.txt` and load `ANTHROPIC_API_KEY` from Render env | ⬜ TODO | Backend-only secret; never expose via Vite. |
-| 1.10.2 | `models.py` / schemas — add nullable `preferences` JSON column to `User` and include it in user reads | ⬜ TODO | Stores Maxxer onboarding output: reason in Melbourne, home misses, vibe, dietary/cultural needs, area, social energy. |
-| 1.10.3 | `routers/chat.py` — `POST /api/chat` for ongoing Maxxer suggestions | ⬜ TODO | Loads user preferences, last 5 RSVPs, upcoming events in next 14 days; calls Claude Sonnet; returns response + suggested event IDs. |
-| 1.10.4 | `routers/chat.py` — `POST /api/chat/onboarding` for conversational preference gathering | ⬜ TODO | Uses onboarding prompt; when complete, extracts preferences JSON, saves to `User.preferences`, returns `onboarding_complete: true`. |
-| 1.10.5 | Maxxer system prompts + response parsing | ⬜ TODO | Enforce exactly 3 real event suggestions, parse `[EVENT:id]` tags, reject IDs not present in the available-events context. |
+| 1.10.1 | Add `anthropic` to `requirements.txt` and load `ANTHROPIC_API_KEY` from Render env | ✅ DONE | `anthropic>=0.40,<1` in `requirements.txt` + `pyproject.toml`. `services/anthropic_client.AnthropicMaxxerClient` reads `ANTHROPIC_API_KEY` (and optional `MAXXER_MODEL`, default `claude-sonnet-4-6`) at request time. Backend-only secret — Render env var still needs setting before/at merge. |
+| 1.10.2 | `models.py` / schemas — add nullable `preferences` JSON column to `User` and include it in user reads | ✅ DONE | SQLAlchemy `JSON` column on `User`; idempotent `ALTER TABLE users ADD COLUMN preferences` in `init_db()` for pre-existing local DBs; `UserRead.preferences: Optional[dict]`. Defaults `null` on create; populated by `/api/chat/onboarding` tool call. |
+| 1.10.3 | `routers/chat.py` — `POST /api/chat` for ongoing Maxxer suggestions | ✅ DONE | Loads upcoming-14d events (limit 30), last 5 RSVPs, current `user.preferences`; calls `MaxxerClient` (real Claude or stub if no key); returns `{response, suggested_event_ids, onboarding_complete}` with exactly 3 grounded events via `[EVENT:id]` enforcement. Hallucinated ids filtered before response leaves the server. |
+| 1.10.4 | `routers/chat.py` — `POST /api/chat/onboarding` for conversational preference gathering | ✅ DONE | Stateless: frontend sends `history` each turn. System prompt + `finish_onboarding` tool (6 dimensions). When Claude calls the tool, preferences persist to `User.preferences`, a follow-up call generates 3 grounded picks, response returns `onboarding_complete:true` + typed `MaxxerPreferences`. Otherwise returns assistant text with `onboarding_complete:false`. |
+| 1.10.5 | Maxxer system prompts + response parsing | ✅ DONE | `services/maxxer.py` owns the warm Gen Z `MAXXER_VOICE_PREFACE`, chat + onboarding system prompts, the `finish_onboarding` tool schema, and `enforce_event_suggestions(text, available_ids)` — drops hallucinated ids, dedupes, truncates to 3, strips orphan `[EVENT:id]` tags. 10 unit tests cover edge cases. |
 | 1.11 | Test all endpoints locally with curl/httpie | ✅ DONE | Met via pytest suite: `backend/tests/` has 8 test files (users, events, rsvp, search, locations, badge_logic, seed, smoke) — broader coverage than curl/httpie spot checks. |
 | 1.12 | Deploy to Render, confirm health check | ✅ DONE | Live at https://commaxx-api.onrender.com/ (docs at `/docs`). |
 
@@ -364,9 +364,9 @@ SEED_LOCATIONS = [
 | 3.7.2 | Home layout slot for `ChatPanel.jsx` | ✅ DONE | `ChatPanelSlot.jsx` placeholder mounted in desktop right sidebar (`lg:w-80 xl:w-96`) and mobile drawer strip below the event list. `suggestedEventIds` state lifted into `Home.jsx`; Dev 2 maps these to highlighted locations for `MapView` and also highlights matching event cards. Branch: `feat-3.7.2`. |
 | 3.8 | `EventCard.jsx` — compact card: title, type pill, date/time, location name, RSVP button | ✅ DONE | `frontend/src/components/EventCard.jsx`. Click opens `EventModal` in view mode; RSVP button stubbed (real wiring in 3.10). Slots marked for Dev 4's 4.9 attendee avatars + 4.10 host badges. Branch: `feat-3.8-3.9`. |
 | 3.9 | `EventModal.jsx` — view/create event. Form: title, description, type, location, start/end, max attendees | ✅ DONE | `frontend/src/components/EventModal.jsx`. Dual-mode (view/create), Esc + backdrop close, native `datetime-local` inputs, required-field validation. Location dropdown consumes `locations` prop fed by Dev 2's `useLocations` hook. Branch: `feat-3.8-3.9`. |
-| 3.10 | Wire RSVP: "I'm Going" → `POST /api/events/{id}/rsvp` with user_id from localStorage | ✅ DONE | `rsvpToEvent(eventId, userId)` helper in `frontend/src/api.js` (sends `X-User-Id` header). `Home.jsx` does optimistic update + real POST + rollback on failure + success toast, and calls `useBadgeWatcher.triggerBadgeCheck()` on success or 409 (already-RSVP'd treated as success). Unsigned users get AuthModal popped via the `community-maxxing-open-auth` event. SEED_EVENTS → live `GET /api/events` swap deferred. Branch: `feat-3.10`. |
+| 3.10 | Wire RSVP: "I'm Going" → `POST /api/events/{id}/rsvp` with user_id from localStorage | ✅ DONE | `rsvpToEvent(eventId, userId)` helper in `frontend/src/api.js` (sends `X-User-Id` header). `Home.jsx` does optimistic update + real POST + rollback on failure + success toast, and calls `useBadgeWatcher.triggerBadgeCheck()` on success or 409 (already-RSVP'd treated as success). Unsigned users get AuthModal popped via the `spacd-open-auth` event. SEED_EVENTS → live `GET /api/events` swap deferred. Branch: `feat-3.10`. |
 | 3.11 | Empty states: no events yet, no search results — friendly copy + illustration | ✅ DONE | Filter-aware empty state on `Home.jsx` — brand icon trio (Flame/Sprout/ChefHat) plus two copy variants (`No events up yet, no stress` when no filters active; `Nothing matches yet` when query or type filter is active). Scope grew to cover no-search-matches once Dev 2's 2.8 SearchBar landed in the merge. Branch: `feat-3.11`. |
-| 3.12 | Mobile responsive: stacks vertical, full-width cards | ⬜ TODO | |
+| 3.12 | Mobile responsive: stacks vertical, full-width cards | ✅ DONE | Mobile-first Tailwind sweep across Dev 3 surfaces. `Home.jsx`: horizontal padding `px-4 sm:px-6`, map block switched from `basis-[60%]` to `h-[45vh] sm:h-[50vh] lg:h-auto lg:basis-[60%]` so mobile gives more room to the event list, FAB collapses to icon-only below `sm:` and the list gets `pb-24` so the last card isn't covered. `NavHeader.jsx`: `px-4 sm:px-6` and brand `truncate` to survive 360px widths. `EventModal.jsx`: form rows `grid-cols-1 sm:grid-cols-2` so Type/Location and Start/End stack on mobile. `EventCard.jsx`: RSVP pill bumped to `px-4 py-2` on mobile (≥44px touch target) and back to `px-3 py-1.5` at `sm:`. Desktop behavior unchanged at `lg+`. Branch: `feat-3.12`. |
 | 3.13 | `vite.config.js` — proxy `/api` to backend in dev | ✅ DONE | Done early as part of 3.1 — proxies `/api` to `http://localhost:8000`. |
 | 3.14 | `netlify.toml` — build command, publish dir, redirect `/api/*` to Render backend URL | ✅ DONE | `frontend/netlify.toml`. Build cmd `npm run build`, publish `dist`. `/api/*` rewrites (status 200, force=true) to `https://commaxx-api.onrender.com/api/:splat`; SPA fallback `/* → /index.html` ordered after the API rule. Render `/api/locations` confirmed 200 from the rewrite target. Netlify site base directory should be set to `frontend`. Branch: `feat-3.14`. |
 | 3.15 | Deploy to Netlify, confirm app loads end-to-end | ⬜ TODO | Update STATE.md with live URL |
@@ -405,7 +405,7 @@ SEED_LOCATIONS = [
 ## DESIGN TOKENS
 
 ```
-Brand: Community Maxxing
+Brand: spacd
 
 Colors:
   --cm-orange:    #F97316   (BBQ / warmth / energy)
@@ -597,10 +597,10 @@ VITE_MAPBOX_TOKEN=pk.xxxxxxxxxxxxxxxxxxxxxxxx  # public Mapbox token, scoped to 
 |------------|-----|--------|----------|---------|
 | Backend Foundation | Dev 1 | `feature/backend` | 🟡 In progress — 12/17 done (1.1–1.12 ✅; live at commaxx-api.onrender.com); Maxxer subtasks 1.10.1–1.10.5 TODO | Maxxer needs `ANTHROPIC_API_KEY` env + `routers/chat.py` (1.10.1–1.10.5) |
 | GIS / Mapping | Dev 2 (you) | `feature/gis` | ✅ Complete — 9/10 done (2.1–2.6, 2.8–2.10); 2.7 deferred | Bespoke SVG markers remain deferred until designers provide assets |
-| Frontend App | Dev 3 | `feature/frontend-app` | 🟡 In progress — 15/17 done (3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.7.1, 3.7.2, 3.8, 3.9, 3.10, 3.11, 3.13, 3.14) | 3.12 mobile polish and 3.15 deploy remain |
+| Frontend App | Dev 3 | `feature/frontend-app` | 🟡 In progress — 16/17 done (3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.7.1, 3.7.2, 3.8, 3.9, 3.10, 3.11, 3.12, 3.13, 3.14) | 3.15 deploy is all that remains |
 | Badges & Social + Maxxer | Dev 4 | `feature/social` | 🟡 17/19 done — Maxxer frontend complete (4.13/4.14/4.15/4.17/4.19 ✅, 4.16 now wired through Dev 2 map highlights, 4.18 needs live-data QA) | Real Maxxer responses need Dev 1 `/api/chat` endpoints; mock adapter in `utils/maxxerMock.js` until then |
 
-**Last updated:** 2026-05-23 — 3.11 empty states shipped on branch `feat-3.11`: filter-aware brand card on `Home.jsx` covers both no-events and no-search-matches once Dev 2's 2.8 SearchBar landed; Frontend App tracker now 15/17 done.
+**Last updated:** 2026-05-23 — 3.11 empty states (`feat-3.11`) and 3.12 mobile responsive (`feat-3.12`) both shipped; Dev 1 Phase 2 Maxxer chat/onboarding endpoints ready for review on `feature/backend` (75 backend tests passing); Frontend App tracker now 16/17 done.
 
 ---
 
