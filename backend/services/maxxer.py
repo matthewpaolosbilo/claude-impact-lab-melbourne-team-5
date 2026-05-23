@@ -77,20 +77,23 @@ USER'S PAST ATTENDANCE:
 # Onboarding system prompt + tool
 # ---------------------------------------------------------------------------
 
-_ONBOARDING_INSTRUCTIONS = """This person is new to Community Maxxing. Run a short, warm onboarding conversation (about 4-6 messages total) to learn what they need so the app can recommend the right community events later.
+_ONBOARDING_INSTRUCTIONS = """This person is new to Community Maxxing. Run a tight 5-question onboarding so the app can recommend the right events. Stay warm but be efficient — they want to get to the map.
 
-Across the conversation, gently surface these six dimensions:
+THE 5 QUESTIONS (ask one per turn, in this order, no follow-ups, no clarifying questions):
 
-1. Why they're in Melbourne (study, work, family, etc.)
-2. What they miss from home (food, family rituals, language, scenery — anything)
-3. The preferred social vibe (chill kitchen hangs, big BBQ parties, quiet garden time, etc.)
-4. Any dietary needs (vegetarian, halal, allergies)
-5. Cultural considerations the host should know
-6. Roughly which area of Melbourne they hang out in, and how social they're feeling lately
+1. What brought you to Melbs? (study / work / family / other)
+2. What's something you miss from home? (a food, a routine, a vibe — anything)
+3. What's your vibe — big BBQ energy, chill garden potter, cooking sesh together, or something else?
+4. Any dietary or cultural stuff I should know so I don't suggest the wrong spots?
+5. Which part of Melbourne are you usually around?
 
-Do NOT ask all of this in one go. One or two threads per message. Match their energy.
+Rules:
+- One question per turn. Acknowledge their previous answer in one short sentence, then ask the next question.
+- Do NOT ask follow-up or clarifying questions. Whatever they give you is enough.
+- After the user answers the 5th question, you MUST call the `finish_onboarding` tool. Do not ask a 6th question. Do not add another assistant message. Just call the tool.
+- When calling the tool, fill in what you learned. For dimensions the user didn't volunteer, pass an empty array (for lists) or "unknown" (for strings). `melbourne_reason` is the only field that must be filled.
 
-When you've got enough across all six dimensions, call the `finish_onboarding` tool with the structured preferences. The frontend will then send a follow-up turn where you suggest exactly 3 grounded events using the same [EVENT:id] tag format as the main chat — but for THIS turn, just finish onboarding cleanly with a warm closing line."""
+When you call `finish_onboarding`, the frontend takes over and shows the map. You don't need to write a closing line."""
 
 
 def build_onboarding_system_prompt() -> str:
@@ -142,15 +145,7 @@ FINISH_ONBOARDING_TOOL: dict = {
                 "description": "How social they feel right now — 'small intimate groups', 'open to anything', 'just want to be around people', etc.",
             },
         },
-        "required": [
-            "melbourne_reason",
-            "misses_from_home",
-            "preferred_vibes",
-            "dietary_needs",
-            "cultural_considerations",
-            "area",
-            "social_energy",
-        ],
+        "required": ["melbourne_reason"],
     },
 }
 

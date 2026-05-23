@@ -98,15 +98,14 @@ def test_build_onboarding_system_prompt_mentions_dimensions():
 
     prompt = build_onboarding_system_prompt()
 
-    # The onboarding flow gathers reason in Melbourne, home misses, vibe,
-    # dietary/cultural needs, area, social energy — six dimensions.
+    # The 5 scripted questions surface: reason in Melbourne, home misses, vibe,
+    # dietary/cultural, and which part of Melbourne they're around.
     for keyword in [
         "Melbourne",
         "home",
         "vibe",
         "dietary",
-        "area",
-        "social",
+        "cultural",
     ]:
         assert keyword.lower() in prompt.lower(), f"missing {keyword!r}"
 
@@ -126,3 +125,22 @@ def test_finish_onboarding_tool_schema_has_six_dimensions():
         "social_energy",
     ):
         assert key in props, f"missing dimension {key}"
+
+
+def test_finish_onboarding_tool_only_requires_melbourne_reason():
+    """Other dimensions are optional so Claude wraps up after 5 questions even
+    when the user didn't volunteer every detail."""
+    from services.maxxer import FINISH_ONBOARDING_TOOL
+
+    required = FINISH_ONBOARDING_TOOL["input_schema"]["required"]
+    assert required == ["melbourne_reason"]
+
+
+def test_onboarding_prompt_scripts_five_questions():
+    from services.maxxer import build_onboarding_system_prompt
+
+    prompt = build_onboarding_system_prompt()
+    # Must mention the hard cap and the must-call rule, otherwise Claude
+    # keeps the conversation going.
+    assert "5" in prompt
+    assert "MUST" in prompt and "finish_onboarding" in prompt

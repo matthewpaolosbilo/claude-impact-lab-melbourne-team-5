@@ -52,6 +52,7 @@ class MaxxerClient:
         system: str,
         messages: list[MaxxerMessage],
         tools: Optional[list[dict]] = None,
+        tool_choice: Optional[dict] = None,
     ) -> MaxxerCompletion:
         raise NotImplementedError
 
@@ -76,17 +77,21 @@ class AnthropicMaxxerClient(MaxxerClient):
         system: str,
         messages: list[MaxxerMessage],
         tools: Optional[list[dict]] = None,
+        tool_choice: Optional[dict] = None,
     ) -> MaxxerCompletion:
         from anthropic import APIError  # local import to avoid hard dep at module load
 
+        kwargs = {
+            "model": MAXXER_MODEL,
+            "max_tokens": MAXXER_MAX_TOKENS,
+            "system": system,
+            "messages": [{"role": m["role"], "content": m["content"]} for m in messages],
+            "tools": tools if tools else [],
+        }
+        if tool_choice is not None:
+            kwargs["tool_choice"] = tool_choice
         try:
-            response = self._client.messages.create(
-                model=MAXXER_MODEL,
-                max_tokens=MAXXER_MAX_TOKENS,
-                system=system,
-                messages=[{"role": m["role"], "content": m["content"]} for m in messages],
-                tools=tools if tools else [],
-            )
+            response = self._client.messages.create(**kwargs)
         except APIError as exc:  # pragma: no cover - exercised manually
             logger.exception("Anthropic API call failed: %s", exc)
             raise
@@ -131,12 +136,15 @@ class StubMaxxerClient(MaxxerClient):
         system: str,
         messages: list[MaxxerMessage],
         tools: Optional[list[dict]] = None,
+        tool_choice: Optional[dict] = None,
     ) -> MaxxerCompletion:
         logger.warning(
             "MAXXER_STUB ANTHROPIC_API_KEY not set; returning canned response"
         )
         if tools:
-            return self._onboarding(messages)
+            # tool_choice forces completion regardless of turn count
+            force = tool_choice and tool_choice.get("type") == "tool"
+            return self._onboarding(messages, force=bool(force))
         return self._chat(system)
 
     @staticmethod
@@ -157,9 +165,9 @@ class StubMaxxerClient(MaxxerClient):
         return {"text": text, "tool_calls": []}
 
     @staticmethod
-    def _onboarding(messages: list[MaxxerMessage]) -> MaxxerCompletion:
+    def _onboarding(messages: list[MaxxerMessage], *, force: bool = False) -> MaxxerCompletion:
         user_turns = sum(1 for m in messages if m["role"] == "user")
-        if user_turns < 3:
+        if not force and user_turns < 3:
             idx = max(0, min(user_turns - 1, len(_STUB_FOLLOWUPS) - 1))
             return {"text": _STUB_FOLLOWUPS[idx], "tool_calls": []}
         return {

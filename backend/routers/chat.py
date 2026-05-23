@@ -57,12 +57,12 @@ class ChatResponse(BaseModel):
 
 class MaxxerPreferences(BaseModel):
     melbourne_reason: str
-    misses_from_home: list[str]
-    preferred_vibes: list[str]
-    dietary_needs: list[str]
-    cultural_considerations: list[str]
-    area: str
-    social_energy: str
+    misses_from_home: list[str] = Field(default_factory=list)
+    preferred_vibes: list[str] = Field(default_factory=list)
+    dietary_needs: list[str] = Field(default_factory=list)
+    cultural_considerations: list[str] = Field(default_factory=list)
+    area: str = "unknown"
+    social_energy: str = "open to anything"
 
 
 class OnboardingChatResponse(ChatResponse):
@@ -179,6 +179,13 @@ def chat(
     )
 
 
+ONBOARDING_QUESTION_LIMIT = 5
+
+
+def _count_user_turns(messages: list[MaxxerMessage]) -> int:
+    return sum(1 for m in messages if m["role"] == "user")
+
+
 @router.post("/onboarding", response_model=OnboardingChatResponse)
 def chat_onboarding(
     payload: ChatRequest,
@@ -202,6 +209,29 @@ def chat_onboarding(
         ),
         None,
     )
+
+    # Safety net: if the user has answered the 5 scripted questions and Claude
+    # still hasn't called the tool, force it. Otherwise the conversation drags
+    # on and the gate never flips. The forced call discards Claude's text so
+    # the frontend transitions straight to the map.
+    if finish_call is None and _count_user_turns(messages) >= ONBOARDING_QUESTION_LIMIT:
+        forced = maxxer.complete(
+            system=build_onboarding_system_prompt(),
+            messages=messages,
+            tools=[FINISH_ONBOARDING_TOOL],
+            tool_choice={"type": "tool", "name": "finish_onboarding"},
+        )
+        finish_call = next(
+            (
+                tc
+                for tc in forced["tool_calls"]
+                if tc["name"] == "finish_onboarding"
+            ),
+            None,
+        )
+        if finish_call is not None:
+            completion = forced
+
     if finish_call is None:
         return OnboardingChatResponse(
             response=completion["text"],

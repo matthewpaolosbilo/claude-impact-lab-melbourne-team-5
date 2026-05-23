@@ -215,3 +215,59 @@ def test_onboarding_preserves_existing_preferences_until_completion(
 
     db_session.refresh(a_user)
     assert a_user.preferences == {"melbourne_reason": "old"}
+
+
+def test_onboarding_forces_completion_after_five_user_turns(
+    client, db_session, a_user, a_location, fake_maxxer
+):
+    """Safety net: if the user has answered 5 questions and Claude still hasn't
+    called finish_onboarding, the router forces it via tool_choice. The gate
+    should flip even if Claude was trying to keep chatting."""
+    _seed_events(db_session, a_user, a_location, count=3)
+
+    forced_prefs = {"melbourne_reason": "study"}
+    fake_maxxer.responses.extend(
+        [
+            # First call: Claude keeps chatting instead of calling the tool.
+            {"text": "tell me more about your vibe", "tool_calls": []},
+            # Second call (forced via tool_choice): tool is called.
+            {
+                "text": "",
+                "tool_calls": [
+                    {"name": "finish_onboarding", "input": forced_prefs}
+                ],
+            },
+            # Third call: 3 grounded event suggestions.
+            {"text": "lineup [EVENT:1] [EVENT:2] [EVENT:3]", "tool_calls": []},
+        ]
+    )
+
+    # Build history with 4 prior user turns; the request message is the 5th.
+    history = []
+    for i in range(4):
+        history.append({"role": "user", "content": f"answer {i + 1}"})
+        history.append({"role": "assistant", "content": f"question {i + 2}"})
+
+    response = client.post(
+        "/api/chat/onboarding",
+        json={
+            "user_id": a_user.id,
+            "message": "answer 5",
+            "history": history,
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["onboarding_complete"] is True
+    assert body["preferences"]["melbourne_reason"] == "study"
+    # Optional fields filled by Pydantic defaults so the model validates.
+    assert body["preferences"]["misses_from_home"] == []
+    assert body["preferences"]["area"] == "unknown"
+
+    # The forced call carried tool_choice; the initial one did not.
+    assert fake_maxxer.calls[0]["tool_choice"] is None
+    assert fake_maxxer.calls[1]["tool_choice"] == {
+        "type": "tool",
+        "name": "finish_onboarding",
+    }
