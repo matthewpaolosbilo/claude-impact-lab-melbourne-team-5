@@ -33,7 +33,7 @@ A lightweight web app with:
 │  FRONTEND (Netlify)         │     │  BACKEND (Render)            │
 │                             │     │                              │
 │  React + Vite               │────▶│  FastAPI + SQLite            │
-│  Leaflet map (OpenStreetMap)│     │                              │
+│  Mapbox GL JS               │     │                              │
 │  Tailwind CSS               │     │  /api/locations   GET/POST   │
 │                             │     │  /api/events      GET/POST   │
 │  Pages:                     │     │  /api/events/{id}/rsvp POST  │
@@ -45,7 +45,7 @@ A lightweight web app with:
 ```
 
 ### Tech Decisions (locked, don't revisit)
-- **Map:** Leaflet + OpenStreetMap (free, no API key)
+- **Map:** Mapbox GL JS via `react-map-gl` (requires public token, generous free tier). Token lives in `VITE_MAPBOX_TOKEN`.
 - **DB:** SQLite via SQLAlchemy (good enough for MVP, zero config on Render)
 - **Auth:** Simplified — name + email, no OAuth today. Store a user_id in localStorage.
 - **Badges:** Computed server-side on badge check endpoint, not event-driven
@@ -296,10 +296,10 @@ SEED_LOCATIONS = [
 | 2.1 | `models.py` — Location model | ⬜ TODO | Add to file Dev 1 scaffolds; see Data Models above |
 | 2.2 | `seed.py` — insert all 15 Melbourne seed locations | ⬜ TODO | See Seed Data above |
 | 2.3 | `routers/locations.py` — `GET /api/locations` (list, filter by type), `POST /api/locations`; include `event_count` | ⬜ TODO | |
-| 2.4 | `constants.js` — location type config: labels, colors, icons (🔥 BBQ = orange, 🌱 Garden = green, 🍳 Kitchen = purple) | ⬜ TODO | |
-| 2.5 | `MapView.jsx` — Leaflet map centred on Melbourne CBD (-37.8136, 144.9631, zoom 13). Fetch locations from API, render colored markers by type | ⬜ TODO | Use CircleMarker or custom DivIcon |
-| 2.6 | `LocationPin.jsx` — custom marker. Click opens popup with name, type badge, description, "See Events" button | ⬜ TODO | |
-| 2.7 | Custom SVG markers in `public/markers/` (bbq, garden, kitchen) | ⬜ TODO | |
+| 2.4 | `constants.js` — location type config: labels, colors, icons (🔥 BBQ = orange, 🌱 Garden = green, 🍳 Kitchen = purple) | ✅ DONE | `LOCATION_TYPES` + `MAP_DEFAULTS` in `frontend/src/utils/constants.js`. Lucide icons (Flame/Sprout/ChefHat). |
+| 2.5 | `MapView.jsx` — Mapbox GL map (via `react-map-gl`) centred on Melbourne CBD (-37.8136, 144.9631, zoom 13). Install `mapbox-gl` + `react-map-gl`; remove `leaflet` + `react-leaflet`. Fetch locations from API, render colored markers by type | ✅ DONE | Style: `mapbox/light-v11`. Click-to-popup. Consumes mock seed from `utils/seedLocations.js` — swap to `/api/locations` once 2.3 ships. |
+| 2.6 | `LocationPin.jsx` — custom marker. Click opens popup with name, type badge, description, "See Events" button | ✅ DONE | Coloured pin + Lucide icon, scales on hover. "See Events" CTA deferred until events list exists. |
+| 2.7 | Custom SVG markers in `public/markers/` (bbq, garden, kitchen) | ⏸ DEFERRED | Using Lucide icons inline for now. Add bespoke SVGs if/when designers hand them over. |
 | 2.8 | `SearchBar.jsx` — text input + type filter dropdown (All / BBQ / Garden / Kitchen). Hooks into `GET /api/locations` or `GET /api/search` | ⬜ TODO | Coordinate with Dev 3 on placement |
 | 2.9 | Map ↔ event list sync — clicking marker scrolls/highlights matching events; viewport-based filtering optional | ⬜ TODO | Wire into Dev 3's `Home.jsx` |
 | 2.10 | Mobile map UX — full-width on small screens, sticky search, smooth pan/zoom | ⬜ TODO | |
@@ -370,10 +370,12 @@ Typography:
   Body: Inter or system-ui, regular
 
 Map:
-  Tile layer: https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
+  Provider: Mapbox GL JS (via react-map-gl)
+  Style: mapbox://styles/mapbox/light-v11 (default; switch to custom later)
   Centre: -37.8136, 144.9631 (Melbourne CBD)
   Default zoom: 13
   Marker sizes: 12px radius for locations
+  Token env var: VITE_MAPBOX_TOKEN (public token, pk.*)
 
 Cards:
   Border radius: 12px
@@ -415,6 +417,7 @@ CORS_ORIGINS=http://localhost:5173,https://community-maxxing.netlify.app
 
 # Frontend (Netlify)
 VITE_API_URL=https://community-maxxing.onrender.com
+VITE_MAPBOX_TOKEN=pk.xxxxxxxxxxxxxxxxxxxxxxxx  # public Mapbox token, scoped to *.netlify.app + localhost
 ```
 
 ---
