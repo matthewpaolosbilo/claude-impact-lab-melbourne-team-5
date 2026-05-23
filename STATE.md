@@ -315,9 +315,9 @@ SEED_LOCATIONS = [
 | 3.2 | `api.js` — axios instance with `baseURL` from env var `VITE_API_URL` (default `http://localhost:8000`) | ✅ DONE | `.env.example` committed with `VITE_API_URL=http://localhost:8000`. Dev 2 + Dev 4 will add their endpoints here. |
 | 3.3 | Tailwind config + design tokens applied (see DESIGN TOKENS below) | ✅ DONE | Inter font import added; `@theme` in `src/index.css` extended with `--font-sans`, `--radius-card`, `--shadow-card`, `--spacing-card`. Base layer sets `body` background, text color, and font. Demo pill in `App.jsx` uses `rounded-card shadow-card p-card` as smoke test. Branch: `feat-3.3`. |
 | 3.4 | `App.jsx` — React Router: `/` → Home, `/profile` → Profile (Dev 4 owns Profile page) | ✅ DONE | `BrowserRouter` with `/` and `/profile` routes wired. Inline placeholders mark slots for 3.7 (Home) and Dev 4's 4.6 (Profile). Branch: `feat-3.4`. |
-| 3.5 | Nav header component — logo/title left, profile avatar/name right (links to Profile) | ⬜ TODO | |
+| 3.5 | Nav header component — logo/title left, profile avatar/name right (links to Profile) | ✅ DONE | `NavHeader.jsx` sticky top bar mounted in `App.jsx` above `<Routes>`. Logo links to `/`; "Sign in" pill links to `/profile` (slot for 3.6 auth-aware avatar + name). Lucide `UserCircle2`. Branch: `feat-3.5`. |
 | 3.6 | Simple auth flow: first-visit modal asks name + email → `POST /api/users` → store `user_id` in localStorage. Show name in header thereafter | ⬜ TODO | No passwords. Just identification. |
-| 3.7 | `Home.jsx` — layout: search bar top, map (Dev 2's `MapView`) 60% height, scrollable event list below, "Add Event" FAB bottom-right | ⬜ TODO | Shared with Dev 2 — leave a slot for MapView |
+| 3.7 | `Home.jsx` — layout: search bar top, map (Dev 2's `MapView`) 60% height, scrollable event list below, "Add Event" FAB bottom-right | ✅ DONE | `frontend/src/pages/Home.jsx` wired into `/`. SearchBar slot waits on 2.8, event list slot waits on 3.8 + Dev 1's 1.6, FAB stub waits on 3.9. Consumes Dev 2's merged `MapView` with `SEED_LOCATIONS` mock. Branch: `feat-3.7` (stacked on `feat-3.5`). |
 | 3.8 | `EventCard.jsx` — compact card: title, type pill, date/time, location name, RSVP button | ⬜ TODO | Dev 4 enriches with attendee count + host |
 | 3.9 | `EventModal.jsx` — view/create event. Form: title, description, type, location, start/end, max attendees | ⬜ TODO | |
 | 3.10 | Wire RSVP: "I'm Going" → `POST /api/events/{id}/rsvp` with user_id from localStorage | ⬜ TODO | Dev 4 adds badge-earn check on success |
@@ -496,10 +496,10 @@ VITE_MAPBOX_TOKEN=pk.xxxxxxxxxxxxxxxxxxxxxxxx  # public Mapbox token, scoped to 
 |------------|-----|--------|----------|---------|
 | Backend Foundation | Dev 1 | `feature/backend` | ⬜ Not started | — |
 | GIS / Mapping | Dev 2 (you) | `feature/gis` | ⬜ Not started | Coordinate `models.py` with Dev 1 |
-| Frontend App | Dev 3 | `feature/frontend-app` | 🟡 In progress — 5/15 done (3.1, 3.2, 3.3, 3.4, 3.13) | 3.5 unblocked next; 3.6/3.8/3.10 blocked on Dev 1 endpoints |
+| Frontend App | Dev 3 | `feature/frontend-app` | 🟡 In progress — 7/15 done (3.1, 3.2, 3.3, 3.4, 3.5, 3.7, 3.13) | 3.6/3.8/3.10 blocked on Dev 1 endpoints; 3.11/3.12 unblocked but low priority until cards exist |
 | Badges & Social | Dev 4 | `feature/social` | ⬜ Not started | Needs `api.js` + auth flow from Dev 3 |
 
-**Last updated:** 2026-05-23 — 3.3 design tokens applied (branch `feat-3.3`); 3.4 router wired with placeholders for 3.7 and 4.6 (branch `feat-3.4`)
+**Last updated:** 2026-05-23 — 3.5 NavHeader (branch `feat-3.5`) and 3.7 Home layout (branch `feat-3.7`, stacked on `feat-3.5`) shipped
 
 ---
 
