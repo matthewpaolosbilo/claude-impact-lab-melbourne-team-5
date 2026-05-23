@@ -5,15 +5,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import init_db, SessionLocal
-from routers import locations, events, users
-from seed import run_seed
-
-
-# Routers Dev 1 owns
-# from routers import users, events  # TODO Dev 1 Phase C/D — uncomment when routers exist
-# Routers other devs own — leave commented; uncomment when their PR merges.
-# from routers import badges     # TODO Dev 4 (feature/social)
+from routers import locations, events, users, badges
 from seed import seed_if_empty
+
 
 CORS_ORIGINS = [
     origin.strip()
@@ -57,5 +51,5 @@ app.include_router(users.router)
 app.include_router(events.router)
 app.include_router(events.rsvps_router)
 app.include_router(events.search_router)
-app.include_router(locations.router)   
-# app.include_router(badges.router)       # Dev 4
+app.include_router(locations.router)
+app.include_router(badges.router)
