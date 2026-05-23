@@ -111,9 +111,14 @@ def fake_maxxer():
             self.calls: list[dict] = []
             self.responses: list[dict] = []
 
-        def complete(self, *, system, messages, tools=None):
+        def complete(self, *, system, messages, tools=None, tool_choice=None):
             self.calls.append(
-                {"system": system, "messages": messages, "tools": tools}
+                {
+                    "system": system,
+                    "messages": messages,
+                    "tools": tools,
+                    "tool_choice": tool_choice,
+                }
             )
             if not self.responses:
                 return {"text": "", "tool_calls": []}
