@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, Flame, Sprout, ChefHat } from 'lucide-react'
 import MapView from '../components/MapView'
 import EventCard from '../components/EventCard'
 import EventModal from '../components/EventModal'
@@ -97,6 +97,7 @@ export default function Home() {
       {/* LEFT column: existing search + map + list + FAB + mobile drawer slot */}
       <div className="relative flex min-h-0 flex-1 flex-col">
         <div className="border-b border-black/10 bg-white/70 px-6 py-3 backdrop-blur">
+          {/* 3.11 follow-up: no-search-results empty state lands with Dev 2's 2.8 SearchBar. */}
           <div className="rounded-card bg-cm-cream/60 px-4 py-2 text-sm text-cm-warm-gray">
             Search bar slot — 2.8 SearchBar drops in here · {status}
           </div>
@@ -116,8 +117,20 @@ export default function Home() {
             Upcoming events
           </h2>
           {events.length === 0 ? (
-            <div className="mt-3 rounded-card bg-white/70 p-card text-sm text-cm-warm-gray shadow-card">
-              No events yet. Tap "Add event" to host one.
+            // 3.11 empty state — no events yet. Scoped to event list only; search-zero waits on 2.8.
+            <div className="mt-3 rounded-card bg-white/70 p-card text-center shadow-card">
+              <div className="flex justify-center gap-3">
+                <Flame aria-hidden className="h-6 w-6 text-cm-orange/80" />
+                <Sprout aria-hidden className="h-6 w-6 text-cm-green/80" />
+                <ChefHat aria-hidden className="h-6 w-6 text-cm-purple/80" />
+              </div>
+              <h3 className="mt-3 text-base font-semibold text-cm-charcoal">
+                No events up yet, no stress
+              </h3>
+              <p className="mt-1 text-sm text-cm-warm-gray">
+                The spots are ready, the city's waiting. Drop the first one with{' '}
+                <span className="font-semibold text-cm-charcoal">Add event</span> below.
+              </p>
             </div>
           ) : (
             <ul className="mt-3 space-y-3">
