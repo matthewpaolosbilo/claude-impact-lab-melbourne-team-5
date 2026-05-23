@@ -4,12 +4,6 @@ import { useMaxxer } from '../hooks/useMaxxer'
 import { parseMaxxerText } from '../utils/maxxerParse'
 import MaxxerEventSuggestion from './MaxxerEventSuggestion'
 
-// 4.13 — Maxxer chat panel. Collapsible sidebar on desktop (right edge),
-// bottom drawer on mobile. Session-only history.
-// 4.16 — emits suggested event IDs up via `onSuggestionsChange` so Home.jsx can
-// highlight them on the map.
-// 4.17 — proactive open-app: when `proactiveOnMount` is true we bootstrap one
-// assistant reply with 3 picks before the user types.
 export default function ChatPanel({
   userId,
   eventsById,
@@ -31,24 +25,20 @@ export default function ChatPanel({
     bootstrap,
   } = useMaxxer({ userId, mode: 'chat' })
 
-  // Forward suggestion IDs to Home for map highlighting (task 4.16).
   useEffect(() => {
     onSuggestionsChange?.(suggestedEventIds)
   }, [suggestedEventIds, onSuggestionsChange])
 
-  // Proactive open-app pick (task 4.17). Fires once when panel mounts.
   useEffect(() => {
     if (proactiveOnMount) bootstrap()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [proactiveOnMount])
 
-  // Auto-scroll thread to bottom on new messages / loading state.
   useEffect(() => {
     const el = threadRef.current
     if (el) el.scrollTop = el.scrollHeight
   }, [messages, isLoading])
 
-  // Focus input when panel opens.
   useEffect(() => {
     if (isOpen) inputRef.current?.focus()
   }, [isOpen])
@@ -62,45 +52,72 @@ export default function ChatPanel({
 
   return (
     <>
-      {/* Floating opener — visible when panel is closed. */}
       {!isOpen && (
         <button
           type="button"
           onClick={() => setIsOpen(true)}
           aria-label="Open Maxxer chat"
-          className="cursor-pointer fixed bottom-24 right-6 z-30 flex items-center gap-2 rounded-full bg-cm-charcoal px-4 py-3 text-sm font-semibold text-white shadow-card hover:bg-cm-charcoal/90 md:right-8"
+          className="cursor-pointer fixed font-brand uppercase flex items-center gap-2 md:right-8"
+          style={{
+            bottom: 90,
+            right: 16,
+            zIndex: 30,
+            background: 'var(--color-electric)',
+            color: 'var(--color-electric-ink)',
+            padding: '10px 16px',
+            fontSize: 13,
+            letterSpacing: '0.04em',
+            outline: '2px solid var(--color-text-primary)',
+            border: 'none',
+            boxShadow: 'var(--shadow-pixel)',
+            borderRadius: 0,
+          }}
         >
-          <Sparkles className="h-4 w-4 text-cm-gold" />
-          <span>Ask Maxxer</span>
+          <Sparkles className="h-4 w-4" />
+          <span>Ask Maxxer ⚡</span>
         </button>
       )}
 
-      {/* Backdrop (mobile drawer behavior). */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-30 bg-black/30 md:hidden"
+          className="fixed inset-0 z-30 md:hidden"
+          style={{ background: 'rgba(20, 20, 19, 0.5)' }}
           onClick={() => setIsOpen(false)}
           aria-hidden
         />
       )}
 
-      {/* Panel: bottom drawer on mobile, right sidebar on desktop. */}
       <aside
-        className={`fixed z-40 flex flex-col bg-white shadow-card ring-1 ring-black/5 transition-transform duration-200 ${
+        className={`fixed z-40 flex flex-col transition-transform duration-200 ${
           isOpen ? 'translate-y-0 md:translate-x-0' : 'translate-y-full md:translate-y-0 md:translate-x-full'
-        } inset-x-0 bottom-0 h-[70vh] rounded-t-2xl md:inset-y-0 md:right-0 md:left-auto md:h-auto md:w-[380px] md:rounded-none md:rounded-l-2xl`}
+        } inset-x-0 bottom-0 h-[70vh] md:inset-y-0 md:right-0 md:left-auto md:h-auto md:w-[380px]`}
+        style={{
+          background: 'var(--color-surface)',
+          outline: '2px solid var(--color-text-primary)',
+          boxShadow: '-6px 0 0 var(--color-electric)',
+        }}
         aria-hidden={!isOpen}
       >
-        <header className="flex items-center justify-between border-b border-black/5 px-4 py-3">
+        <header
+          className="flex items-center justify-between px-4 py-3"
+          style={{ borderBottom: '2px solid var(--color-text-primary)' }}
+        >
           <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-cm-gold" />
-            <h2 className="text-sm font-semibold text-cm-charcoal">Maxxer</h2>
+            <Sparkles className="h-4 w-4" style={{ color: 'var(--color-electric)' }} />
+            <h2 className="font-brand uppercase" style={{ fontSize: 14, letterSpacing: '0.04em' }}>
+              Maxxer
+            </h2>
           </div>
           <button
             type="button"
             onClick={() => setIsOpen(false)}
             aria-label="Close Maxxer chat"
-            className="cursor-pointer rounded-full p-1 text-cm-warm-gray hover:bg-cm-cream"
+            className="cursor-pointer p-1"
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--color-text-secondary)',
+            }}
           >
             <ChevronRight className="h-4 w-4 md:rotate-0 rotate-90" />
           </button>
@@ -108,11 +125,10 @@ export default function ChatPanel({
 
         <div
           ref={threadRef}
-          className="flex-1 space-y-3 overflow-y-auto bg-cm-cream/40 px-4 py-3"
+          className="flex-1 space-y-3 overflow-y-auto px-4 py-3"
+          style={{ background: 'var(--color-bg-secondary)' }}
         >
-          {messages.length === 0 && !isLoading && (
-            <EmptyState />
-          )}
+          {messages.length === 0 && !isLoading && <EmptyState />}
           {messages.map((m, i) => (
             <MessageBubble
               key={i}
@@ -124,27 +140,62 @@ export default function ChatPanel({
           ))}
           {isLoading && <TypingBubble />}
           {error && (
-            <div className="rounded-card bg-red-50 px-3 py-2 text-xs text-red-700">
+            <div
+              className="font-mono"
+              style={{
+                background: '#ffe5e0',
+                color: '#6b1a0c',
+                outline: '2px solid var(--color-coral)',
+                padding: '8px 12px',
+                fontSize: 11,
+                letterSpacing: '0.04em',
+              }}
+            >
               {error}
             </div>
           )}
         </div>
 
-        <form onSubmit={submit} className="border-t border-black/5 px-3 py-3">
-          <div className="flex items-center gap-2 rounded-full bg-cm-cream px-3 py-2 ring-1 ring-black/5 focus-within:ring-cm-orange">
+        <form
+          onSubmit={submit}
+          className="px-3 py-3"
+          style={{ borderTop: '2px solid var(--color-text-primary)', background: 'var(--color-surface)' }}
+        >
+          <div
+            className="flex items-center gap-2"
+            style={{
+              background: 'var(--color-bg-secondary)',
+              outline: '2px solid var(--color-border-strong)',
+              padding: '6px 10px',
+            }}
+          >
             <input
               ref={inputRef}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="ask Maxxer anything…"
+              placeholder="ask maxxer anything…"
               disabled={isLoading}
-              className="flex-1 bg-transparent text-sm text-cm-charcoal outline-none placeholder:text-cm-warm-gray disabled:opacity-50"
+              className="font-body flex-1 bg-transparent outline-none"
+              style={{
+                fontSize: 13,
+                color: 'var(--color-text-primary)',
+                border: 'none',
+              }}
             />
             <button
               type="submit"
               disabled={isLoading || !draft.trim()}
               aria-label="Send message"
-              className="cursor-pointer rounded-full bg-cm-orange p-2 text-white shadow-card disabled:cursor-default disabled:opacity-40"
+              className="cursor-pointer"
+              style={{
+                background: 'var(--color-lime)',
+                color: 'var(--color-lime-ink)',
+                outline: '2px solid var(--color-text-primary)',
+                border: 'none',
+                padding: 6,
+                boxShadow: 'var(--shadow-pixel-sm)',
+                opacity: isLoading || !draft.trim() ? 0.4 : 1,
+              }}
             >
               <Send className="h-4 w-4" />
             </button>
@@ -157,14 +208,20 @@ export default function ChatPanel({
 
 function EmptyState() {
   return (
-    <div className="rounded-card bg-white p-card text-sm text-cm-warm-gray shadow-card">
-      <div className="flex items-center gap-2 text-cm-charcoal">
+    <div
+      style={{
+        background: 'var(--color-surface)',
+        outline: '2px solid var(--color-text-primary)',
+        boxShadow: 'var(--shadow-pixel)',
+        padding: 14,
+      }}
+    >
+      <div className="flex items-center gap-2 font-brand uppercase" style={{ fontSize: 13, letterSpacing: '0.04em' }}>
         <MessageCircle className="h-4 w-4" />
-        <span className="font-semibold">heyyy 👋</span>
+        <span>Heyyy 👋</span>
       </div>
-      <p className="mt-2">
-        I'm the Maxxer. Ask me what's on this week, what fits your vibe, or where to
-        meet people fr.
+      <p className="font-body mt-2" style={{ fontSize: 13, color: 'var(--color-text-secondary)', lineHeight: 1.5 }}>
+        I'm the Maxxer. Ask me what's on this week, what fits your vibe, or where to meet people fr ⚡
       </p>
     </div>
   )
@@ -172,18 +229,27 @@ function EmptyState() {
 
 function TypingBubble() {
   return (
-    <div className="flex items-center gap-1">
-      <div className="rounded-2xl bg-white px-3 py-2 shadow-card ring-1 ring-black/5">
+    <div className="flex justify-start">
+      <div
+        style={{
+          background: 'var(--color-surface)',
+          outline: '2px solid var(--color-text-primary)',
+          padding: '8px 12px',
+        }}
+      >
         <span className="inline-flex items-center gap-1">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cm-warm-gray" />
-          <span
-            className="h-1.5 w-1.5 animate-pulse rounded-full bg-cm-warm-gray"
-            style={{ animationDelay: '120ms' }}
-          />
-          <span
-            className="h-1.5 w-1.5 animate-pulse rounded-full bg-cm-warm-gray"
-            style={{ animationDelay: '240ms' }}
-          />
+          {[0, 120, 240].map((delay) => (
+            <span
+              key={delay}
+              className="animate-pulse"
+              style={{
+                width: 6,
+                height: 6,
+                background: 'var(--color-text-secondary)',
+                animationDelay: `${delay}ms`,
+              }}
+            />
+          ))}
         </span>
       </div>
     </div>
@@ -195,7 +261,18 @@ function MessageBubble({ message, eventsById, onOpenEvent, onRsvp }) {
   if (isUser) {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[85%] rounded-2xl bg-cm-charcoal px-3 py-2 text-sm text-white">
+        <div
+          className="font-body"
+          style={{
+            maxWidth: '85%',
+            background: 'var(--color-text-primary)',
+            color: 'var(--color-bg-primary)',
+            outline: '2px solid var(--color-text-primary)',
+            padding: '8px 12px',
+            fontSize: 13,
+            lineHeight: 1.5,
+          }}
+        >
           {message.content}
         </div>
       </div>
@@ -204,7 +281,18 @@ function MessageBubble({ message, eventsById, onOpenEvent, onRsvp }) {
   const { segments } = parseMaxxerText(message.content)
   return (
     <div className="flex justify-start">
-      <div className="max-w-[92%] rounded-2xl bg-white px-3 py-2 text-sm text-cm-charcoal shadow-card ring-1 ring-black/5">
+      <div
+        className="font-body"
+        style={{
+          maxWidth: '92%',
+          background: 'var(--color-surface)',
+          color: 'var(--color-text-primary)',
+          outline: '2px solid var(--color-text-primary)',
+          padding: '8px 12px',
+          fontSize: 13,
+          lineHeight: 1.5,
+        }}
+      >
         {segments.map((seg, i) =>
           seg.kind === 'text' ? (
             <span key={i} className="whitespace-pre-wrap">

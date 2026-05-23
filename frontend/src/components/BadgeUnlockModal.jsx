@@ -1,16 +1,9 @@
 import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
+import Button from './ui/Button'
 
 const CONFETTI_GLYPHS = ['🎉', '✨', '🥳', '🌟', '🎊']
 
-/**
- * Celebration modal that pops when a new badge is earned. Pure CSS animation +
- * an emoji "rain" — no external confetti dep.
- *
- * Props:
- *   badge      the badge being celebrated (id/name/icon/description)
- *   onClose    called when the user dismisses
- */
 export default function BadgeUnlockModal({ badge, onClose }) {
   const [pieces] = useState(() => generatePieces(24))
 
@@ -29,17 +22,22 @@ export default function BadgeUnlockModal({ badge, onClose }) {
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 grid place-items-center bg-cm-charcoal/60 p-4 animate-[cm-fade-in_180ms_ease-out]"
+      className="fixed inset-0 z-50 grid place-items-center p-4"
+      style={{
+        background: 'rgba(20, 20, 19, 0.7)',
+        animation: 'cm-fade-in 180ms var(--ease-out)',
+      }}
       onClick={onClose}
     >
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {pieces.map((p, i) => (
           <span
             key={i}
-            className="absolute text-2xl"
+            className="absolute"
             style={{
               left: `${p.x}%`,
-              top: `-10%`,
+              top: '-10%',
+              fontSize: 24,
               animation: `cm-fall ${p.duration}s linear ${p.delay}s forwards`,
             }}
           >
@@ -49,25 +47,58 @@ export default function BadgeUnlockModal({ badge, onClose }) {
       </div>
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl animate-[cm-pop-in_320ms_cubic-bezier(0.18,1.25,0.62,1)] ring-4 ring-cm-gold/60"
+        className="relative w-full max-w-sm text-center"
+        style={{
+          background: 'var(--color-surface)',
+          color: 'var(--color-text-primary)',
+          outline: '2px solid var(--color-text-primary)',
+          boxShadow: '6px 6px 0 var(--color-lime)',
+          padding: 28,
+          animation: 'cm-pop-in 320ms var(--ease-bounce)',
+        }}
       >
         <button
           aria-label="Close"
           onClick={onClose}
-          className="absolute top-3 right-3 text-cm-warm-gray hover:text-cm-charcoal"
+          className="cursor-pointer absolute"
+          style={{
+            top: 8,
+            right: 8,
+            background: 'transparent',
+            border: 'none',
+            color: 'var(--color-text-secondary)',
+          }}
         >
           <X size={18} />
         </button>
-        <div className="text-xs uppercase tracking-wider text-cm-gold font-semibold">Badge unlocked</div>
-        <div className="my-3 text-6xl animate-[cm-pulse_1.6s_ease-in-out_infinite]">{badge.icon}</div>
-        <div className="text-xl font-bold text-cm-charcoal">{badge.name}</div>
-        <div className="mt-2 text-sm text-cm-warm-gray">{badge.description}</div>
-        <button
-          onClick={onClose}
-          className="mt-5 inline-flex items-center justify-center rounded-xl bg-cm-gold px-4 py-2 text-cm-charcoal font-semibold shadow hover:bg-cm-gold/90 transition"
+        <div
+          className="font-mono uppercase"
+          style={{ fontSize: 11, color: 'var(--color-text-secondary)', letterSpacing: '0.1em' }}
         >
-          Nice
-        </button>
+          Badge unlocked ✨
+        </div>
+        <div
+          style={{
+            fontSize: 64,
+            margin: '16px 0',
+            animation: 'cm-pulse 1.6s ease-in-out infinite',
+            lineHeight: 1,
+          }}
+        >
+          {badge.icon}
+        </div>
+        <div className="font-brand uppercase" style={{ fontSize: 22, letterSpacing: '0.03em' }}>
+          {badge.name}
+        </div>
+        <div
+          className="font-body mt-2"
+          style={{ fontSize: 13, color: 'var(--color-text-secondary)', lineHeight: 1.5 }}
+        >
+          {badge.description}
+        </div>
+        <div className="mt-5 flex justify-center">
+          <Button variant="lime" onClick={onClose}>Nice</Button>
+        </div>
       </div>
     </div>
   )

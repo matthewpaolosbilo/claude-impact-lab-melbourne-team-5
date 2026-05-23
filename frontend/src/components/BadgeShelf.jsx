@@ -3,15 +3,13 @@ import { Lock } from 'lucide-react'
 import { fetchUserBadges } from '../api'
 import { mergeBadgePayload } from '../utils/badges'
 
-/**
- * Grid of all 8 badges. Earned tiles use brand color + gold glow; locked tiles are greyed
- * with a lock icon and the server-provided progress string.
- *
- * Props:
- *   userId     numeric user id (from localStorage)
- *   payload?   optional pre-fetched { earned, available } payload (for previews / SSR)
- *   onLoad?    callback(payload) — useful for BadgeWatcher integration
- */
+const ACCENT_FOR_TOKEN = {
+  'cm-orange': 'var(--color-coral)',
+  'cm-green': 'var(--color-mint)',
+  'cm-purple': 'var(--color-electric)',
+  'cm-gold': 'var(--color-amber)',
+}
+
 export default function BadgeShelf({ userId, payload, onLoad }) {
   const [data, setData] = useState(payload || null)
   const [loading, setLoading] = useState(!payload)
@@ -39,10 +37,18 @@ export default function BadgeShelf({ userId, payload, onLoad }) {
   }, [userId, payload, onLoad])
 
   if (loading) {
-    return <div className="text-cm-warm-gray text-sm">Loading badges…</div>
+    return (
+      <div className="font-mono" style={{ fontSize: 11, color: 'var(--color-text-tertiary)' }}>
+        LOADING BADGES…
+      </div>
+    )
   }
   if (error) {
-    return <div className="text-cm-warm-gray text-sm">Couldn't load badges right now.</div>
+    return (
+      <div className="font-mono" style={{ fontSize: 11, color: 'var(--color-coral)' }}>
+        COULDN'T LOAD BADGES
+      </div>
+    )
   }
 
   const badges = mergeBadgePayload(data)
@@ -51,9 +57,14 @@ export default function BadgeShelf({ userId, payload, onLoad }) {
   return (
     <section>
       <div className="flex items-baseline justify-between mb-3">
-        <h3 className="text-lg font-bold text-cm-charcoal">Badges</h3>
-        <span className="text-sm text-cm-warm-gray">
-          {earnedCount} / {badges.length} earned
+        <h3 className="font-brand uppercase" style={{ fontSize: 18, color: 'var(--color-text-primary)' }}>
+          Badges
+        </h3>
+        <span
+          className="font-mono"
+          style={{ fontSize: 11, color: 'var(--color-text-secondary)', letterSpacing: '0.06em' }}
+        >
+          {earnedCount} / {badges.length} EARNED
         </span>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -67,42 +78,76 @@ export default function BadgeShelf({ userId, payload, onLoad }) {
 
 function BadgeTile({ badge }) {
   const earned = badge.earned
-  const colorClass = earned ? colorFor(badge.color) : 'bg-stone-100'
-  const ringClass = earned ? 'ring-2 ring-cm-gold shadow-[0_0_24px_-4px_rgba(234,179,8,0.55)]' : 'ring-1 ring-stone-200'
-  const iconOpacity = earned ? 'opacity-100' : 'opacity-40 grayscale'
+  const accent = ACCENT_FOR_TOKEN[badge.color] || 'var(--color-amber)'
+
   return (
     <div
-      className={`relative rounded-xl p-3 text-center transition ${colorClass} ${ringClass}`}
+      className="relative text-center"
       title={badge.description}
+      style={{
+        background: earned ? 'var(--color-surface)' : 'var(--color-bg-tertiary)',
+        outline: `2px solid ${earned ? 'var(--color-text-primary)' : 'var(--color-border-strong)'}`,
+        boxShadow: earned ? `3px 3px 0 ${accent}` : 'none',
+        padding: 12,
+        borderRadius: 0,
+      }}
     >
       {!earned && (
         <Lock
           size={14}
-          className="absolute top-2 right-2 text-cm-warm-gray"
+          className="absolute top-2 right-2"
+          style={{ color: 'var(--color-text-tertiary)' }}
           aria-label="Locked"
         />
       )}
-      <div className={`text-3xl mb-1 ${iconOpacity}`}>{badge.icon}</div>
-      <div className={`text-sm font-semibold ${earned ? 'text-cm-charcoal' : 'text-cm-warm-gray'}`}>
+      {earned && (
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 4,
+            background: accent,
+          }}
+        />
+      )}
+      <div
+        style={{
+          fontSize: 36,
+          marginBottom: 4,
+          marginTop: 6,
+          opacity: earned ? 1 : 0.35,
+          filter: earned ? 'none' : 'grayscale(1)',
+          lineHeight: 1,
+        }}
+      >
+        {badge.icon}
+      </div>
+      <div
+        className="font-brand uppercase"
+        style={{
+          fontSize: 12,
+          color: earned ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
+          letterSpacing: '0.02em',
+        }}
+      >
         {badge.name}
       </div>
-      <div className="text-xs text-cm-warm-gray mt-1 min-h-[2rem]">
+      <div
+        className="font-mono mt-1"
+        style={{
+          fontSize: 9,
+          color: 'var(--color-text-tertiary)',
+          letterSpacing: '0.04em',
+          minHeight: '2rem',
+          lineHeight: 1.3,
+          textTransform: 'uppercase',
+        }}
+      >
         {earned ? badge.description : badge.progress || badge.criteria}
       </div>
     </div>
   )
-}
-
-function colorFor(token) {
-  switch (token) {
-    case 'cm-orange':
-      return 'bg-cm-orange/15'
-    case 'cm-green':
-      return 'bg-cm-green/15'
-    case 'cm-purple':
-      return 'bg-cm-purple/15'
-    case 'cm-gold':
-    default:
-      return 'bg-cm-gold/15'
-  }
 }

@@ -1,6 +1,12 @@
 import { Bell, MapPin, Users, Sparkles } from 'lucide-react'
+import Card from './ui/Card'
+import Badge from './ui/Badge'
 
-const ICONS = { nearby: MapPin, friend: Users, badge: Sparkles }
+const KIND_META = {
+  nearby: { Icon: MapPin, accent: 'sky', emoji: '📍' },
+  friend: { Icon: Users, accent: 'electric', emoji: '👋' },
+  badge: { Icon: Sparkles, accent: 'lime', emoji: '✨' },
+}
 
 const STUB_FEED = [
   {
@@ -13,52 +19,70 @@ const STUB_FEED = [
   {
     id: 2,
     kind: 'friend',
-    title: "Priya RSVPed",
+    title: 'Priya RSVPed',
     body: "She's going to the Carlton Community Cooking night",
     when: 'yesterday',
   },
   {
     id: 3,
     kind: 'badge',
-    title: 'Almost there!',
+    title: 'Almost there',
     body: "One more garden session and you'll earn Green Thumb 🌱",
     when: '3d ago',
   },
 ]
 
-/**
- * Sidebar/sheet feed of social pings. Currently stubbed — backend wiring is a
- * follow-up; the UI is wired up and ready.
- *
- * Props:
- *   items?   optional array of feed entries; defaults to STUB_FEED for the demo.
- */
 export default function NotificationFeed({ items = STUB_FEED }) {
   return (
-    <section className="rounded-xl bg-white shadow p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-lg font-bold text-cm-charcoal flex items-center gap-2">
-          <Bell size={18} className="text-cm-orange" /> What's happening
-        </h3>
-        <span className="text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full bg-cm-cream text-cm-warm-gray">Preview</span>
+    <Card as="section" className="!p-0">
+      <div style={{ padding: 16 }}>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-brand text-lg" style={{ color: 'var(--color-text-primary)' }}>
+            <Bell size={16} className="inline mr-2" style={{ color: 'var(--color-coral)' }} />
+            What's happening
+          </h3>
+          <Badge variant="amber">Preview</Badge>
+        </div>
+        <ul className="space-y-2">
+          {items.map((n) => {
+            const meta = KIND_META[n.kind] || { Icon: Bell, accent: 'neutral', emoji: '🔔' }
+            const Icon = meta.Icon
+            return (
+              <li
+                key={n.id}
+                className="flex items-start gap-3 p-2 transition"
+                style={{ background: 'var(--color-bg-secondary)' }}
+              >
+                <div
+                  className="grid place-items-center shrink-0"
+                  style={{
+                    width: 32,
+                    height: 32,
+                    background: 'var(--color-surface)',
+                    outline: '2px solid var(--color-text-primary)',
+                  }}
+                >
+                  <Icon size={16} style={{ color: 'var(--color-text-primary)' }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-body text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                    {n.title} <span aria-hidden>{meta.emoji}</span>
+                  </div>
+                  <div className="font-body text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                    {n.body}
+                  </div>
+                  <div
+                    className="font-mono mt-1"
+                    style={{ fontSize: 10, color: 'var(--color-text-tertiary)', letterSpacing: '0.04em' }}
+                  >
+                    {n.when.toUpperCase()}
+                  </div>
+                </div>
+              </li>
+            )
+          })}
+        </ul>
       </div>
-      <ul className="space-y-2">
-        {items.map((n) => {
-          const Icon = ICONS[n.kind] || Bell
-          return (
-            <li key={n.id} className="flex items-start gap-3 rounded-lg hover:bg-cm-cream p-2 transition">
-              <div className="w-8 h-8 rounded-full bg-cm-cream grid place-items-center shrink-0">
-                <Icon size={16} className="text-cm-orange" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold text-cm-charcoal">{n.title}</div>
-                <div className="text-sm text-cm-warm-gray">{n.body}</div>
-                <div className="text-[11px] text-cm-warm-gray mt-1">{n.when}</div>
-              </div>
-            </li>
-          )
-        })}
-      </ul>
-    </section>
+    </Card>
   )
 }

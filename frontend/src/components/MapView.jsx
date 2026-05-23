@@ -3,6 +3,7 @@ import Map, { Marker, Popup, NavigationControl } from 'react-map-gl/mapbox'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import LocationPin from './LocationPin'
 import { LOCATION_TYPES, MAP_DEFAULTS } from '../utils/constants'
+import Badge from './ui/Badge'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
@@ -33,9 +34,25 @@ export default function MapView({
 
   if (!MAPBOX_TOKEN) {
     return (
-      <div className="flex h-full items-center justify-center p-8 text-center text-cm-charcoal">
-        Missing <code className="mx-1 rounded bg-black/5 px-1">VITE_MAPBOX_TOKEN</code>.
-        Add it to <code className="mx-1 rounded bg-black/5 px-1">frontend/.env.local</code> and restart dev.
+      <div
+        className="flex h-full items-center justify-center p-8 text-center font-body"
+        style={{ color: 'var(--color-text-primary)' }}
+      >
+        Missing{' '}
+        <code
+          className="font-mono mx-1 px-1"
+          style={{ background: 'var(--color-bg-tertiary)', fontSize: 11 }}
+        >
+          VITE_MAPBOX_TOKEN
+        </code>
+        . Add it to{' '}
+        <code
+          className="font-mono mx-1 px-1"
+          style={{ background: 'var(--color-bg-tertiary)', fontSize: 11 }}
+        >
+          frontend/.env.local
+        </code>{' '}
+        and restart dev.
       </div>
     )
   }
@@ -88,16 +105,28 @@ export default function MapView({
           closeOnClick={false}
           onClose={() => setSelected(null)}
         >
-          <div className="p-1 max-w-xs">
-            <div
-              className="text-xs font-semibold uppercase tracking-wide"
-              style={{ color: LOCATION_TYPES[selected.type]?.color }}
-            >
+          <div className="max-w-xs" style={{ minWidth: 200 }}>
+            <Badge variant={LOCATION_TYPES[selected.type]?.badgeVariant || 'neutral'}>
               {LOCATION_TYPES[selected.type]?.label}
+            </Badge>
+            <div
+              className="font-brand mt-2"
+              style={{ fontSize: 15, color: 'var(--color-text-primary)', letterSpacing: '0.01em' }}
+            >
+              {selected.name}
             </div>
-            <div className="mt-0.5 font-semibold text-cm-charcoal">{selected.name}</div>
-            <div className="mt-1 text-xs text-cm-warm-gray">{selected.address}</div>
-            <div className="mt-2 text-sm leading-snug">{selected.description}</div>
+            <div
+              className="font-mono mt-1 uppercase"
+              style={{ fontSize: 10, color: 'var(--color-text-tertiary)', letterSpacing: '0.06em' }}
+            >
+              {selected.address}
+            </div>
+            <div
+              className="font-body mt-2"
+              style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-secondary)' }}
+            >
+              {selected.description}
+            </div>
           </div>
         </Popup>
       )}

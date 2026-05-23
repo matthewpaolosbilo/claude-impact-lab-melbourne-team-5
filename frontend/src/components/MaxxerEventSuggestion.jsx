@@ -1,18 +1,35 @@
 import { MapPin, Calendar } from 'lucide-react'
 import { LOCATION_TYPES } from '../utils/constants'
+import Button from './ui/Button'
+import Badge from './ui/Badge'
 
-// Compact event card rendered inline inside a Maxxer chat bubble. One per [EVENT:id].
-// Falls back to a "unknown event" pill if the id isn't in the events map (e.g. the
-// agent hallucinated an id — backend's 1.10.5 is supposed to reject this, but be safe).
+// Map LOCATION_TYPES (which carry CSS hex colours) onto PXL Badge variants.
+const TYPE_TO_VARIANT = {
+  bbq: 'coral',
+  garden_bed: 'mint',
+  community_kitchen: 'electric',
+}
+
 export default function MaxxerEventSuggestion({ event, onOpen, onRsvp }) {
   if (!event) {
     return (
-      <div className="my-2 rounded-card border border-dashed border-cm-warm-gray/40 bg-white/50 px-3 py-2 text-xs text-cm-warm-gray">
-        Event reference not found in current list.
+      <div
+        className="my-2 font-mono"
+        style={{
+          padding: '8px 12px',
+          fontSize: 11,
+          color: 'var(--color-text-tertiary)',
+          background: 'var(--color-bg-secondary)',
+          outline: '2px dashed var(--color-border-strong)',
+          letterSpacing: '0.04em',
+        }}
+      >
+        EVENT NOT FOUND
       </div>
     )
   }
   const typeMeta = LOCATION_TYPES[event.location?.type] ?? null
+  const typeVariant = TYPE_TO_VARIANT[event.location?.type] || 'neutral'
   const start = event.start_time ? new Date(event.start_time) : null
   const when = start
     ? start.toLocaleString('en-AU', {
@@ -26,56 +43,58 @@ export default function MaxxerEventSuggestion({ event, onOpen, onRsvp }) {
   const going = event.user_rsvp === 'going' || event.user_rsvp === 'attended'
 
   return (
-    <div className="my-2 rounded-card bg-white p-3 shadow-card ring-1 ring-black/5">
+    <div
+      className="my-2"
+      style={{
+        background: 'var(--color-surface)',
+        outline: '2px solid var(--color-text-primary)',
+        boxShadow: 'var(--shadow-pixel)',
+        padding: 12,
+      }}
+    >
       <button
         type="button"
         onClick={() => onOpen?.(event)}
         className="block w-full cursor-pointer text-left"
+        style={{ background: 'transparent', border: 'none', padding: 0 }}
       >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="truncate text-sm font-semibold text-cm-charcoal">
+            <div className="font-brand truncate" style={{ fontSize: 14, color: 'var(--color-text-primary)' }}>
               {event.title}
             </div>
-            <div className="mt-1 flex items-center gap-2 text-xs text-cm-warm-gray">
-              <MapPin className="h-3.5 w-3.5 shrink-0" />
+            <div
+              className="font-mono mt-1 flex items-center gap-2"
+              style={{ fontSize: 10, color: 'var(--color-text-secondary)', letterSpacing: '0.04em' }}
+            >
+              <MapPin className="h-3 w-3 shrink-0" />
               <span className="truncate">{event.location?.name ?? 'TBA'}</span>
             </div>
             {when && (
-              <div className="mt-0.5 flex items-center gap-2 text-xs text-cm-warm-gray">
-                <Calendar className="h-3.5 w-3.5 shrink-0" />
+              <div
+                className="font-mono mt-0.5 flex items-center gap-2"
+                style={{ fontSize: 10, color: 'var(--color-text-secondary)', letterSpacing: '0.04em' }}
+              >
+                <Calendar className="h-3 w-3 shrink-0" />
                 <span>{when}</span>
               </div>
             )}
           </div>
-          {typeMeta && (
-            <span
-              className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
-              style={{ background: typeMeta.color }}
-            >
-              {typeMeta.label}
-            </span>
-          )}
+          {typeMeta && <Badge variant={typeVariant}>{typeMeta.label}</Badge>}
         </div>
       </button>
-      <div className="mt-2 flex items-center justify-end gap-2">
-        <button
-          type="button"
-          onClick={() => onOpen?.(event)}
-          className="cursor-pointer rounded-full px-3 py-1 text-xs font-medium text-cm-charcoal hover:bg-cm-cream"
-        >
+      <div className="mt-3 flex items-center justify-end gap-2">
+        <Button variant="ghost" size="sm" onClick={() => onOpen?.(event)}>
           View
-        </button>
-        <button
-          type="button"
-          onClick={() => onRsvp?.(event)}
+        </Button>
+        <Button
+          variant={going ? 'ghost' : 'lime'}
+          size="sm"
           disabled={going}
-          className={`cursor-pointer rounded-full px-3 py-1 text-xs font-semibold text-white ${
-            going ? 'bg-cm-green/80' : 'bg-cm-orange hover:bg-cm-orange/90'
-          } disabled:cursor-default`}
+          onClick={() => onRsvp?.(event)}
         >
           {going ? "You're going" : "I'm going"}
-        </button>
+        </Button>
       </div>
     </div>
   )

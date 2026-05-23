@@ -56,6 +56,7 @@ const Button = forwardRef(function Button(
     variant = 'primary',
     size = 'md',
     type = 'button',
+    as,
     className = '',
     style,
     children,
@@ -66,14 +67,18 @@ const Button = forwardRef(function Button(
 ) {
   const v = VARIANTS[variant] ?? VARIANTS.primary
   const s = SIZES[size] ?? SIZES.md
+  const Tag = as || 'button'
+  const isButton = Tag === 'button'
+
+  const elementProps = isButton
+    ? { type, disabled }
+    : { 'aria-disabled': disabled || undefined }
 
   return (
-    <button
+    <Tag
       ref={ref}
-      type={type}
-      disabled={disabled}
       data-variant={variant}
-      className={`pxl-btn cursor-pointer inline-flex items-center justify-center gap-2 font-brand uppercase leading-none transition-transform duration-150 ease-out disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+      className={`pxl-btn cursor-pointer inline-flex items-center justify-center gap-2 font-brand uppercase leading-none transition-transform duration-150 ease-out ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
       style={{
         background: v.bg,
         color: v.color,
@@ -100,10 +105,11 @@ const Button = forwardRef(function Button(
         e.currentTarget.style.transform = ''
         e.currentTarget.style.boxShadow = v.shadow
       }}
+      {...elementProps}
       {...rest}
     >
       {children}
-    </button>
+    </Tag>
   )
 })
 
