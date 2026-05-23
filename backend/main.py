@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import init_db, SessionLocal
-from routers import locations, events, users, badges
+from routers import chat, locations, events, users, badges
 from seed import seed_if_empty
 
 
@@ -53,3 +53,4 @@ app.include_router(events.rsvps_router)
 app.include_router(events.search_router)
 app.include_router(locations.router)
 app.include_router(badges.router)
+app.include_router(chat.router)

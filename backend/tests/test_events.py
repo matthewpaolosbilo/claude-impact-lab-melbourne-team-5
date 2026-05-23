@@ -196,3 +196,122 @@ def test_get_event_by_id_includes_user_rsvp(
 def test_get_event_404(client):
     response = client.get("/api/events/9999")
     assert response.status_code == 404
+
+
+def test_list_events_filter_by_user_attended_returns_only_attended_events(
+    client, db_session, a_user, another_user, a_location
+):
+    from models import Event, RSVP
+
+    attended_event = Event(
+        location_id=a_location.id,
+        title="Cookout I attended",
+        description="",
+        event_type="social",
+        start_time=datetime(2026, 6, 1, 12),
+        end_time=datetime(2026, 6, 1, 14),
+        host_user_id=a_user.id,
+    )
+    going_event = Event(
+        location_id=a_location.id,
+        title="Cookout I'm going to",
+        description="",
+        event_type="social",
+        start_time=datetime(2026, 6, 5, 12),
+        end_time=datetime(2026, 6, 5, 14),
+        host_user_id=a_user.id,
+    )
+    no_rsvp_event = Event(
+        location_id=a_location.id,
+        title="Random other",
+        description="",
+        event_type="social",
+        start_time=datetime(2026, 6, 10, 12),
+        end_time=datetime(2026, 6, 10, 14),
+        host_user_id=a_user.id,
+    )
+    db_session.add_all([attended_event, going_event, no_rsvp_event])
+    db_session.commit()
+    db_session.add_all(
+        [
+            RSVP(
+                event_id=attended_event.id,
+                user_id=another_user.id,
+                status="attended",
+            ),
+            RSVP(
+                event_id=going_event.id,
+                user_id=another_user.id,
+                status="going",
+            ),
+        ]
+    )
+    db_session.commit()
+
+    response = client.get(
+        f"/api/events?user_id={another_user.id}&attended=true"
+    )
+
+    assert response.status_code == 200
+    titles = [e["title"] for e in response.json()]
+    assert titles == ["Cookout I attended"]
+
+
+def test_list_events_filter_by_user_id_alone_returns_events_with_any_rsvp(
+    client, db_session, a_user, another_user, a_location
+):
+    from models import Event, RSVP
+
+    going = Event(
+        location_id=a_location.id,
+        title="Going",
+        description="",
+        event_type="social",
+        start_time=datetime(2026, 6, 1, 12),
+        end_time=datetime(2026, 6, 1, 14),
+        host_user_id=a_user.id,
+    )
+    attended = Event(
+        location_id=a_location.id,
+        title="Attended",
+        description="",
+        event_type="social",
+        start_time=datetime(2026, 6, 2, 12),
+        end_time=datetime(2026, 6, 2, 14),
+        host_user_id=a_user.id,
+    )
+    none = Event(
+        location_id=a_location.id,
+        title="None",
+        description="",
+        event_type="social",
+        start_time=datetime(2026, 6, 3, 12),
+        end_time=datetime(2026, 6, 3, 14),
+        host_user_id=a_user.id,
+    )
+    db_session.add_all([going, attended, none])
+    db_session.commit()
+    db_session.add_all(
+        [
+            RSVP(event_id=going.id, user_id=another_user.id, status="going"),
+            RSVP(
+                event_id=attended.id,
+                user_id=another_user.id,
+                status="attended",
+            ),
+        ]
+    )
+    db_session.commit()
+
+    response = client.get(f"/api/events?user_id={another_user.id}")
+    assert response.status_code == 200
+    titles = sorted(e["title"] for e in response.json())
+    assert titles == ["Attended", "Going"]
+
+
+def test_list_events_user_id_unknown_returns_empty_list(
+    client, db_session, an_event
+):
+    response = client.get("/api/events?user_id=9999&attended=true")
+    assert response.status_code == 200
+    assert response.json() == []
