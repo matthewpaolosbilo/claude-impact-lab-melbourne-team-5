@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
 import { OPEN_AUTH_EVENT, useUser } from '../hooks/useUser'
+import Input, { Label, HelpText } from './ui/Input'
+import Button from './ui/Button'
 
-// 3.6 first-visit auth modal. No passwords; just name + email.
-// POSTs to /api/users (Dev 1 contract: returns existing user if email matches,
-// otherwise creates one). Stores the returned user in localStorage.
 export default function AuthModal() {
   const { user, setUser } = useUser()
   const [open, setOpen] = useState(false)
@@ -13,8 +12,6 @@ export default function AuthModal() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
 
-  // Open on first visit (no stored user). Also listen for an app-wide
-  // "open sign-in" event so NavHeader can pop the modal on click.
   useEffect(() => {
     if (!user) setOpen(true)
     function openHandler() {
@@ -62,67 +59,72 @@ export default function AuthModal() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(20, 20, 19, 0.6)' }}
       role="dialog"
       aria-modal="true"
       aria-labelledby="auth-modal-title"
     >
-      <div className="w-full max-w-md rounded-card bg-cm-cream p-card shadow-card">
-        <h2
-          id="auth-modal-title"
-          className="text-2xl font-bold text-cm-charcoal"
-        >
+      <div
+        className="w-full max-w-md"
+        style={{
+          background: 'var(--color-surface)',
+          color: 'var(--color-text-primary)',
+          outline: '2px solid var(--color-text-primary)',
+          boxShadow: 'var(--shadow-pixel)',
+          borderRadius: 'var(--radius-md)',
+          padding: 24,
+        }}
+      >
+        {/* Accent stripe */}
+        <div
+          aria-hidden
+          style={{
+            height: 4,
+            background: 'var(--color-lime)',
+            margin: '-24px -24px 20px',
+          }}
+        />
+        <h2 id="auth-modal-title" className="font-brand uppercase" style={{ fontSize: 22, letterSpacing: '0.03em' }}>
           Welcome to spacd
         </h2>
-        <p className="mt-2 text-sm text-cm-warm-gray">
-          Tell us who you are so we can credit your RSVPs and check-ins. No
-          passwords, just identification.
+        <p className="font-body mt-2" style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
+          Tell us who you are so we can credit your RSVPs and check-ins. No passwords, just identification 👋
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
-          <label className="flex flex-col gap-1 text-sm font-medium text-cm-charcoal">
-            Name
-            <input
+          <div>
+            <Label htmlFor="auth-name" required>Name</Label>
+            <Input
+              id="auth-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
               autoFocus
               autoComplete="name"
-              className="rounded-card border border-black/10 bg-white px-3 py-2 text-base text-cm-charcoal outline-none focus:border-cm-orange"
               placeholder="Jane Resident"
             />
-          </label>
+          </div>
 
-          <label className="flex flex-col gap-1 text-sm font-medium text-cm-charcoal">
-            Email
-            <input
+          <div>
+            <Label htmlFor="auth-email" required>Email</Label>
+            <Input
+              id="auth-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
-              className="rounded-card border border-black/10 bg-white px-3 py-2 text-base text-cm-charcoal outline-none focus:border-cm-orange"
               placeholder="jane@example.com"
             />
-          </label>
+          </div>
 
-          {error && (
-            <p
-              className="rounded-card bg-cm-orange/10 px-3 py-2 text-sm text-cm-orange"
-              role="alert"
-            >
-              {error}
-            </p>
-          )}
+          {error && <HelpText error>{error}</HelpText>}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="cursor-pointer rounded-card bg-cm-orange px-4 py-2 text-base font-semibold text-white shadow-card transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {submitting ? 'Signing in...' : 'Continue'}
-          </button>
+          <Button type="submit" variant="primary" disabled={submitting}>
+            {submitting ? 'Signing in…' : 'Continue'}
+          </Button>
         </form>
       </div>
     </div>
