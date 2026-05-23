@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { useMemo, useRef, useState } from 'react'
+import { Plus, Flame, Sprout, ChefHat } from 'lucide-react'
 import MapView from '../components/MapView'
 import EventCard from '../components/EventCard'
 import EventModal from '../components/EventModal'
+import SearchBar from '../components/SearchBar'
 import ChatPanel from '../components/ChatPanel'
 import { useLocations } from '../utils/useLocations'
 import { useEvents } from '../utils/useEvents'
@@ -12,26 +13,99 @@ import { useBadgeWatcher } from '../hooks/useBadgeWatcher'
 import { rsvpToEvent } from '../api'
 
 // 3.7 Home layout + Dev 4 Maxxer wiring (4.13/4.14/4.16/4.17).
-// 3.10 RSVP wiring is real (POST /api/events/{id}/rsvp with X-User-Id, optimistic
-// + rollback, toast on success/failure, triggers badge re-check).
-// Onboarding gating happens upstream in Dev 3's 3.7.1 OnboardingGate (App.jsx).
-// Maxxer surfaces as a floating panel rather than the inline sidebar/drawer
-// slots from 3.7.2 — see PR notes for follow-up if we want to inline it.
+// Dev 2 SearchBar filters locations and events, and MapView highlights selected
+// locations plus Maxxer suggested events mapped through their location IDs.
 export default function Home() {
   const { user } = useUser()
   const { events, setEvents } = useEvents()
-  const { locations } = useLocations()
+  const { locations, loading: locationsLoading, error: locationsError } = useLocations()
   const toast = useToast()
   const { triggerBadgeCheck } = useBadgeWatcher(user?.id)
 
   const [modal, setModal] = useState({ open: false, mode: 'view', event: null })
   const [suggestedEventIds, setSuggestedEventIds] = useState([])
+  const [query, setQuery] = useState('')
+  const [typeFilter, setTypeFilter] = useState('all')
+  const [selectedLocationId, setSelectedLocationId] = useState(null)
+  const eventRefs = useRef(new Map())
 
   const eventsById = useMemo(() => new Map(events.map((e) => [e.id, e])), [events])
 
   const openView = (event) => setModal({ open: true, mode: 'view', event })
   const openCreate = () => setModal({ open: true, mode: 'create', event: null })
   const closeModal = () => setModal((m) => ({ ...m, open: false }))
+
+  const normalizedQuery = query.trim().toLowerCase()
+  const filteredLocations = useMemo(() => {
+    return locations.filter((loc) => {
+      const matchesType = typeFilter === 'all' || loc.type === typeFilter
+      const matchesQuery =
+        !normalizedQuery ||
+        [loc.name, loc.address, loc.description, loc.type]
+          .filter(Boolean)
+          .some((value) => value.toLowerCase().includes(normalizedQuery))
+      return matchesType && matchesQuery
+    })
+  }, [locations, normalizedQuery, typeFilter])
+
+  const filteredEvents = useMemo(() => {
+    return events.filter((event) => {
+      const matchesType =
+        typeFilter === 'all' || event.location?.type === typeFilter
+      const matchesQuery =
+        !normalizedQuery ||
+        [
+          event.title,
+          event.description,
+          event.event_type,
+          event.host?.name,
+          event.location?.name,
+          event.location?.type,
+        ]
+          .filter(Boolean)
+          .some((value) => value.toLowerCase().includes(normalizedQuery))
+      return matchesType && matchesQuery
+    })
+  }, [events, normalizedQuery, typeFilter])
+
+  const sortedEvents = useMemo(() => {
+    const suggested = new Set(suggestedEventIds)
+    return [...filteredEvents].sort((a, b) => {
+      const aS = suggested.has(a.id) ? 0 : 1
+      const bS = suggested.has(b.id) ? 0 : 1
+      if (aS !== bS) return aS - bS
+      return new Date(a.start_time) - new Date(b.start_time)
+    })
+  }, [filteredEvents, suggestedEventIds])
+
+  const highlightedLocationIds = useMemo(() => {
+    const ids = new Set()
+    if (selectedLocationId) ids.add(selectedLocationId)
+    suggestedEventIds.forEach((eventId) => {
+      const event = eventsById.get(eventId)
+      if (event?.location?.id) ids.add(event.location.id)
+    })
+    return Array.from(ids)
+  }, [eventsById, selectedLocationId, suggestedEventIds])
+
+  const handleClearSearch = () => {
+    setQuery('')
+    setTypeFilter('all')
+    setSelectedLocationId(null)
+  }
+
+  const handleLocationSelect = (location) => {
+    setSelectedLocationId(location.id)
+    const matchingEvent = sortedEvents.find((event) => event.location?.id === location.id)
+    if (!matchingEvent) return
+
+    window.requestAnimationFrame(() => {
+      eventRefs.current.get(matchingEvent.id)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      })
+    })
+  }
 
   const applyRsvpState = (eventId, patch) =>
     setEvents((list) => list.map((e) => (e.id === eventId ? { ...e, ...patch } : e)))
@@ -89,30 +163,36 @@ export default function Home() {
     closeModal()
   }
 
-  // Sort: suggested events first, then chronological.
-  const sortedEvents = useMemo(() => {
-    const suggested = new Set(suggestedEventIds)
-    return [...events].sort((a, b) => {
-      const aS = suggested.has(a.id) ? 0 : 1
-      const bS = suggested.has(b.id) ? 0 : 1
-      if (aS !== bS) return aS - bS
-      return new Date(a.start_time) - new Date(b.start_time)
-    })
-  }, [events, suggestedEventIds])
+  const status = locationsLoading
+    ? 'Loading locations...'
+    : locationsError
+      ? 'Failed to load locations (check VITE_API_URL + backend CORS)'
+      : `${filteredLocations.length} places · ${sortedEvents.length} events`
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
-      <div className="border-b border-black/10 bg-white/70 px-4 py-3 backdrop-blur sm:px-6">
-        <div className="rounded-card bg-cm-cream/60 px-4 py-2 text-sm text-cm-warm-gray">
-          {suggestedEventIds.length > 0
-            ? `Maxxer is highlighting ${suggestedEventIds.length} pick${suggestedEventIds.length === 1 ? '' : 's'} below`
-            : 'Search bar slot — 2.8 SearchBar drops in here'}
-        </div>
+      <div className="sticky top-[65px] z-20 border-b border-black/10 bg-white/85 px-4 py-3 backdrop-blur sm:px-6">
+        <SearchBar
+          query={query}
+          type={typeFilter}
+          onQueryChange={setQuery}
+          onTypeChange={(nextType) => {
+            setTypeFilter(nextType)
+            setSelectedLocationId(null)
+          }}
+          onClear={handleClearSearch}
+          resultLabel={status}
+          disabled={locationsLoading}
+        />
       </div>
 
-      <div className="h-[45vh] min-h-0 sm:h-[50vh] lg:h-auto lg:basis-[60%]">
-        {/* 3.7.2 contract: pass event IDs; Dev 2's MapView highlight resolves them. */}
-        <MapView locations={locations} highlightedEventIds={suggestedEventIds} />
+      <div className="min-h-[320px] basis-[48vh] sm:basis-[60%]">
+        <MapView
+          locations={filteredLocations}
+          onSelect={handleLocationSelect}
+          selectedLocationId={selectedLocationId}
+          highlightedLocationIds={highlightedLocationIds}
+        />
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto border-t border-black/10 bg-cm-cream px-4 py-4 sm:px-6">
@@ -120,17 +200,54 @@ export default function Home() {
           Upcoming events
         </h2>
         {sortedEvents.length === 0 ? (
-          <div className="mt-3 rounded-card bg-white/70 p-card text-sm text-cm-warm-gray shadow-card">
-            No events yet. Tap "Add event" to host one.
+          // 3.11 empty state — filter-aware copy after Dev 2's 2.8 SearchBar landed.
+          <div className="mt-3 rounded-card bg-white/70 p-card text-center shadow-card">
+            <div className="flex justify-center gap-3">
+              <Flame aria-hidden className="h-6 w-6 text-cm-orange/80" />
+              <Sprout aria-hidden className="h-6 w-6 text-cm-green/80" />
+              <ChefHat aria-hidden className="h-6 w-6 text-cm-purple/80" />
+            </div>
+            {normalizedQuery || typeFilter !== 'all' ? (
+              <>
+                <h3 className="mt-3 text-base font-semibold text-cm-charcoal">
+                  Nothing matches yet
+                </h3>
+                <p className="mt-1 text-sm text-cm-warm-gray">
+                  Try a different search or filter, or tap{' '}
+                  <span className="font-semibold text-cm-charcoal">Add event</span>{' '}
+                  below to start something.
+                </p>
+              </>
+            ) : (
+              <>
+                <h3 className="mt-3 text-base font-semibold text-cm-charcoal">
+                  No events up yet, no stress
+                </h3>
+                <p className="mt-1 text-sm text-cm-warm-gray">
+                  The spots are ready, the city's waiting. Drop the first one with{' '}
+                  <span className="font-semibold text-cm-charcoal">Add event</span>{' '}
+                  below.
+                </p>
+              </>
+            )}
           </div>
         ) : (
           <ul className="mt-3 space-y-3 pb-24">
             {sortedEvents.map((event) => {
               const suggested = suggestedEventIds.includes(event.id)
+              const selected = selectedLocationId === event.location?.id
               return (
                 <li
                   key={event.id}
-                  className={suggested ? 'rounded-card ring-2 ring-cm-gold' : ''}
+                  ref={(node) => {
+                    if (node) eventRefs.current.set(event.id, node)
+                    else eventRefs.current.delete(event.id)
+                  }}
+                  className={
+                    suggested || selected
+                      ? 'rounded-card ring-2 ring-cm-gold ring-offset-2 ring-offset-cm-cream'
+                      : ''
+                  }
                 >
                   <EventCard event={event} onOpen={openView} onRsvp={handleRsvp} />
                 </li>
@@ -143,7 +260,7 @@ export default function Home() {
       <button
         type="button"
         onClick={openCreate}
-        className="cursor-pointer absolute bottom-6 right-4 flex items-center gap-2 rounded-full bg-cm-orange px-4 py-3 text-sm font-semibold text-white shadow-card hover:bg-cm-orange/90 sm:right-6 sm:px-5"
+        className="cursor-pointer absolute bottom-4 right-4 flex items-center gap-2 rounded-full bg-cm-orange px-4 py-3 text-sm font-semibold text-white shadow-card hover:bg-cm-orange/90 sm:bottom-6 sm:right-6 sm:px-5"
         aria-label="Add event"
       >
         <Plus className="h-5 w-5" />
