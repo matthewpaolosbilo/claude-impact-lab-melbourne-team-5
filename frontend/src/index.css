@@ -1,30 +1,173 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap");
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------
+   PXL // DS — Design System v3.0
+   Bungee Edition · Gen Z · Pixel Art · Light + Dark
+   Tokens live on :root; dark mode flips via [data-theme="dark"].
+   --------------------------------------------------------------- */
+
 @theme {
-  --color-cm-orange: #F97316;
-  --color-cm-green: #22C55E;
-  --color-cm-purple: #A855F7;
-  --color-cm-cream: #FFF7ED;
-  --color-cm-charcoal: #1C1917;
-  --color-cm-warm-gray: #78716C;
-  --color-cm-gold: #EAB308;
+  /* Fonts */
+  --font-brand: "Bungee", sans-serif;
+  --font-body: "Space Grotesk", sans-serif;
+  --font-mono: "DM Mono", monospace;
+  --font-sans: "Space Grotesk", system-ui, sans-serif;
 
-  --font-sans: "Inter", system-ui, sans-serif;
+  /* PXL palette — accents */
+  --color-lime: #c8f135;
+  --color-lime-ink: #2a4000;
+  --color-electric: #7b5ea7;
+  --color-electric-ink: #f0e6ff;
+  --color-coral: #ff6147;
+  --color-sky: #4daeec;
+  --color-mint: #3ecfac;
+  --color-candy: #ff8dc7;
+  --color-amber: #ffb830;
 
-  --radius-card: 12px;
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.1);
+  /* Backgrounds (light defaults; flipped by [data-theme="dark"] below) */
+  --color-bg-primary: #f5f4f0;
+  --color-bg-secondary: #edece8;
+  --color-bg-tertiary: #e4e3df;
+  --color-surface: #ffffff;
+
+  /* Text */
+  --color-text-primary: #1a1917;
+  --color-text-secondary: #6b6a65;
+  --color-text-tertiary: #9e9d97;
+
+  /* Borders */
+  --color-border: rgba(26, 25, 23, 0.10);
+  --color-border-strong: rgba(26, 25, 23, 0.20);
+
+  /* Transitional cm-* aliases — map old class names onto PXL tokens.
+     Removed in Tier 4 once all references are migrated. */
+  --color-cm-orange: #ff6147;     /* coral */
+  --color-cm-green: #3ecfac;      /* mint */
+  --color-cm-purple: #7b5ea7;     /* electric */
+  --color-cm-cream: #f5f4f0;      /* bg-primary */
+  --color-cm-charcoal: #1a1917;   /* text-primary */
+  --color-cm-warm-gray: #6b6a65;  /* text-secondary */
+  --color-cm-gold: #ffb830;       /* amber */
+
+  /* Non-pixel surface radii — pixel components must stay radius:0 */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-pill: 999px;
+  --radius-card: 0px;        /* legacy alias; PXL community cards have hard edges */
+
+  /* Pixel shadow tokens, exposed as Tailwind shadow-* utilities */
+  --shadow-pixel: 3px 3px 0 #1a1917;
+  --shadow-pixel-lime: 3px 3px 0 #c8f135;
+  --shadow-pixel-electric: 3px 3px 0 #7b5ea7;
+  --shadow-pixel-coral: 3px 3px 0 #ff6147;
+  --shadow-pixel-sm: 1px 1px 0 #1a1917;
+  --shadow-card: 3px 3px 0 #1a1917;  /* legacy alias → pixel shadow */
+}
+
+:root {
+  /* Raw PXL spacing & motion tokens (not Tailwind utilities, used via var()) */
+  --pixel-unit: 8px;
+  --pixel-border: 2px solid #1a1917;
+
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-pixel: steps(6, end);
+
+  --dur-fast: 150ms;
+  --dur-base: 240ms;
+  --dur-slow: 400ms;
+
+  /* Legacy spacing utility shortcut (kept for Tier 3 transition) */
   --spacing-card: 16px;
+}
+
+[data-theme="dark"] {
+  --color-bg-primary: #141413;
+  --color-bg-secondary: #1c1c1a;
+  --color-bg-tertiary: #252522;
+  --color-surface: #1f1f1d;
+
+  --color-text-primary: #f0efe9;
+  --color-text-secondary: #9e9d97;
+  --color-text-tertiary: #6b6a65;
+
+  --color-border: rgba(240, 239, 233, 0.08);
+  --color-border-strong: rgba(240, 239, 233, 0.16);
+
+  /* cm-* aliases shift in dark mode too */
+  --color-cm-cream: #141413;
+  --color-cm-charcoal: #f0efe9;
+  --color-cm-warm-gray: #9e9d97;
+
+  --pixel-border: 2px solid #f0efe9;
+  --shadow-pixel: 3px 3px 0 #f0efe9;
+  --shadow-pixel-sm: 1px 1px 0 #f0efe9;
+  --shadow-card: 3px 3px 0 #f0efe9;
 }
 
 @layer base {
   body {
-    background-color: var(--color-cm-cream);
-    color: var(--color-cm-charcoal);
-    font-family: var(--font-sans);
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-family: var(--font-body);
+  }
+
+  /* Pixel-art sprites — preserve crisp edges */
+  .pixel-art,
+  img.pixel-art,
+  svg.pixel-art {
+    image-rendering: pixelated;
   }
 }
 
+/* Pixel divider — repeating accent stripe between major sections */
+.px-div {
+  height: 8px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-lime) 0, var(--color-lime) 8px,
+    var(--color-text-primary) 8px, var(--color-text-primary) 16px,
+    var(--color-electric) 16px, var(--color-electric) 24px,
+    var(--color-text-primary) 24px, var(--color-text-primary) 32px,
+    var(--color-coral) 32px, var(--color-coral) 40px,
+    var(--color-text-primary) 40px, var(--color-text-primary) 48px,
+    var(--color-mint) 48px, var(--color-mint) 56px,
+    var(--color-text-primary) 56px, var(--color-text-primary) 64px
+  );
+}
+
+/* Mapbox popup re-skin — pixel surface inside Mapbox-injected DOM */
+.mapboxgl-popup-content {
+  background: var(--color-surface) !important;
+  color: var(--color-text-primary) !important;
+  border-radius: 0 !important;
+  outline: 2px solid var(--color-text-primary);
+  box-shadow: var(--shadow-pixel) !important;
+  font-family: var(--font-body);
+  padding: 12px 14px !important;
+}
+.mapboxgl-popup-tip {
+  display: none !important;
+}
+.mapboxgl-popup-close-button {
+  font-family: var(--font-brand) !important;
+  color: var(--color-text-primary) !important;
+  font-size: 16px !important;
+  padding: 2px 8px !important;
+}
+
+/* Existing animations — preserved across the migration */
 @keyframes cm-slide-in {
   from { transform: translateY(8px); opacity: 0; }
   to   { transform: translateY(0);   opacity: 1; }
