@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { X, Calendar, MapPin, Users } from 'lucide-react'
 import { EVENT_TYPES, EVENT_TYPE_ORDER } from '../utils/eventTypes'
-import { SEED_LOCATIONS } from '../utils/seedLocations'
 
 const EMPTY_FORM = {
   title: '',
@@ -27,7 +26,7 @@ function formatRange(startIso, endIso) {
 // 3.9 EventModal. Dual mode: "view" shows an event; "create" shows the form.
 // Backdrop click and Escape both close. Parent owns open state.
 // Real POST /api/events wiring lands when Dev 1's 1.6 ships.
-export default function EventModal({ open, mode = 'view', event, onClose, onSubmit, onRsvp }) {
+export default function EventModal({ open, mode = 'view', event, locations = [], onClose, onSubmit, onRsvp }) {
   const [form, setForm] = useState(EMPTY_FORM)
   const [error, setError] = useState(null)
   const [prevOpen, setPrevOpen] = useState(open)
@@ -100,6 +99,7 @@ export default function EventModal({ open, mode = 'view', event, onClose, onSubm
           <CreateForm
             form={form}
             error={error}
+            locations={locations}
             onChange={update}
             onSubmit={handleSubmit}
             onClose={onClose}
@@ -178,7 +178,7 @@ function ViewBody({ event, onRsvp, onClose }) {
   )
 }
 
-function CreateForm({ form, error, onChange, onSubmit, onClose }) {
+function CreateForm({ form, error, locations, onChange, onSubmit, onClose }) {
   return (
     <form onSubmit={onSubmit} className="mt-3 space-y-3">
       <Field label="Title">
@@ -221,7 +221,7 @@ function CreateForm({ form, error, onChange, onSubmit, onClose }) {
             className="w-full cursor-pointer rounded-lg border border-black/10 px-3 py-2 text-sm focus:border-cm-orange focus:outline-none"
           >
             <option value="">Choose...</option>
-            {SEED_LOCATIONS.map((l) => (
+            {locations.map((l) => (
               <option key={l.id} value={l.id}>{l.name}</option>
             ))}
           </select>

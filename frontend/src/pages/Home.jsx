@@ -3,7 +3,6 @@ import { Plus } from 'lucide-react'
 import MapView from '../components/MapView'
 import EventCard from '../components/EventCard'
 import EventModal from '../components/EventModal'
-import { SEED_LOCATIONS } from '../utils/seedLocations'
 import { SEED_EVENTS } from '../utils/seedEvents'
 import { useLocations } from '../utils/useLocations'
 
@@ -15,6 +14,7 @@ import { useLocations } from '../utils/useLocations'
 export default function Home() {
   const [events, setEvents] = useState(SEED_EVENTS)
   const [modal, setModal] = useState({ open: false, mode: 'view', event: null })
+  const { locations, loading, error } = useLocations()
   const openView = (event) => setModal({ open: true, mode: 'view', event })
   const openCreate = () => setModal({ open: true, mode: 'create', event: null })
   const closeModal = () => setModal((m) => ({ ...m, open: false }))
@@ -33,7 +33,7 @@ export default function Home() {
 
   const handleCreate = (draft) => {
     // 3.9 stub: insert locally so the new card appears. Real POST lands with Dev 1's 1.6.
-    const location = SEED_LOCATIONS.find((l) => l.id === draft.location_id)
+    const location = locations.find((l) => l.id === draft.location_id)
     const next = {
       id: Math.max(0, ...events.map((e) => e.id)) + 1,
       title: draft.title,
@@ -53,8 +53,8 @@ export default function Home() {
     closeModal()
   }
 
-  const { locations, loading, error } = useLocations()
   const status = loading
+    ? 'Loading locations…'
     : error
       ? 'Failed to load locations (check VITE_API_URL + backend CORS)'
       : `${locations.length} locations`
@@ -106,6 +106,7 @@ export default function Home() {
         open={modal.open}
         mode={modal.mode}
         event={modal.event}
+        locations={locations}
         onClose={closeModal}
         onSubmit={handleCreate}
         onRsvp={handleRsvp}
