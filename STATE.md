@@ -369,7 +369,7 @@ SEED_LOCATIONS = [
 | 3.11 | Empty states: no events yet, no search results — friendly copy + illustration | ⬜ TODO | |
 | 3.12 | Mobile responsive: stacks vertical, full-width cards | ⬜ TODO | |
 | 3.13 | `vite.config.js` — proxy `/api` to backend in dev | ✅ DONE | Done early as part of 3.1 — proxies `/api` to `http://localhost:8000`. |
-| 3.14 | `netlify.toml` — build command, publish dir, redirect `/api/*` to Render backend URL | ⬜ TODO | |
+| 3.14 | `netlify.toml` — build command, publish dir, redirect `/api/*` to Render backend URL | ✅ DONE | `frontend/netlify.toml`. Build cmd `npm run build`, publish `dist`. `/api/*` rewrites (status 200, force=true) to `https://commaxx-api.onrender.com/api/:splat`; SPA fallback `/* → /index.html` ordered after the API rule. Render `/api/locations` confirmed 200 from the rewrite target. Netlify site base directory should be set to `frontend`. Branch: `feat-3.14`. |
 | 3.15 | Deploy to Netlify, confirm app loads end-to-end | ⬜ TODO | Update STATE.md with live URL |
 
 **Frontend live URL:** `________________` (fill in after deploy)
