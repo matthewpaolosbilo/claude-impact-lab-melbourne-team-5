@@ -8,7 +8,7 @@
    --------------------------------------------------------------- */
 
 @theme {
-  /* Fonts */
+  /* Fonts — role-bound */
   --font-brand: "Bungee", sans-serif;
   --font-body: "Space Grotesk", sans-serif;
   --font-mono: "DM Mono", monospace;
@@ -40,21 +40,10 @@
   --color-border: rgba(26, 25, 23, 0.10);
   --color-border-strong: rgba(26, 25, 23, 0.20);
 
-  /* Transitional cm-* aliases — map old class names onto PXL tokens.
-     Removed in Tier 4 once all references are migrated. */
-  --color-cm-orange: #ff6147;     /* coral */
-  --color-cm-green: #3ecfac;      /* mint */
-  --color-cm-purple: #7b5ea7;     /* electric */
-  --color-cm-cream: #f5f4f0;      /* bg-primary */
-  --color-cm-charcoal: #1a1917;   /* text-primary */
-  --color-cm-warm-gray: #6b6a65;  /* text-secondary */
-  --color-cm-gold: #ffb830;       /* amber */
-
-  /* Non-pixel surface radii — pixel components must stay radius:0 */
+  /* Non-pixel surface radii — pixel components stay radius:0 */
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-pill: 999px;
-  --radius-card: 0px;        /* legacy alias; PXL community cards have hard edges */
 
   /* Pixel shadow tokens, exposed as Tailwind shadow-* utilities */
   --shadow-pixel: 3px 3px 0 #1a1917;
@@ -62,11 +51,10 @@
   --shadow-pixel-electric: 3px 3px 0 #7b5ea7;
   --shadow-pixel-coral: 3px 3px 0 #ff6147;
   --shadow-pixel-sm: 1px 1px 0 #1a1917;
-  --shadow-card: 3px 3px 0 #1a1917;  /* legacy alias → pixel shadow */
 }
 
 :root {
-  /* Raw PXL spacing & motion tokens (not Tailwind utilities, used via var()) */
+  /* Raw PXL spacing & motion tokens (consumed via var()) */
   --pixel-unit: 8px;
   --pixel-border: 2px solid #1a1917;
 
@@ -87,9 +75,6 @@
   --dur-fast: 150ms;
   --dur-base: 240ms;
   --dur-slow: 400ms;
-
-  /* Legacy spacing utility shortcut (kept for Tier 3 transition) */
-  --spacing-card: 16px;
 }
 
 [data-theme="dark"] {
@@ -105,15 +90,9 @@
   --color-border: rgba(240, 239, 233, 0.08);
   --color-border-strong: rgba(240, 239, 233, 0.16);
 
-  /* cm-* aliases shift in dark mode too */
-  --color-cm-cream: #141413;
-  --color-cm-charcoal: #f0efe9;
-  --color-cm-warm-gray: #9e9d97;
-
   --pixel-border: 2px solid #f0efe9;
   --shadow-pixel: 3px 3px 0 #f0efe9;
   --shadow-pixel-sm: 1px 1px 0 #f0efe9;
-  --shadow-card: 3px 3px 0 #f0efe9;
 }
 
 @layer base {
@@ -167,7 +146,7 @@
   padding: 2px 8px !important;
 }
 
-/* Existing animations — preserved across the migration */
+/* Animations (preserved from prior token set; reused by toasts/modals) */
 @keyframes cm-slide-in {
   from { transform: translateY(8px); opacity: 0; }
   to   { transform: translateY(0);   opacity: 1; }
