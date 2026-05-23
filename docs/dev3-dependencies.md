@@ -1,6 +1,6 @@
 # Dev 3 Dependency Map — Frontend Foundation
 
-**Last updated:** 2026-05-23 (3.10 RSVP wiring shipped on `feat-3.10`)
+**Last updated:** 2026-05-23 (3.14 `netlify.toml` shipped on `feat-3.14`)
 **Source:** `STATE.md` (post-restructure, 4-dev split)
 **Workstream:** Dev 3, branch `feature/frontend-app` — App shell + Auth + Event UI + Deploy
 
@@ -25,7 +25,7 @@
 | 3.11 | Empty states | 3.7, 3.8 | — | — | — |
 | 3.12 | Mobile responsive | 3.5, 3.7, 3.8, 3.9 | Coordinate with Dev 2's 2.10 (mobile map UX) and Dev 4's profile mobile (inferred — Dev 4 page 4.6 needs its own mobile pass) | tailwindcss | — |
 | 3.13 ✅ | `vite.config.js` proxy | 3.1 ✅ | Targets Dev 1's local backend on `:8000` | vite | — |
-| 3.14 | `netlify.toml` — build + `/api/*` redirect | 3.1 ✅ | Blocked on Dev 1's 1.12 (Render live URL) | Netlify | — |
+| 3.14 ✅ | `netlify.toml` — build + `/api/*` redirect | 3.1 ✅ | Dev 1's 1.12 ✅ (Render live at `https://commaxx-api.onrender.com`) | Netlify | — |
 | 3.15 | Deploy to Netlify, confirm end-to-end | 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 3.12, 3.14 | Needs Dev 1's 1.12 (backend live) and 1.9 (CORS allowing Netlify domain); shows up at the URL Dev 1's CORS needs | Netlify, GitHub | — |
 
 ---
@@ -37,7 +37,7 @@ graph TD
     3.1[3.1 Init Vite ✅] --> 3.3[3.3 Tailwind tokens]
     3.1 --> 3.4[3.4 App.jsx router ✅]
     3.1 --> 3.13[3.13 vite proxy ✅]
-    3.1 --> 3.14[3.14 netlify.toml]
+    3.1 --> 3.14[3.14 netlify.toml ✅]
     3.2[3.2 api.js ✅] --> 3.6[3.6 Auth flow ✅]
     3.3 --> 3.8[3.8 EventCard ✅]
     3.4 --> 3.5[3.5 Nav header ✅]
