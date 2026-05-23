@@ -11,5 +11,5 @@ export const LOCATION_TYPE_ORDER = ['bbq', 'garden_bed', 'community_kitchen']
 export const MAP_DEFAULTS = {
   center: { latitude: -37.8136, longitude: 144.9631 },
   zoom: 13,
-  style: 'mapbox://styles/mapbox/light-v11',
+  style: 'mapbox://styles/melmo/cmphu9gc6002501srdqch68kt',
 }
