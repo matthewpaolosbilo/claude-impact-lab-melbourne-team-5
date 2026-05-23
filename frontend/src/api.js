@@ -1,9 +1,35 @@
 import axios from 'axios'
 import { mockChatReply, mockOnboardingReply } from './utils/maxxerMock'
+import {
+  USER_STORAGE_KEY,
+  LEGACY_USER_STORAGE_KEY,
+  USER_UPDATED_EVENT,
+  OPEN_AUTH_EVENT,
+} from './hooks/useUser'
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000'
 })
+
+// A 401 means the X-User-Id we sent no longer matches a row in the backend
+// (stale localStorage after a dev DB reset or the spacd brand rename). Clear
+// the stored identity and re-open the auth modal so the user can sign in fresh.
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error?.response?.status === 401 && typeof window !== 'undefined') {
+      try {
+        window.localStorage.removeItem(USER_STORAGE_KEY)
+        window.localStorage.removeItem(LEGACY_USER_STORAGE_KEY)
+        window.dispatchEvent(new Event(USER_UPDATED_EVENT))
+        window.dispatchEvent(new Event(OPEN_AUTH_EVENT))
+      } catch {
+        // ignore storage errors
+      }
+    }
+    return Promise.reject(error)
+  },
+)
 
 // ---- Dev 4 (badges + social) endpoints ----
 
