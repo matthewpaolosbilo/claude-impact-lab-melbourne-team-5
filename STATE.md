@@ -295,8 +295,8 @@ SEED_LOCATIONS = [
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 2.1 | Init React app with Vite, install deps: `react-leaflet`, `leaflet`, `axios`, `react-router-dom`, `tailwindcss`, `lucide-react` | ⬜ TODO | |
-| 2.2 | `api.js` — axios instance with `baseURL` from env var `VITE_API_URL` (default `http://localhost:8000`) | ⬜ TODO | |
+| 2.1 | Init React app with Vite, install deps: `react-leaflet`, `leaflet`, `axios`, `react-router-dom`, `tailwindcss`, `lucide-react` | ✅ DONE | Vite 8 + React 19, Tailwind v4 with brand tokens registered via `@theme` in `src/index.css`. Leaflet icon-fix applied in `main.jsx`. |
+| 2.2 | `api.js` — axios instance with `baseURL` from env var `VITE_API_URL` (default `http://localhost:8000`) | ✅ DONE | `.env.example` committed with `VITE_API_URL=http://localhost:8000`. |
 | 2.3 | `constants.js` — location type config: labels, colors, icons (🔥 BBQ = orange, 🌱 Garden = green, 🍳 Kitchen = purple) | ⬜ TODO | |
 | 2.4 | `MapView.jsx` — Leaflet map centred on Melbourne CBD (-37.8136, 144.9631, zoom 13). Fetch locations from API, render colored markers by type. | ⬜ TODO | Use CircleMarker or custom DivIcon |
 | 2.5 | `LocationPin.jsx` — custom marker component. Click opens popup with location name, type badge, description, and "See Events" button | ⬜ TODO | |
@@ -305,7 +305,7 @@ SEED_LOCATIONS = [
 | 2.8 | `EventModal.jsx` — modal to view event detail OR create new event. Form fields: title, description, type (dropdown), location (dropdown), start/end time, max attendees | ⬜ TODO | |
 | 2.9 | `Home.jsx` — page layout: search bar top, map takes 60% height, scrollable event list below. "Add Event" FAB button bottom-right opens EventModal in create mode | ⬜ TODO | |
 | 2.10 | Wire RSVP: clicking "I'm Going" calls `POST /api/events/{id}/rsvp` with user_id from localStorage | ⬜ TODO | |
-| 2.11 | `vite.config.js` — proxy `/api` to backend in dev | ⬜ TODO | |
+| 2.11 | `vite.config.js` — proxy `/api` to backend in dev | ✅ DONE | Done early as part of 2.1 — proxies `/api` to `http://localhost:8000`. |
 | 2.12 | `netlify.toml` — build command, publish dir, redirect `/api/*` to Render backend URL | ⬜ TODO | |
 | 2.13 | Visual polish: warm color palette, rounded cards, smooth transitions | ⬜ TODO | See DESIGN TOKENS below |
 | 2.14 | Deploy to Netlify, confirm map loads with seed data | ⬜ TODO | Update STATE.md with live URL |
