@@ -1,7 +1,7 @@
 # STATE.md — Community Maxxing
 ## Strava for Acts of Public Service — Melbourne MVP
 
-> **Claude Code handoff file.** Three developers, one day, one app.
+> **Claude Code handoff file.** Four developers, one day, one app.
 > Each developer: read this file, find your workstream, build it, update your status.
 
 ---
@@ -266,71 +266,88 @@ SEED_LOCATIONS = [
 
 ## WORKSTREAMS
 
-### DEV 1 — Backend (FastAPI + DB + Seed + Deploy)
+### DEV 1 — Backend Foundation (FastAPI + DB + Users + Events + Deploy)
 **Branch:** `feature/backend`
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
 | 1.1 | Init `backend/` with `requirements.txt` (fastapi, uvicorn, sqlalchemy, pydantic) | ⬜ TODO | |
 | 1.2 | `database.py` — SQLite engine, sessionmaker, `init_db()` | ⬜ TODO | DB file: `community.db` |
-| 1.3 | `models.py` — Location, Event, User, RSVP (see Data Models above) | ⬜ TODO | |
-| 1.4 | `seed.py` — insert all 15 seed locations + 5 sample events | ⬜ TODO | Run on startup if DB empty |
-| 1.5 | `routers/locations.py` — `GET /api/locations` (list all, filter by type), `POST /api/locations` | ⬜ TODO | |
+| 1.3 | `models.py` — User, Event, RSVP (Location model owned by Dev 2) | ⬜ TODO | Shared file with Dev 2 — scaffold first |
+| 1.4 | `seed.py` — scaffold + insert 5 sample events (location seed owned by Dev 2) | ⬜ TODO | Run on startup if DB empty |
+| 1.5 | `routers/users.py` — `POST /api/users` (create/login by email), `GET /api/users/{id}` | ⬜ TODO | Return existing user if email exists |
 | 1.6 | `routers/events.py` — `GET /api/events` (list, filter by location/type/date), `POST /api/events`, `GET /api/events/{id}` | ⬜ TODO | Include location data in response |
 | 1.7 | `routers/events.py` — `POST /api/events/{id}/rsvp`, `PATCH /api/rsvps/{id}` (mark attended) | ⬜ TODO | |
-| 1.8 | `routers/users.py` — `POST /api/users` (create/login by email), `GET /api/users/{id}` | ⬜ TODO | Return existing user if email exists |
-| 1.9 | `routers/badges.py` — `GET /api/users/{id}/badges` (compute and return earned badges) | ⬜ TODO | See badge definitions above |
-| 1.10 | `routers/events.py` — `GET /api/search?q=...&type=...&date=...` | ⬜ TODO | Search events by keyword, type, date range |
-| 1.11 | `main.py` — mount routers, CORS (allow Netlify domain + localhost), call seed on startup | ⬜ TODO | |
-| 1.12 | `render.yaml` — web service config, build command `pip install -r requirements.txt`, start `uvicorn main:app --host 0.0.0.0 --port $PORT` | ⬜ TODO | |
-| 1.13 | Test all endpoints locally with curl/httpie | ⬜ TODO | |
-| 1.14 | Deploy to Render, confirm health check | ⬜ TODO | Update STATE.md with live URL |
+| 1.8 | `routers/events.py` — `GET /api/search?q=...&type=...&date=...` | ⬜ TODO | Search events by keyword, type, date range |
+| 1.9 | `main.py` — mount routers, CORS (allow Netlify domain + localhost), call seed on startup | ⬜ TODO | Dev 2 mounts locations router; Dev 4 mounts badges router |
+| 1.10 | `render.yaml` — web service config, start `uvicorn main:app --host 0.0.0.0 --port $PORT` | ⬜ TODO | |
+| 1.11 | Test all endpoints locally with curl/httpie | ⬜ TODO | |
+| 1.12 | Deploy to Render, confirm health check | ⬜ TODO | Update STATE.md with live URL |
 
 **Backend live URL:** `________________` (fill in after deploy)
 
 ---
 
-### DEV 2 — Frontend: Map + Locations + Events (React + Leaflet)
-**Branch:** `feature/frontend-map`
+### DEV 2 — GIS / Mapping (Locations data + Map UI + Spatial UX) **[you]**
+**Branch:** `feature/gis`
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 2.1 | Init React app with Vite, install deps: `react-leaflet`, `leaflet`, `axios`, `react-router-dom`, `tailwindcss`, `lucide-react` | ⬜ TODO | |
-| 2.2 | `api.js` — axios instance with `baseURL` from env var `VITE_API_URL` (default `http://localhost:8000`) | ⬜ TODO | |
-| 2.3 | `constants.js` — location type config: labels, colors, icons (🔥 BBQ = orange, 🌱 Garden = green, 🍳 Kitchen = purple) | ⬜ TODO | |
-| 2.4 | `MapView.jsx` — Leaflet map centred on Melbourne CBD (-37.8136, 144.9631, zoom 13). Fetch locations from API, render colored markers by type. | ⬜ TODO | Use CircleMarker or custom DivIcon |
-| 2.5 | `LocationPin.jsx` — custom marker component. Click opens popup with location name, type badge, description, and "See Events" button | ⬜ TODO | |
-| 2.6 | `SearchBar.jsx` — search bar above map. Text input + type filter dropdown (All / BBQ / Garden / Kitchen). Calls `GET /api/search` or filters client-side | ⬜ TODO | |
-| 2.7 | `EventCard.jsx` — compact card: event title, type pill, date/time, location name, attendee count, RSVP button | ⬜ TODO | |
-| 2.8 | `EventModal.jsx` — modal to view event detail OR create new event. Form fields: title, description, type (dropdown), location (dropdown), start/end time, max attendees | ⬜ TODO | |
-| 2.9 | `Home.jsx` — page layout: search bar top, map takes 60% height, scrollable event list below. "Add Event" FAB button bottom-right opens EventModal in create mode | ⬜ TODO | |
-| 2.10 | Wire RSVP: clicking "I'm Going" calls `POST /api/events/{id}/rsvp` with user_id from localStorage | ⬜ TODO | |
-| 2.11 | `vite.config.js` — proxy `/api` to backend in dev | ⬜ TODO | |
-| 2.12 | `netlify.toml` — build command, publish dir, redirect `/api/*` to Render backend URL | ⬜ TODO | |
-| 2.13 | Visual polish: warm color palette, rounded cards, smooth transitions | ⬜ TODO | See DESIGN TOKENS below |
-| 2.14 | Deploy to Netlify, confirm map loads with seed data | ⬜ TODO | Update STATE.md with live URL |
+| 2.1 | `models.py` — Location model | ⬜ TODO | Add to file Dev 1 scaffolds; see Data Models above |
+| 2.2 | `seed.py` — insert all 15 Melbourne seed locations | ⬜ TODO | See Seed Data above |
+| 2.3 | `routers/locations.py` — `GET /api/locations` (list, filter by type), `POST /api/locations`; include `event_count` | ⬜ TODO | |
+| 2.4 | `constants.js` — location type config: labels, colors, icons (🔥 BBQ = orange, 🌱 Garden = green, 🍳 Kitchen = purple) | ⬜ TODO | |
+| 2.5 | `MapView.jsx` — Leaflet map centred on Melbourne CBD (-37.8136, 144.9631, zoom 13). Fetch locations from API, render colored markers by type | ⬜ TODO | Use CircleMarker or custom DivIcon |
+| 2.6 | `LocationPin.jsx` — custom marker. Click opens popup with name, type badge, description, "See Events" button | ⬜ TODO | |
+| 2.7 | Custom SVG markers in `public/markers/` (bbq, garden, kitchen) | ⬜ TODO | |
+| 2.8 | `SearchBar.jsx` — text input + type filter dropdown (All / BBQ / Garden / Kitchen). Hooks into `GET /api/locations` or `GET /api/search` | ⬜ TODO | Coordinate with Dev 3 on placement |
+| 2.9 | Map ↔ event list sync — clicking marker scrolls/highlights matching events; viewport-based filtering optional | ⬜ TODO | Wire into Dev 3's `Home.jsx` |
+| 2.10 | Mobile map UX — full-width on small screens, sticky search, smooth pan/zoom | ⬜ TODO | |
+
+---
+
+### DEV 3 — Frontend Foundation (App shell + Auth + Event UI + Deploy)
+**Branch:** `feature/frontend-app`
+
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 3.1 | Init React app with Vite, install deps: `react-leaflet`, `leaflet`, `axios`, `react-router-dom`, `tailwindcss`, `lucide-react` | ⬜ TODO | |
+| 3.2 | `api.js` — axios instance with `baseURL` from env var `VITE_API_URL` (default `http://localhost:8000`) | ⬜ TODO | Dev 2 + Dev 4 will add their endpoints here |
+| 3.3 | Tailwind config + design tokens applied (see DESIGN TOKENS below) | ⬜ TODO | Warm palette, rounded cards, smooth transitions |
+| 3.4 | `App.jsx` — React Router: `/` → Home, `/profile` → Profile (Dev 4 owns Profile page) | ⬜ TODO | |
+| 3.5 | Nav header component — logo/title left, profile avatar/name right (links to Profile) | ⬜ TODO | |
+| 3.6 | Simple auth flow: first-visit modal asks name + email → `POST /api/users` → store `user_id` in localStorage. Show name in header thereafter | ⬜ TODO | No passwords. Just identification. |
+| 3.7 | `Home.jsx` — layout: search bar top, map (Dev 2's `MapView`) 60% height, scrollable event list below, "Add Event" FAB bottom-right | ⬜ TODO | Shared with Dev 2 — leave a slot for MapView |
+| 3.8 | `EventCard.jsx` — compact card: title, type pill, date/time, location name, RSVP button | ⬜ TODO | Dev 4 enriches with attendee count + host |
+| 3.9 | `EventModal.jsx` — view/create event. Form: title, description, type, location, start/end, max attendees | ⬜ TODO | |
+| 3.10 | Wire RSVP: "I'm Going" → `POST /api/events/{id}/rsvp` with user_id from localStorage | ⬜ TODO | Dev 4 adds badge-earn check on success |
+| 3.11 | Empty states: no events yet, no search results — friendly copy + illustration | ⬜ TODO | |
+| 3.12 | Mobile responsive: stacks vertical, full-width cards | ⬜ TODO | |
+| 3.13 | `vite.config.js` — proxy `/api` to backend in dev | ⬜ TODO | |
+| 3.14 | `netlify.toml` — build command, publish dir, redirect `/api/*` to Render backend URL | ⬜ TODO | |
+| 3.15 | Deploy to Netlify, confirm app loads end-to-end | ⬜ TODO | Update STATE.md with live URL |
 
 **Frontend live URL:** `________________` (fill in after deploy)
 
 ---
 
-### DEV 3 — Frontend: Profile, Badges, UX Polish + Simple Auth
-**Branch:** `feature/frontend-profile`
+### DEV 4 — Badges, Notifications, Social (engagement layer)
+**Branch:** `feature/social`
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 3.1 | Simple auth flow: on first visit, modal asks name + email. `POST /api/users` → store `user_id` in localStorage. Show name in header thereafter. | ⬜ TODO | No passwords. Just identification. |
-| 3.2 | `ProfilePanel.jsx` — slide-out panel or page. Shows user name, email, member since date, total events attended, total events hosted | ⬜ TODO | |
-| 3.3 | `BadgeShelf.jsx` — grid of all possible badges. Earned badges are full color + glow. Unearned badges are greyed out with "locked" overlay and hint text for how to earn | ⬜ TODO | Fetch from `GET /api/users/{id}/badges` |
-| 3.4 | `badges.js` — client-side badge metadata (name, icon, description, earn criteria text) matching server definitions | ⬜ TODO | 8 badges total — see definitions above |
-| 3.5 | `Profile.jsx` page — ProfilePanel + BadgeShelf + event history (past RSVPs) | ⬜ TODO | |
-| 3.6 | Nav header component — logo/title left, profile avatar/name right (links to Profile page). Simple top bar. | ⬜ TODO | |
-| 3.7 | `App.jsx` — React Router: `/` → Home, `/profile` → Profile | ⬜ TODO | |
-| 3.8 | Toast notifications: "RSVP confirmed!", "New badge earned: 🔥 First Flame!" | ⬜ TODO | Use a simple toast lib or custom |
-| 3.9 | Empty states: no events yet, no badges yet, no RSVPs yet — friendly copy + illustration | ⬜ TODO | |
-| 3.10 | Mobile responsive: map stacks above event list, cards go full-width, profile is a full page not a panel | ⬜ TODO | |
-| 3.11 | Badge unlock animation: when user earns a new badge, show a celebratory modal with confetti or pulse effect | ⬜ TODO | Check for new badges after each RSVP |
-| 3.12 | README.md — project overview, setup instructions, env vars, deploy URLs | ⬜ TODO | |
+| 4.1 | Badge computation helpers (backend): `count_attended`, `count_hosted`, `check_weekly_streak`, `count_distinct_types`, `hosted_event_with_min_attendees` | ⬜ TODO | Pure functions over RSVP/Event tables |
+| 4.2 | `routers/badges.py` — `GET /api/users/{id}/badges` (returns earned + available with progress) | ⬜ TODO | See schema in Integration Points |
+| 4.3 | `badges.js` — client-side badge metadata (name, icon, description, earn criteria text) matching server definitions | ⬜ TODO | 8 badges — see definitions above |
+| 4.4 | `BadgeShelf.jsx` — grid of all possible badges. Earned = full color + glow. Locked = greyed out with hint text | ⬜ TODO | Fetch from `GET /api/users/{id}/badges` |
+| 4.5 | `ProfilePanel.jsx` — user name, email, member since, total events attended, total events hosted | ⬜ TODO | |
+| 4.6 | `Profile.jsx` page — ProfilePanel + BadgeShelf + past RSVP history | ⬜ TODO | Mounted at `/profile` (route added by Dev 3) |
+| 4.7 | Toast notifications: "RSVP confirmed!", "New badge earned: 🔥 First Flame!" | ⬜ TODO | Lightweight lib or custom |
+| 4.8 | Badge unlock celebration: modal with confetti/pulse when new badge earned | ⬜ TODO | Re-check badges after each RSVP |
+| 4.9 | Attendee surfacing on `EventCard`: count + avatars (or initials) for who's going | ⬜ TODO | Extends Dev 3's EventCard |
+| 4.10 | Host attribution on `EventCard` and `EventModal` — show host name + their badges | ⬜ TODO | |
+| 4.11 | Community notification hooks — placeholder UI for "new event near you" / "your friend RSVPed" | ⬜ TODO | Stub UI; backend wiring optional today |
+| 4.12 | README.md — project overview, setup instructions, env vars, deploy URLs | ⬜ TODO | Shared task — close out the project |
 
 ---
 
@@ -371,15 +388,16 @@ Cards:
 ### Branching
 ```
 main ← auto-deploys to Render (backend) and Netlify (frontend)
-  ├── feature/backend          (Dev 1)
-  ├── feature/frontend-map     (Dev 2)
-  └── feature/frontend-profile (Dev 3)
+  ├── feature/backend       (Dev 1)
+  ├── feature/gis           (Dev 2)
+  ├── feature/frontend-app  (Dev 3)
+  └── feature/social        (Dev 4)
 ```
 
 ### Merge Order
-1. **Dev 1 merges first** — backend must be live before frontend can connect
-2. **Dev 2 merges second** — map + events is the core experience
-3. **Dev 3 merges last** — profile/badges layer on top
+1. **Dev 1 merges first** — backend foundation must be live before anyone else can connect
+2. **Dev 2 + Dev 3 merge in parallel** — GIS/map and frontend app shell are both core; coordinate on `Home.jsx` and `backend/models.py`
+3. **Dev 4 merges last** — badges, notifications, and social affordances layer on top
 
 ### Merge Checklist
 Before merging your branch:
@@ -403,9 +421,29 @@ VITE_API_URL=https://community-maxxing.onrender.com
 
 ## INTEGRATION POINTS (read before you start)
 
-### Dev 1 ↔ Dev 2
-- Dev 2 depends on API response shapes from Dev 1
-- Agree on these response schemas now:
+### Dev 1 ↔ Dev 2 (backend foundation ↔ GIS)
+- **Shared file:** `backend/models.py` — Dev 1 sets up first (User, Event, RSVP); Dev 2 adds Location class
+- **Shared file:** `backend/seed.py` — Dev 1 scaffolds; Dev 2 adds 15 locations; Dev 1 seeds sample events
+- **Shared file:** `backend/main.py` — Dev 1 owns; Dev 2 mounts `routers/locations.py`
+- Dev 2's `GET /api/locations` is the contract Dev 3's MapView and event-list depend on
+
+### Dev 1 ↔ Dev 4 (backend ↔ social/badges)
+- **Shared file:** `backend/main.py` — Dev 4 mounts `routers/badges.py`
+- Dev 4 reads from RSVP/Event tables Dev 1 owns. Don't change those schemas without checking in.
+
+### Dev 2 ↔ Dev 3 (GIS ↔ frontend app)
+- **Shared file:** `frontend/src/pages/Home.jsx` — Dev 3 owns layout; Dev 2 drops in `MapView` and `SearchBar`
+- **Shared file:** `frontend/src/api.js` — Dev 3 creates; Dev 2 adds location endpoints
+- Dev 2 owns: `MapView`, `LocationPin`, `SearchBar`, `constants.js` (location config), `public/markers/`
+- Dev 3 owns: app shell, routing, nav header, auth flow, `EventCard`, `EventModal`, `Home.jsx` layout
+
+### Dev 3 ↔ Dev 4 (frontend app ↔ social layer)
+- **Shared file:** `frontend/src/api.js` — Dev 3 creates; Dev 4 adds `/users/{id}/badges` + any social endpoints
+- **Shared file:** `frontend/src/App.jsx` — Dev 3 sets up router with `/profile` route; Dev 4 mounts the Profile page there
+- **Shared file:** `frontend/src/components/EventCard.jsx` — Dev 3 base; Dev 4 enriches with attendee count, host name, badge progress
+- Dev 3 owns the RSVP wiring; Dev 4 adds the "new badge earned" check on RSVP success
+
+### API response schemas (agree now)
 
 ```jsonc
 // GET /api/locations
@@ -447,24 +485,18 @@ VITE_API_URL=https://community-maxxing.onrender.com
 }
 ```
 
-### Dev 2 ↔ Dev 3
-- Both work in `frontend/src/` — avoid editing the same files
-- Dev 2 owns: `MapView`, `LocationPin`, `SearchBar`, `EventCard`, `EventModal`, `Home.jsx`
-- Dev 3 owns: `ProfilePanel`, `BadgeShelf`, `Profile.jsx`, `App.jsx` (routing), nav header
-- **Shared file:** `api.js` — Dev 2 creates it, Dev 3 adds profile/badge endpoints to it
-- **Shared file:** `App.jsx` — Dev 2 creates with Home route, Dev 3 adds Profile route (merge carefully)
-
 ---
 
 ## STATUS TRACKER
 
 | Workstream | Dev | Branch | Progress | Blocker |
 |------------|-----|--------|----------|---------|
-| Backend | Dev 1 | `feature/backend` | ⬜ Not started | — |
-| Frontend Map | Dev 2 | `feature/frontend-map` | ⬜ Not started | Needs API URL from Dev 1 |
-| Frontend Profile | Dev 3 | `feature/frontend-profile` | ⬜ Not started | Needs api.js from Dev 2 |
+| Backend Foundation | Dev 1 | `feature/backend` | ⬜ Not started | — |
+| GIS / Mapping | Dev 2 (you) | `feature/gis` | ⬜ Not started | Coordinate `models.py` with Dev 1 |
+| Frontend App | Dev 3 | `feature/frontend-app` | ⬜ Not started | Needs API live + `GET /api/locations` from Dev 2 |
+| Badges & Social | Dev 4 | `feature/social` | ⬜ Not started | Needs `api.js` + auth flow from Dev 3 |
 
-**Last updated:** 2026-05-23 — project kickoff
+**Last updated:** 2026-05-23 — restructured for 4 devs (GIS split out, social/badges as own stream)
 
 ---
 
