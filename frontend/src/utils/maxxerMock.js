@@ -31,9 +31,10 @@ export async function mockChatReply({ messages }) {
   const picks = await pickThreeUpcomingEvents()
   if (picks.length < 3) {
     return {
-      message:
+      response:
         "ngl the events list is a bit dry rn — once Dev 1 ships /api/chat I'll have proper picks for you. bet.",
       suggested_event_ids: picks.map((e) => e.id),
+      onboarding_complete: true,
     }
   }
   const lastUser = [...messages].reverse().find((m) => m.role === 'user')?.content ?? ''
@@ -42,8 +43,9 @@ export async function mockChatReply({ messages }) {
     : 'lowkey think these three could be your vibe rn:'
   const body = picks.map((e) => `- ${eventLine(e)}`).join('\n')
   return {
-    message: `${intro}\n\n${body}\n\nlmk which one's giving and I'll lock it in fr.`,
+    response: `${intro}\n\n${body}\n\nlmk which one's giving and I'll lock it in fr.`,
     suggested_event_ids: picks.map((e) => e.id),
+    onboarding_complete: true,
   }
 }
 
@@ -76,15 +78,17 @@ export async function mockOnboardingReply({ messages }) {
 
   if (turnIndex >= ONBOARDING_TURNS.length) {
     return {
-      message:
+      response:
         "ok love that, I've got enough to work with. dropping you into the map now — three picks tailored to you ✨",
+      suggested_event_ids: [],
       onboarding_complete: true,
       preferences: extractPreferences(userMessages),
     }
   }
 
   return {
-    message: ONBOARDING_TURNS[turnIndex],
+    response: ONBOARDING_TURNS[turnIndex],
+    suggested_event_ids: [],
     onboarding_complete: false,
   }
 }

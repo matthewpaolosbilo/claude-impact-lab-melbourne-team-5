@@ -50,9 +50,9 @@ export async function rsvpToEvent(eventId, userId) {
 }
 
 // ---- Dev 4 (Maxxer AI agent) endpoints ----
-// Real endpoints are Dev 1's 1.10.3 / 1.10.4. Until they ship, the helpers below
-// fall through to a local mock that picks 3 events from /api/events and emits
-// [EVENT:id] tags. Drop the mock import + try/catch once the backend lands.
+// Real endpoints are Dev 1's 1.10.3 / 1.10.4 (PR #29). Until that lands on main,
+// the helpers below fall through to a local mock. Drop the mock import + try/catch
+// once the backend is on main.
 
 function isMissingEndpoint(err) {
   const s = err?.response?.status
@@ -60,12 +60,39 @@ function isMissingEndpoint(err) {
 }
 
 /**
- * Ongoing Maxxer chat. Returns { message, suggested_event_ids }.
- * Contract per STATE.md "The Maxxer — AI Agent" section.
+ * Splits the hook's flat messages array into the backend's `{ message, history }`
+ * contract. The trailing user turn becomes `message`; everything before it is
+ * `history`. If the trailing item isn't a user message (e.g. bootstrap call with an
+ * empty array, or the array ends on an assistant turn), `message` is "".
+ */
+function splitMessages(messages) {
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return { message: '', history: [] }
+  }
+  const last = messages[messages.length - 1]
+  const normalize = (m) => ({ role: m.role, content: m.content })
+  if (last?.role === 'user') {
+    return {
+      message: last.content ?? '',
+      history: messages.slice(0, -1).map(normalize),
+    }
+  }
+  return { message: '', history: messages.map(normalize) }
+}
+
+/**
+ * Ongoing Maxxer chat. POSTs { user_id, message, history } per ChatRequest
+ * (backend/routers/chat.py). Returns { response, suggested_event_ids,
+ * onboarding_complete } passthrough.
  */
 export async function sendChatMessage({ userId, messages }) {
+  const { message, history } = splitMessages(messages)
   try {
-    const { data } = await api.post('/api/chat', { user_id: userId, messages })
+    const { data } = await api.post('/api/chat', {
+      user_id: userId,
+      message,
+      history,
+    })
     return data
   } catch (err) {
     if (isMissingEndpoint(err)) return mockChatReply({ messages, api })
@@ -74,12 +101,18 @@ export async function sendChatMessage({ userId, messages }) {
 }
 
 /**
- * Conversational onboarding. Returns { message, onboarding_complete, preferences? }.
- * When complete the backend will have saved preferences to the user; refetch the user.
+ * Conversational onboarding. Same request shape as sendChatMessage. Returns
+ * { response, suggested_event_ids, onboarding_complete, preferences? } passthrough.
+ * When complete the backend has already saved preferences to the user — refetch.
  */
 export async function sendOnboardingMessage({ userId, messages }) {
+  const { message, history } = splitMessages(messages)
   try {
-    const { data } = await api.post('/api/chat/onboarding', { user_id: userId, messages })
+    const { data } = await api.post('/api/chat/onboarding', {
+      user_id: userId,
+      message,
+      history,
+    })
     return data
   } catch (err) {
     if (isMissingEndpoint(err)) return mockOnboardingReply({ messages })
