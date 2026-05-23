@@ -34,3 +34,16 @@ export async function fetchUserHistory(userId) {
     throw err
   }
 }
+
+// ---- 3.10 RSVP wiring ----
+
+// POST /api/events/{event_id}/rsvp with X-User-Id header.
+// Returns RSVPRead. 409 means user already RSVP'd; callers should treat that as success.
+export async function rsvpToEvent(eventId, userId) {
+  const { data } = await api.post(
+    `/api/events/${eventId}/rsvp`,
+    null,
+    { headers: { 'X-User-Id': userId } },
+  )
+  return data
+}

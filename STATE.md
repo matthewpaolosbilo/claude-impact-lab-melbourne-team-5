@@ -309,23 +309,23 @@ SEED_LOCATIONS = [
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 1.1 | Init `backend/` with `requirements.txt` (fastapi, uvicorn, sqlalchemy, pydantic) | ⬜ TODO | |
-| 1.2 | `database.py` — SQLite engine, sessionmaker, `init_db()` | ⬜ TODO | DB file: `community.db` |
-| 1.3 | `models.py` — User, Event, RSVP (Location model owned by Dev 2) | ⬜ TODO | Shared file with Dev 2 — scaffold first |
-| 1.4 | `seed.py` — scaffold + insert 5 sample events (location seed owned by Dev 2) | ⬜ TODO | Run on startup if DB empty |
-| 1.5 | `routers/users.py` — `POST /api/users` (create/login by email), `GET /api/users/{id}` | ⬜ TODO | Return existing user if email exists |
-| 1.6 | `routers/events.py` — `GET /api/events` (list, filter by location/type/date), `POST /api/events`, `GET /api/events/{id}` | ⬜ TODO | Include location data in response |
-| 1.7 | `routers/events.py` — `POST /api/events/{id}/rsvp`, `PATCH /api/rsvps/{id}` (mark attended) | ⬜ TODO | |
-| 1.8 | `routers/events.py` — `GET /api/search?q=...&type=...&date=...` | ⬜ TODO | Search events by keyword, type, date range |
-| 1.9 | `main.py` — mount routers, CORS (allow Netlify domain + localhost), call seed on startup | ⬜ TODO | Dev 2 mounts locations router; Dev 4 mounts badges router |
-| 1.10 | `render.yaml` — web service config, start `uvicorn main:app --host 0.0.0.0 --port $PORT` | ⬜ TODO | |
+| 1.1 | Init `backend/` with `requirements.txt` (fastapi, uvicorn, sqlalchemy, pydantic) | ✅ DONE | `backend/requirements.txt` + `pyproject.toml` + `uv.lock` on main. Merged via PR #13. |
+| 1.2 | `database.py` — SQLite engine, sessionmaker, `init_db()` | ✅ DONE | `backend/database.py` + `backend/deps.py` (`get_db`) on main. |
+| 1.3 | `models.py` — User, Event, RSVP (Location model owned by Dev 2) | ✅ DONE | `backend/models.py` on main; Location added by Dev 2's 2.1. Pydantic schemas in `backend/schemas.py`. |
+| 1.4 | `seed.py` — scaffold + insert 5 sample events (location seed owned by Dev 2) | ✅ DONE | `backend/seed.py` idempotent; invoked from `main.py` lifespan after `init_db()`. |
+| 1.5 | `routers/users.py` — `POST /api/users` (create/login by email), `GET /api/users/{id}` | ✅ DONE | `backend/routers/users.py` on main; `test_users.py` passes. |
+| 1.6 | `routers/events.py` — `GET /api/events` (list, filter by location/type/date), `POST /api/events`, `GET /api/events/{id}` | ✅ DONE | `backend/routers/events.py` on main; `test_events.py` passes. |
+| 1.7 | `routers/events.py` — `POST /api/events/{id}/rsvp`, `PATCH /api/rsvps/{id}` (mark attended) | ✅ DONE | RSVP endpoints in `events.py`; `test_rsvp.py` passes. |
+| 1.8 | `routers/events.py` — `GET /api/search?q=...&type=...&date=...` | ✅ DONE | Search endpoint in `events.py`; `test_search.py` passes. |
+| 1.9 | `main.py` — mount routers, CORS (allow Netlify domain + localhost), call seed on startup | ✅ DONE | `backend/main.py` mounts users/events/locations/badges routers; CORS configured; seed on startup. |
+| 1.10 | `render.yaml` — web service config, start `uvicorn main:app --host 0.0.0.0 --port $PORT` | ✅ DONE | `backend/render.yaml` on main. |
 | 1.10.1 | Add `anthropic` to `requirements.txt` and load `ANTHROPIC_API_KEY` from Render env | ⬜ TODO | Backend-only secret; never expose via Vite. |
 | 1.10.2 | `models.py` / schemas — add nullable `preferences` JSON column to `User` and include it in user reads | ⬜ TODO | Stores Maxxer onboarding output: reason in Melbourne, home misses, vibe, dietary/cultural needs, area, social energy. |
 | 1.10.3 | `routers/chat.py` — `POST /api/chat` for ongoing Maxxer suggestions | ⬜ TODO | Loads user preferences, last 5 RSVPs, upcoming events in next 14 days; calls Claude Sonnet; returns response + suggested event IDs. |
 | 1.10.4 | `routers/chat.py` — `POST /api/chat/onboarding` for conversational preference gathering | ⬜ TODO | Uses onboarding prompt; when complete, extracts preferences JSON, saves to `User.preferences`, returns `onboarding_complete: true`. |
 | 1.10.5 | Maxxer system prompts + response parsing | ⬜ TODO | Enforce exactly 3 real event suggestions, parse `[EVENT:id]` tags, reject IDs not present in the available-events context. |
-| 1.11 | Test all endpoints locally with curl/httpie | ⬜ TODO | |
-| 1.12 | Deploy to Render, confirm health check | ⬜ TODO | Update STATE.md with live URL |
+| 1.11 | Test all endpoints locally with curl/httpie | ✅ DONE | Met via pytest suite: `backend/tests/` has 8 test files (users, events, rsvp, search, locations, badge_logic, seed, smoke) — broader coverage than curl/httpie spot checks. |
+| 1.12 | Deploy to Render, confirm health check | ✅ DONE | Live at https://commaxx-api.onrender.com/ (docs at `/docs`). |
 
 **Backend live URL:** https://commaxx-api.onrender.com/ (interactive docs at `/docs`)
 
@@ -595,12 +595,12 @@ VITE_MAPBOX_TOKEN=pk.xxxxxxxxxxxxxxxxxxxxxxxx  # public Mapbox token, scoped to 
 
 | Workstream | Dev | Branch | Progress | Blocker |
 |------------|-----|--------|----------|---------|
-| Backend Foundation | Dev 1 | `feature/backend` | 🟡 Partial foundation present | Badges/chat endpoints still not present in repo; Maxxer needs Anthropic env + chat endpoints |
+| Backend Foundation | Dev 1 | `feature/backend` | 🟡 In progress — 12/17 done (1.1–1.12 ✅; live at commaxx-api.onrender.com); Maxxer subtasks 1.10.1–1.10.5 TODO | Maxxer needs `ANTHROPIC_API_KEY` env + `routers/chat.py` (1.10.1–1.10.5) |
 | GIS / Mapping | Dev 2 (you) | `feature/gis` | 🟡 In progress — 6/10 done (2.1, 2.2, 2.3, 2.4, 2.5, 2.6); 2.7 deferred | SearchBar + map/event-list sync + mobile UX + Maxxer highlighted pins remain |
 | Frontend App | Dev 3 | `feature/frontend-app` | 🟡 In progress — 10/17 done (3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.13) | 3.10 next (RSVP wiring); 3.11/3.12 unblocked; Maxxer shell can use mock responses until `/api/chat` exists |
 | Badges & Social + Maxxer | Dev 4 | `feature/social` | 🟡 Badges/social done; Maxxer TODO (12/18 done) | Real Maxxer responses need Dev 1 `/api/chat` endpoints |
 
-**Last updated:** 2026-05-23 — Resolved state-file merge with main: kept Dev 4 badges/social completion, preserved Maxxer agent workstream, and retained backend chat endpoints, frontend chat/onboarding tasks, env vars, schemas, and integration notes.
+**Last updated:** 2026-05-23 — Drift fix: Dev 1 rows 1.1–1.12 flipped ✅ (backend live at commaxx-api.onrender.com); Dev 1 tracker row corrected from "Partial foundation present" to 12/17 with Maxxer subtasks outstanding.
 
 ---
 
