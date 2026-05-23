@@ -185,6 +185,38 @@
             }
           },
           {
+            "name": "user_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "User Id"
+            }
+          },
+          {
+            "name": "attended",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Attended"
+            }
+          },
+          {
             "name": "X-User-Id",
             "in": "header",
             "required": false,
@@ -588,10 +620,315 @@
           }
         }
       }
+    },
+    "/api/locations": {
+      "get": {
+        "tags": [
+          "locations"
+        ],
+        "summary": "List Locations",
+        "operationId": "list_locations_api_locations_get",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LocationRead"
+                  },
+                  "title": "Response List Locations Api Locations Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "locations"
+        ],
+        "summary": "Create Location",
+        "operationId": "create_location_api_locations_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocationCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/{user_id}/badges": {
+      "get": {
+        "tags": [
+          "badges"
+        ],
+        "summary": "Get User Badges",
+        "operationId": "get_user_badges_api_users__user_id__badges_get",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/{user_id}/profile-stats": {
+      "get": {
+        "tags": [
+          "badges"
+        ],
+        "summary": "Get Profile Stats",
+        "operationId": "get_profile_stats_api_users__user_id__profile_stats_get",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Chat",
+        "operationId": "chat_api_chat_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/onboarding": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Chat Onboarding",
+        "operationId": "chat_onboarding_api_chat_onboarding_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingChatResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "ChatRequest": {
+        "properties": {
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/HistoryMessage"
+            },
+            "type": "array",
+            "title": "History"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "message"
+        ],
+        "title": "ChatRequest"
+      },
+      "ChatResponse": {
+        "properties": {
+          "response": {
+            "type": "string",
+            "title": "Response"
+          },
+          "suggested_event_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Suggested Event Ids"
+          },
+          "onboarding_complete": {
+            "type": "boolean",
+            "title": "Onboarding Complete",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "response",
+          "suggested_event_ids"
+        ],
+        "title": "ChatResponse"
+      },
       "EventCreate": {
         "properties": {
           "title": {
@@ -733,6 +1070,25 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "HistoryMessage": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "pattern": "^(user|assistant)$",
+            "title": "Role"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "content"
+        ],
+        "title": "HistoryMessage"
+      },
       "HostSummary": {
         "properties": {
           "id": {
@@ -750,6 +1106,126 @@
           "name"
         ],
         "title": "HostSummary"
+      },
+      "LocationCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Name"
+          },
+          "type": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Type"
+          },
+          "latitude": {
+            "type": "number",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Longitude"
+          },
+          "address": {
+            "type": "string",
+            "title": "Address"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "photo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "type",
+          "latitude",
+          "longitude",
+          "address",
+          "description"
+        ],
+        "title": "LocationCreate"
+      },
+      "LocationRead": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "latitude": {
+            "type": "number",
+            "title": "Latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "title": "Longitude"
+          },
+          "address": {
+            "type": "string",
+            "title": "Address"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "photo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo Url"
+          },
+          "event_count": {
+            "type": "integer",
+            "title": "Event Count",
+            "default": 0
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "type",
+          "latitude",
+          "longitude",
+          "address",
+          "description",
+          "created_at"
+        ],
+        "title": "LocationRead"
       },
       "LocationSummary": {
         "properties": {
@@ -773,6 +1249,97 @@
           "type"
         ],
         "title": "LocationSummary"
+      },
+      "MaxxerPreferences": {
+        "properties": {
+          "melbourne_reason": {
+            "type": "string",
+            "title": "Melbourne Reason"
+          },
+          "misses_from_home": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Misses From Home"
+          },
+          "preferred_vibes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Preferred Vibes"
+          },
+          "dietary_needs": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Dietary Needs"
+          },
+          "cultural_considerations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cultural Considerations"
+          },
+          "area": {
+            "type": "string",
+            "title": "Area"
+          },
+          "social_energy": {
+            "type": "string",
+            "title": "Social Energy"
+          }
+        },
+        "type": "object",
+        "required": [
+          "melbourne_reason",
+          "misses_from_home",
+          "preferred_vibes",
+          "dietary_needs",
+          "cultural_considerations",
+          "area",
+          "social_energy"
+        ],
+        "title": "MaxxerPreferences"
+      },
+      "OnboardingChatResponse": {
+        "properties": {
+          "response": {
+            "type": "string",
+            "title": "Response"
+          },
+          "suggested_event_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Suggested Event Ids"
+          },
+          "onboarding_complete": {
+            "type": "boolean",
+            "title": "Onboarding Complete",
+            "default": false
+          },
+          "preferences": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MaxxerPreferences"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "response",
+          "suggested_event_ids"
+        ],
+        "title": "OnboardingChatResponse"
       },
       "RSVPRead": {
         "properties": {
@@ -878,6 +1445,17 @@
               }
             ],
             "title": "Bio"
+          },
+          "preferences": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preferences"
           },
           "created_at": {
             "type": "string",

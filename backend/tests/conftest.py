@@ -97,6 +97,35 @@ def a_garden(db_session):
 
 
 @pytest.fixture
+def fake_maxxer():
+    """A scriptable MaxxerClient injected via FastAPI dep override.
+
+    Tests append onto `fake_maxxer.responses` before issuing requests; each call
+    pops the next response (or returns an empty stub if the queue is empty).
+    Records every call on `fake_maxxer.calls` for assertion.
+    """
+    from services.anthropic_client import MaxxerClient, get_maxxer_client
+
+    class _Fake(MaxxerClient):
+        def __init__(self) -> None:
+            self.calls: list[dict] = []
+            self.responses: list[dict] = []
+
+        def complete(self, *, system, messages, tools=None):
+            self.calls.append(
+                {"system": system, "messages": messages, "tools": tools}
+            )
+            if not self.responses:
+                return {"text": "", "tool_calls": []}
+            return self.responses.pop(0)
+
+    fake = _Fake()
+    app.dependency_overrides[get_maxxer_client] = lambda: fake
+    yield fake
+    app.dependency_overrides.pop(get_maxxer_client, None)
+
+
+@pytest.fixture
 def an_event(db_session, a_user, a_location):
     from datetime import datetime
 
