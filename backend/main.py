@@ -5,13 +5,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import init_db
-from routers import locations
+from routers import badges, locations
 from seed import run_seed
 
 # Routers Dev 1 owns
 # from routers import users, events  # TODO Dev 1 Phase C/D — uncomment when routers exist
-# Routers other devs own — leave commented; uncomment when their PR merges.
-# from routers import badges     # TODO Dev 4 (feature/social)
 
 CORS_ORIGINS = [
     origin.strip()
@@ -45,7 +43,7 @@ def health() -> dict[str, bool]:
     return {"ok": True}
 
 
-app.include_router(locations.router)
+app.include_router(locations.router)  # Dev 2
+app.include_router(badges.router)     # Dev 4
 # app.include_router(users.router)
 # app.include_router(events.router)
-# app.include_router(badges.router)      # Dev 4
