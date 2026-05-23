@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PXL // DS — Community Design System v3.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   PXL // DS — COMMUNITY DESIGN SYSTEM v3.0
+   Bungee Edition · Gen Z · Pixel Art · Light + Dark
+   ============================================================
+   FONT STACK
+   --font-brand: 'Bungee'       → logo, headlines, buttons, nav
+   --font-body:  'Space Grotesk' → body copy, labels, forms
+   --font-mono:  'DM Mono'       → badges, tags, metadata
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* typography */
+  --font-brand:            'Bungee', sans-serif;
+  --font-body:             'Space Grotesk', sans-serif;
+  --font-mono:             'DM Mono', monospace;
+  --fw-brand-regular:      500;
+  --fw-brand-bold:         700;
+  --fw-body:               400;
+  --fw-body-medium:        500;
+  --fw-mono:               400;
+
+  /* backgrounds — warm neutral, not pure white */
+  --color-bg-primary:      #F5F4F0;
+  --color-bg-secondary:    #EDECE8;
+  --color-bg-tertiary:     #E4E3DF;
+  --color-surface:         #FFFFFF;
+
+  /* text */
+  --color-text-primary:    #1A1917;
+  --color-text-secondary:  #6B6A65;
+  --color-text-tertiary:   #9E9D97;
+
+  /* accents */
+  --color-lime:            #C8F135;  /* primary action */
+  --color-electric:        #7B5EA7;  /* brand anchor */
+  --color-coral:           #FF6147;  /* alert / urgency */
+  --color-sky:             #4DAEEC;  /* info / connect */
+  --color-mint:            #3ECFAC;  /* success */
+  --color-candy:           #FF8DC7;  /* delight */
+  --color-amber:           #FFB830;  /* warning */
+
+  /* accent text colours */
+  --color-lime-ink:        #2a4000;
+  --color-electric-ink:    #f0e6ff;
+
+  /* borders */
+  --border:                rgba(26,25,23,0.10);
+  --border-strong:         rgba(26,25,23,0.20);
+
+  /* pixel system — NO border-radius on pixel components */
+  --pixel-unit:            8px;
+  --pixel-border:          2px solid #1A1917;
+  --pixel-shadow:          3px 3px 0 #1A1917;
+  --pixel-shadow-lime:     3px 3px 0 #C8F135;
+  --pixel-shadow-electric: 3px 3px 0 #7B5EA7;
+  --pixel-shadow-coral:    3px 3px 0 #FF6147;
+
+  /* border-radius — for non-pixel surfaces only */
+  --radius-sm:             4px;
+  --radius-md:             8px;
+  --radius-pill:           999px;
+
+  /* motion */
+  --ease-spring:           cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out:              cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-bounce:           cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-pixel:            steps(6, end);  /* sprite movement */
+  --dur-fast:              150ms;
+  --dur-base:              240ms;
+  --dur-slow:              400ms;
+}
+
+[data-theme="dark"] {
+  --color-bg-primary:      #141413;
+  --color-bg-secondary:    #1C1C1A;
+  --color-bg-tertiary:     #252522;
+  --color-surface:         #1F1F1D;
+  --color-text-primary:    #F0EFE9;
+  --color-text-secondary:  #9E9D97;
+  --color-text-tertiary:   #6B6A65;
+  --border:                rgba(240,239,233,0.08);
+  --border-strong:         rgba(240,239,233,0.16);
+  --pixel-border:          2px solid #F0EFE9;
+  --pixel-shadow:          3px 3px 0 #F0EFE9;
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+body {
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  transition: background 0.25s, color 0.25s;
+}
+
+.page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 36px 32px 96px;
+}
+
+/* ============================================================
+   NAV
+   ============================================================ */
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 48px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-badge {
+  background: var(--color-text-primary);
+  color: var(--color-lime);
+  padding: 5px 14px;
+  font-family: var(--font-brand);
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  outline: 2px solid var(--color-text-primary);
+  box-shadow: var(--pixel-shadow-lime);
+}
+
+.logo-sub {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+.mode-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 8px 16px;
+  background: var(--color-surface);
+  border: 2px solid var(--color-text-primary);
+  cursor: pointer;
+  color: var(--color-text-primary);
+  box-shadow: var(--pixel-shadow);
+  transition: transform 0.1s, box-shadow 0.1s;
+  border-radius: 0;
+}
+
+.mode-btn:hover { background: var(--color-bg-secondary); }
+.mode-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--color-text-primary); }
+
+/* ============================================================
+   PIXEL DECORATION
+   ============================================================ */
+.px-deco {
+  display: flex;
+  margin-bottom: 36px;
+}
+
+.px-sq {
+  width: 8px;
+  height: 8px;
+  display: inline-block;
+  image-rendering: pixelated;
+}
+
+.px-div {
+  height: 8px;
+  margin: 0 0 56px;
+  image-rendering: pixelated;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-lime) 0, var(--color-lime) 8px,
+    var(--color-text-primary) 8px, var(--color-text-primary) 16px,
+    var(--color-electric) 16px, var(--color-electric) 24px,
+    var(--color-text-primary) 24px, var(--color-text-primary) 32px,
+    var(--color-coral) 32px, var(--color-coral) 40px,
+    var(--color-text-primary) 40px, var(--color-text-primary) 48px,
+    var(--color-mint) 48px, var(--color-mint) 56px,
+    var(--color-text-primary) 56px, var(--color-text-primary) 64px
+  );
+}
+
+/* ============================================================
+   SECTION LAYOUT
+   ============================================================ */
+.section { margin-bottom: 64px; }
+
+.sec-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sec-label::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-text-primary) 0, var(--color-text-primary) 4px,
+    transparent 4px, transparent 8px
+  );
+}
+
+.sec-title {
+  font-family: var(--font-brand);
+  font-size: 38px;
+  font-weight: 400;
+  letter-spacing: 0.3px;
+  line-height: 1.05;
+  margin-bottom: 8px;
+  color: var(--color-text-primary);
+}
+
+.sec-sub {
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  margin-bottom: 28px;
+  max-width: 520px;
+  line-height: 1.65;
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero {
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
+  padding: 44px;
+  margin-bottom: 72px;
+  position: relative;
+  overflow: hidden;
+  outline: 2px solid var(--color-text-primary);
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  right: 0; bottom: 0;
+  width: 240px; height: 240px;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(200,241,53,0.05) 0, rgba(200,241,53,0.05) 2px,
+    transparent 2px, transparent 8px
+  );
+}
+
+.hero-eye {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  opacity: 0.4;
+  margin-bottom: 16px;
+}
+
+.hero-h {
+  font-family: var(--font-brand);
+  font-size: 62px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.5px;
+  margin-bottom: 16px;
+}
+
+.hero-h em { font-style: normal; color: var(--color-lime); }
+
+.hero-desc {
+  font-family: var(--font-body);
+  font-size: 15px;
+  opacity: 0.6;
+  max-width: 440px;
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+
+.hero-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+
+.hero-pill {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 4px 10px;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.45);
+}
+
+.px-scene {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.px-scene .plus-text {
+  font-family: var(--font-brand);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--color-lime);
+  margin-left: 8px;
+  align-self: center;
+}
+
+/* ============================================================
+   COLOUR SWATCHES
+   ============================================================ */
+.palette-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.swatch { outline: 2px solid var(--color-text-primary); overflow: hidden; }
+
+.swatch-body {
+  height: 72px;
+  display: flex;
+  align-items: flex-end;
+  padding: 8px;
+}
+
+.swatch-dot {
+  width: 10px; height: 10px;
+  background: rgba(255,255,255,0.45);
+  image-rendering: pixelated;
+}
+
+.swatch-info { padding: 8px 10px; background: var(--color-surface); }
+.sw-name { font-family: var(--font-brand); font-size: 14px; font-weight: 600; color: var(--color-text-primary); margin-bottom: 1px; }
+.sw-hex { font-family: var(--font-mono); font-size: 9px; color: var(--color-text-tertiary); }
+.sw-role { font-family: var(--font-body); font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+
+.neutral-strip {
+  display: flex;
+  outline: 2px solid var(--color-text-primary);
+}
+
+.nc {
+  flex: 1;
+  padding: 18px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.nc span { font-family: var(--font-mono); font-size: 9px; }
+
+/* ============================================================
+   TYPOGRAPHY SPECIMENS
+   ============================================================ */
+.font-roles {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.font-role-card {
+  outline: 2px solid var(--color-text-primary);
+  background: var(--color-surface);
+  padding: 18px;
+}
+
+.frc-label { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.10em; color: var(--color-text-tertiary); margin-bottom: 10px; }
+.frc-specimen { margin-bottom: 10px; }
+.frc-name { font-family: var(--font-mono); font-size: 10px; color: var(--color-electric); margin-bottom: 4px; }
+.frc-desc { font-family: var(--font-body); font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; }
+.frc-tag { display: inline-block; font-family: var(--font-mono); font-size: 9px; padding: 2px 8px; background: var(--color-bg-secondary); outline: 1px solid var(--border-strong); color: var(--color-text-tertiary); margin-top: 6px; }
+
+.type-stack { display: flex; flex-direction: column; gap: 12px; }
+
+.type-row {
+  padding: 20px 24px;
+  outline: 2px solid var(--color-text-primary);
+  background: var(--color-surface);
+}
+
+.type-meta { font-family: var(--font-mono); font-size: 9px; color: var(--color-text-tertiary); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.07em; }
+.td1 { font-family: var(--font-brand); font-size: 48px; font-weight: 400; line-height: 1; letter-spacing: 0.5px; color: var(--color-text-primary); }
+.td2 { font-family: var(--font-brand); font-size: 30px; font-weight: 400; color: var(--color-text-primary); }
+.td3 { font-family: var(--font-brand); font-size: 20px; font-weight: 600; color: var(--color-text-primary); }
+.tb  { font-family: var(--font-body); font-size: 15px; line-height: 1.7; color: var(--color-text-primary); }
+.tc  { font-family: var(--font-body); font-size: 13px; color: var(--color-text-secondary); }
+.tm  { font-family: var(--font-mono); font-size: 13px; color: var(--color-text-primary); }
+
+/* ============================================================
+   PIXEL DESIGN LANGUAGE TILES
+   ============================================================ */
+.pixel-tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.pixel-tile {
+  outline: 2px solid var(--color-text-primary);
+  background: var(--color-surface);
+  padding: 20px;
+}
+
+.tile-label { font-family: var(--font-mono); font-size: 9px; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.10em; margin-bottom: 14px; }
+.tile-desc  { font-family: var(--font-body); font-size: 12px; color: var(--color-text-secondary); margin-top: 10px; line-height: 1.5; }
+
+.pixel-grid-demo {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
+}
+
+.pixel-grid-demo div { height: 12px; }
+
+/* ============================================================
+   SPACING
+   ============================================================ */
+.sp-row { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+.sp-bar { height: 14px; background: var(--color-lime); outline: 2px solid var(--color-text-primary); image-rendering: pixelated; }
+.sp-token { font-family: var(--font-mono); font-size: 10px; color: var(--color-text-secondary); min-width: 52px; }
+.sp-val   { font-family: var(--font-mono); font-size: 10px; color: var(--color-electric); min-width: 32px; }
+.sp-desc  { font-family: var(--font-body); font-size: 12px; color: var(--color-text-tertiary); }
+
+/* ============================================================
+   COMPONENTS GRID
+   ============================================================ */
+.comp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.comp-box {
+  outline: 2px solid var(--color-text-primary);
+  padding: 22px;
+  background: var(--color-surface);
+}
+
+.comp-lbl { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.10em; color: var(--color-text-tertiary); margin-bottom: 16px; }
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn-row { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.btn {
+  font-family: var(--font-brand);
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  padding: 10px 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.3px;
+  transition: transform 0.1s, box-shadow 0.1s;
+  image-rendering: pixelated;
+  line-height: 1;
+}
+
+.btn:active { transform: translate(2px, 2px); }
+
+.btn-primary  { background: var(--color-text-primary); color: var(--color-bg-primary); outline: 2px solid var(--color-text-primary); box-shadow: var(--pixel-shadow-lime); }
+.btn-primary:active  { box-shadow: 1px 1px 0 var(--color-lime); }
+.btn-lime     { background: var(--color-lime); color: var(--color-lime-ink); outline: 2px solid var(--color-text-primary); box-shadow: var(--pixel-shadow); }
+.btn-lime:active     { box-shadow: 1px 1px 0 var(--color-text-primary); }
+.btn-outline  { background: transparent; color: var(--color-text-primary); outline: 2px solid var(--color-text-primary); box-shadow: var(--pixel-shadow); }
+.btn-outline:active  { box-shadow: 1px 1px 0 var(--color-text-primary); }
+.btn-ghost    { background: var(--color-bg-secondary); color: var(--color-text-secondary); outline: 2px solid var(--border-strong); }
+.btn-electric { background: var(--color-electric); color: var(--color-electric-ink); outline: 2px solid var(--color-text-primary); box-shadow: var(--pixel-shadow); }
+.btn-electric:active { box-shadow: 1px 1px 0 var(--color-text-primary); }
+.btn-coral    { background: var(--color-coral); color: #fff; outline: 2px solid var(--color-text-primary); box-shadow: var(--pixel-shadow); }
+.btn-coral:active    { box-shadow: 1px 1px 0 var(--color-text-primary); }
+
+/* ============================================================
+   BADGES
+   ============================================================ */
+.badge-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 4px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  image-rendering: pixelated;
+}
+
+.b-lime     { background: var(--color-lime);    color: var(--color-lime-ink);    outline: 2px solid var(--color-text-primary); }
+.b-mint     { background: #d6fff6; color: #0a3329; outline: 2px solid var(--color-mint); }
+.b-coral    { background: #ffe5e0; color: #6b1a0c; outline: 2px solid var(--color-coral); }
+.b-electric { background: #ece8ff; color: #2e1a5e; outline: 2px solid var(--color-electric); }
+.b-neutral  { background: var(--color-bg-tertiary); color: var(--color-text-secondary); outline: 2px solid var(--border-strong); }
+.b-candy    { background: #ffe8f4; color: #6b0032; outline: 2px solid var(--color-candy); }
+
+/* ============================================================
+   INPUTS
+   ============================================================ */
+.inp-col  { display: flex; flex-direction: column; gap: 10px; }
+.inp-wrap { display: flex; flex-direction: column; gap: 4px; }
+
+.inp-lbl  { font-family: var(--font-body); font-size: 12px; font-weight: 500; color: var(--color-text-secondary); }
+.inp-help { font-family: var(--font-mono); font-size: 10px; color: var(--color-text-tertiary); }
+
+.ds-input {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--color-text-primary);
+  background: var(--color-bg-secondary);
+  border: none;
+  outline: 2px solid var(--border-strong);
+  padding: 10px 13px;
+  width: 100%;
+  transition: outline 0.1s;
+}
+
+.ds-input:focus { outline: 2px solid var(--color-text-primary); }
+.ds-input::placeholder { color: var(--color-text-tertiary); }
+
+/* ============================================================
+   TOASTS
+   ============================================================ */
+.toast-col { display: flex; flex-direction: column; gap: 8px; }
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  outline: 2px solid var(--color-text-primary);
+  border-left: 4px solid;
+  background: var(--color-surface);
+}
+
+.toast-success { border-color: var(--color-mint); }
+.toast-warning { border-color: var(--color-amber); }
+.toast-error   { border-color: var(--color-coral); }
+.toast-info    { border-color: var(--color-sky); }
+.toast-icon    { font-size: 15px; }
+
+/* ============================================================
+   COMMUNITY CARDS
+   ============================================================ */
+.community-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.comm-card { outline: 2px solid var(--color-text-primary); background: var(--color-surface); overflow: hidden; }
+.comm-card-dark { background: var(--color-text-primary); }
+
+.comm-accent-bar { height: 4px; image-rendering: pixelated; }
+.comm-body { padding: 14px 16px; }
+.comm-emoji { font-size: 26px; margin-bottom: 8px; display: block; }
+.comm-title { font-family: var(--font-brand); font-size: 16px; font-weight: 400; margin-bottom: 4px; color: var(--color-text-primary); }
+.comm-card-dark .comm-title { color: var(--color-lime); }
+.comm-meta  { font-family: var(--font-mono); font-size: 10px; color: var(--color-text-tertiary); }
+.comm-card-dark .comm-meta { color: rgba(240,239,233,0.35); }
+
+/* ============================================================
+   PROFILE CARD
+   ============================================================ */
+.profile-card {
+  outline: 2px solid var(--color-text-primary);
+  background: var(--color-surface);
+  overflow: hidden;
+  max-width: 260px;
+  margin-bottom: 20px;
+}
+
+.profile-banner {
+  height: 56px;
+  image-rendering: pixelated;
+  background: repeating-linear-gradient(90deg, #C8F135 0, #C8F135 8px, #b8e032 8px, #b8e032 16px);
+}
+
+.profile-av {
+  width: 48px; height: 48px;
+  outline: 3px solid var(--color-surface);
+  image-rendering: pixelated;
+  margin: -24px 0 0 16px;
+  position: relative;
+  z-index: 1;
+}
+
+.profile-body { padding: 10px 16px 16px; }
+.profile-name   { font-family: var(--font-brand); font-size: 18px; font-weight: 400; margin-bottom: 1px; color: var(--color-text-primary); }
+.profile-handle { font-family: var(--font-mono); font-size: 10px; color: var(--color-text-tertiary); margin-bottom: 10px; }
+.profile-tags   { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.ptag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 3px 8px;
+  background: var(--color-bg-secondary);
+  outline: 1px solid var(--border-strong);
+  color: var(--color-text-secondary);
+}
+
+/* ============================================================
+   MATCH / CONNECTION CARD
+   ============================================================ */
+.match-card {
+  outline: 2px solid var(--color-text-primary);
+  background: var(--color-surface);
+  overflow: hidden;
+  max-width: 320px;
+  margin-bottom: 4px;
+}
+
+/* ============================================================
+   INTEREST TAGS
+   ============================================================ */
+.interest-cloud {
+  outline: 2px solid var(--color-text-primary);
+  background: var(--color-surface);
+  padding: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.itag {
+  font-family: var(--font-brand);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 14px;
+  outline: 2px solid var(--color-text-primary);
+}
+
+.itag-active { box-shadow: var(--pixel-shadow); }
+.itag-neutral { background: var(--color-bg-secondary); color: var(--color-text-primary); outline: 2px solid var(--border-strong); }
+
+/* ============================================================
+   AVATAR SYSTEM
+   ============================================================ */
+.avatar-row { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
+.avatar-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.avatar-size-label { font-family: var(--font-mono); font-size: 9px; color: var(--color-text-tertiary); }
+
+/* ============================================================
+   EMOJI GRID
+   ============================================================ */
+.emoji-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+
+.emoji-box {
+  outline: 2px solid var(--color-text-primary);
+  background: var(--color-surface);
+  padding: 14px 18px;
+}
+
+.emoji-cat-lbl { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.10em; color: var(--color-text-tertiary); margin-bottom: 8px; }
+.emoji-list { font-size: 20px; letter-spacing: 4px; line-height: 2; }
+
+/* ============================================================
+   MOTION DEMOS
+   ============================================================ */
+.motion-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.motion-box {
+  outline: 2px solid var(--color-text-primary);
+  background: var(--color-surface);
+  padding: 20px;
+}
+
+.motion-lbl  { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-tertiary); margin-bottom: 10px; }
+.motion-track { height: 32px; display: flex; align-items: center; overflow: hidden; position: relative; }
+.motion-name  { font-family: var(--font-brand); font-size: 14px; font-weight: 600; margin-top: 8px; margin-bottom: 1px; color: var(--color-text-primary); }
+.motion-val   { font-family: var(--font-mono); font-size: 9px; color: var(--color-text-tertiary); }
+
+.m-dot { width: 12px; height: 12px; image-rendering: pixelated; position: absolute; }
+.m-spring   { background: var(--color-lime);     outline: 2px solid var(--color-text-primary); animation: mdot 2s cubic-bezier(0.34,1.56,0.64,1) infinite alternate; }
+.m-ease     { background: var(--color-electric);  outline: 2px solid var(--color-text-primary); animation: mdot 2s cubic-bezier(0.25,0.46,0.45,0.94) infinite alternate; }
+.m-bounce   { background: var(--color-coral);     outline: 2px solid var(--color-text-primary); animation: mdot 2s cubic-bezier(0.68,-0.55,0.265,1.55) infinite alternate; }
+.m-step     { background: var(--color-candy);     outline: 2px solid var(--color-text-primary); animation: mdotstep 2s steps(6,end) infinite alternate; }
+
+@keyframes mdot     { from { left: 0 } to { left: calc(100% - 12px) } }
+@keyframes mdotstep { from { left: 0 } to { left: calc(100% - 12px) } }
+
+/* ============================================================
+   VOICE & TONE
+   ============================================================ */
+.voice-stack { display: flex; flex-direction: column; gap: 10px; }
+
+.voice-row {
+  outline: 2px solid var(--color-text-primary);
+  padding: 14px 18px;
+  background: var(--color-surface);
+}
+
+.voice-do   { border-left: 4px solid var(--color-mint); }
+.voice-dont { border-left: 4px solid var(--color-coral); }
+
+.vtag { font-family: var(--font-mono); font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.10em; margin-bottom: 5px; }
+.vtag-do   { color: var(--color-mint); }
+.vtag-dont { color: var(--color-coral); }
+.vtext { font-family: var(--font-body); font-size: 13px; line-height: 1.55; color: var(--color-text-primary); }
+
+/* ============================================================
+   TOKEN CODE BLOCK
+   ============================================================ */
+.token-block {
+  background: var(--color-text-primary);
+  padding: 28px;
+  outline: 2px solid var(--color-text-primary);
+  overflow-x: auto;
+}
+
+pre.tcode {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 2;
+  white-space: pre-wrap;
+  margin: 0;
+}
+</style>
+</head>
+
+<body>
+<div class="page">
+
+  <!-- ======================================================
+       NAV
+       ====================================================== -->
+  <nav>
+    <div class="logo">
+      <div class="logo-badge">PXL // DS</div>
+      <span class="logo-sub">community design system</span>
+    </div>
+    <button class="mode-btn" onclick="toggleTheme()" id="themeBtn">[ ☀ light ]</button>
+  </nav>
+
+  <!-- pixel deco strip -->
+  <div class="px-deco">
+    <div class="px-sq" style="background:var(--color-lime);"></div><div class="px-sq" style="background:var(--color-text-primary);"></div>
+    <div class="px-sq" style="background:var(--color-electric);"></div><div class="px-sq" style="background:var(--color-text-primary);"></div>
+    <div class="px-sq" style="background:var(--color-coral);"></div><div class="px-sq" style="background:var(--color-text-primary);"></div>
+    <div class="px-sq" style="background:var(--color-mint);"></div><div class="px-sq" style="background:var(--color-text-primary);"></div>
+    <div class="px-sq" style="background:var(--color-candy);"></div><div class="px-sq" style="background:var(--color-text-primary);"></div>
+    <div class="px-sq" style="background:var(--color-amber);"></div><div class="px-sq" style="background:var(--color-text-primary);"></div>
+    <div class="px-sq" style="background:var(--color-sky);"></div>
+  </div>
+
+  <!-- ======================================================
+       HERO
+       ====================================================== -->
+  <div class="hero">
+    <div class="hero-eye">v3.0 · Bungee Edition · Pixel Community · Light + Dark</div>
+    <div class="hero-h">Find your<br><em>people ✦</em></div>
+    <div class="hero-desc">A Gen Z design system for community apps. Warm neutral canvas, electric pixel accents, emoji as a first-class language. Bungee for brand impact — Space Grotesk for clarity.</div>
+    <div class="hero-pills">
+      <span class="hero-pill">fredoka brand</span>
+      <span class="hero-pill">pixel-art</span>
+      <span class="hero-pill">community-first</span>
+      <span class="hero-pill">emoji-native</span>
+      <span class="hero-pill">light / dark</span>
+      <span class="hero-pill">figma-ready</span>
+    </div>
+    <div class="px-scene">
+      <svg style="image-rendering:pixelated;outline:2px solid rgba(255,255,255,0.12);" width="40" height="52" viewBox="0 0 10 13"><rect x="3" y="0" width="4" height="4" fill="#C8F135"/><rect x="2" y="4" width="6" height="9" fill="#7B5EA7"/><rect x="4" y="2" width="1" height="1" fill="#1A1917"/><rect x="6" y="2" width="1" height="1" fill="#1A1917"/><rect x="4" y="3" width="3" height="1" fill="#1A1917"/></svg>
+      <svg style="image-rendering:pixelated;outline:2px solid rgba(255,255,255,0.12);" width="40" height="52" viewBox="0 0 10 13"><rect x="3" y="0" width="4" height="4" fill="#FF8DC7"/><rect x="2" y="4" width="6" height="9" fill="#FF6147"/><rect x="4" y="2" width="1" height="1" fill="#1A1917"/><rect x="6" y="2" width="1" height="1" fill="#1A1917"/><rect x="4" y="3" width="3" height="1" fill="#1A1917"/></svg>
+      <svg style="image-rendering:pixelated;outline:2px solid rgba(255,255,255,0.12);" width="40" height="52" viewBox="0 0 10 13"><rect x="3" y="0" width="4" height="4" fill="#FFB830"/><rect x="2" y="4" width="6" height="9" fill="#4DAEEC"/><rect x="4" y="2" width="1" height="1" fill="#1A1917"/><rect x="6" y="2" width="1" height="1" fill="#1A1917"/><rect x="4" y="3" width="3" height="1" fill="#1A1917"/></svg>
+      <svg style="image-rendering:pixelated;outline:2px solid rgba(255,255,255,0.12);" width="40" height="52" viewBox="0 0 10 13"><rect x="3" y="0" width="4" height="4" fill="#3ECFAC"/><rect x="2" y="4" width="6" height="9" fill="#C8F135"/><rect x="4" y="2" width="1" height="1" fill="#1A1917"/><rect x="6" y="2" width="1" height="1" fill="#1A1917"/><rect x="4" y="3" width="3" height="1" fill="#1A1917"/></svg>
+      <svg style="image-rendering:pixelated;outline:2px solid rgba(255,255,255,0.12);" width="40" height="52" viewBox="0 0 10 13"><rect x="3" y="0" width="4" height="4" fill="#4DAEEC"/><rect x="2" y="4" width="6" height="9" fill="#FF8DC7"/><rect x="4" y="2" width="1" height="1" fill="#1A1917"/><rect x="6" y="2" width="1" height="1" fill="#1A1917"/><rect x="4" y="3" width="3" height="1" fill="#1A1917"/></svg>
+      <span class="plus-text">+ you ✦</span>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       00 PIXEL DESIGN LANGUAGE
+       ====================================================== -->
+  <div class="section">
+    <div class="sec-label">00 — Pixel design language</div>
+    <div class="sec-title">The Pixel Principle</div>
+    <div class="sec-sub">Three rules govern every component: hard edges (no border-radius), 2px outlines instead of box borders, solid offset shadows instead of blur. Together they create that handcrafted pixel-art feel.</div>
+
+    <div class="pixel-tiles">
+      <div class="pixel-tile">
+        <div class="tile-label">Hard edges — no radius</div>
+        <div style="width:48px;height:48px;background:var(--color-lime);outline:2px solid var(--color-text-primary);box-shadow:4px 4px 0 var(--color-text-primary);image-rendering:pixelated;margin-bottom:12px;"></div>
+        <div class="tile-desc">No <code>border-radius</code> on pixel components. Crisp 2px outlines only. Rounding is reserved for non-pixel surfaces (pills, tags).</div>
+      </div>
+      <div class="pixel-tile">
+        <div class="tile-label">Offset shadow — not blur</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+          <div style="width:80px;height:22px;background:var(--color-electric);outline:2px solid var(--color-text-primary);box-shadow:3px 3px 0 var(--color-text-primary);image-rendering:pixelated;"></div>
+          <div style="width:80px;height:22px;background:var(--color-coral);outline:2px solid var(--color-text-primary);box-shadow:3px 3px 0 var(--color-lime);image-rendering:pixelated;"></div>
+        </div>
+        <div class="tile-desc">Solid <code>3px 3px 0</code> offset. Ink-coloured or accent-coloured. Never <code>box-shadow</code> with blur radius.</div>
+      </div>
+      <div class="pixel-tile">
+        <div class="tile-label">8px pixel grid</div>
+        <div class="pixel-grid-demo" style="margin-bottom:12px;">
+          <div style="background:var(--color-lime);"></div><div style="background:var(--color-text-primary);"></div><div style="background:var(--color-electric);"></div><div style="background:var(--color-text-primary);"></div><div style="background:var(--color-coral);"></div>
+          <div style="background:var(--color-text-primary);"></div><div style="background:var(--color-mint);"></div><div style="background:var(--color-text-primary);"></div><div style="background:var(--color-candy);"></div><div style="background:var(--color-text-primary);"></div>
+          <div style="background:var(--color-sky);"></div><div style="background:var(--color-text-primary);"></div><div style="background:var(--color-amber);"></div><div style="background:var(--color-text-primary);"></div><div style="background:var(--color-lime);"></div>
+        </div>
+        <div class="tile-desc">All spacing and sizing snaps to an 8px base unit. Spacing tokens: 4, 8, 12, 16, 24, 32, 48, 64px.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       01 COLOUR
+       ====================================================== -->
+  <div class="px-div"></div>
+  <div class="section">
+    <div class="sec-label">01 — Colour</div>
+    <div class="sec-title">Accent Palette</div>
+    <div class="sec-sub">Electric accents on a warm neutral canvas. Each colour maps to a community emotion and a semantic UI role.</div>
+
+    <div class="palette-grid">
+      <div class="swatch"><div class="swatch-body" style="background:#C8F135;"><div class="swatch-dot"></div></div><div class="swatch-info"><div class="sw-name">Lime</div><div class="sw-hex">#C8F135</div><div class="sw-role">Primary action ⚡</div></div></div>
+      <div class="swatch"><div class="swatch-body" style="background:#7B5EA7;"><div class="swatch-dot" style="background:rgba(0,0,0,0.2);"></div></div><div class="swatch-info"><div class="sw-name">Electric</div><div class="sw-hex">#7B5EA7</div><div class="sw-role">Brand anchor 🔮</div></div></div>
+      <div class="swatch"><div class="swatch-body" style="background:#FF6147;"><div class="swatch-dot" style="background:rgba(0,0,0,0.2);"></div></div><div class="swatch-info"><div class="sw-name">Coral</div><div class="sw-hex">#FF6147</div><div class="sw-role">Alert / urgency 🔥</div></div></div>
+      <div class="swatch"><div class="swatch-body" style="background:#4DAEEC;"><div class="swatch-dot" style="background:rgba(0,0,0,0.2);"></div></div><div class="swatch-info"><div class="sw-name">Sky</div><div class="sw-hex">#4DAEEC</div><div class="sw-role">Info / connect 🫧</div></div></div>
+      <div class="swatch"><div class="swatch-body" style="background:#3ECFAC;"><div class="swatch-dot" style="background:rgba(0,0,0,0.2);"></div></div><div class="swatch-info"><div class="sw-name">Mint</div><div class="sw-hex">#3ECFAC</div><div class="sw-role">Success ✅</div></div></div>
+      <div class="swatch"><div class="swatch-body" style="background:#FF8DC7;"><div class="swatch-dot" style="background:rgba(0,0,0,0.2);"></div></div><div class="swatch-info"><div class="sw-name">Candy</div><div class="sw-hex">#FF8DC7</div><div class="sw-role">Delight 💅</div></div></div>
+      <div class="swatch"><div class="swatch-body" style="background:#FFB830;"><div class="swatch-dot" style="background:rgba(0,0,0,0.2);"></div></div><div class="swatch-info"><div class="sw-name">Amber</div><div class="sw-hex">#FFB830</div><div class="sw-role">Warning ⚠️</div></div></div>
+    </div>
+
+    <div class="neutral-strip">
+      <div class="nc" style="background:#F5F4F0;"><span style="color:#6B6A65;">BG–P</span><span style="color:#9E9D97;font-size:8px;">#F5F4F0</span></div>
+      <div class="nc" style="background:#EDECE8;"><span style="color:#6B6A65;">BG–S</span><span style="color:#9E9D97;font-size:8px;">#EDECE8</span></div>
+      <div class="nc" style="background:#E4E3DF;"><span style="color:#6B6A65;">BG–T</span><span style="color:#9E9D97;font-size:8px;">#E4E3DF</span></div>
+      <div class="nc" style="background:#9E9D97;"><span style="color:#fff;">Ink–3</span><span style="color:rgba(255,255,255,0.6);font-size:8px;">#9E9D97</span></div>
+      <div class="nc" style="background:#6B6A65;"><span style="color:#fff;">Ink–2</span><span style="color:rgba(255,255,255,0.6);font-size:8px;">#6B6A65</span></div>
+      <div class="nc" style="background:#1A1917;"><span style="color:#F5F4F0;">Ink–1</span><span style="color:#9E9D97;font-size:8px;">#1A1917</span></div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       02 TYPOGRAPHY
+       ====================================================== -->
+  <div class="px-div"></div>
+  <div class="section">
+    <div class="sec-label">02 — Typography</div>
+    <div class="sec-title">Type System</div>
+    <div class="sec-sub">Three fonts with distinct, non-overlapping roles. Bungee owns brand personality. Space Grotesk handles all readable content. DM Mono covers UI metadata.</div>
+
+    <div class="font-roles">
+      <div class="font-role-card">
+        <div class="frc-label">Brand / display</div>
+        <div class="frc-specimen" style="font-family:var(--font-brand);font-size:28px;font-weight:400;line-height:1.1;color:var(--color-text-primary);">Bungee ✦</div>
+        <div class="frc-name">Bungee · 400</div>
+        <div class="frc-desc">Logo, hero headlines, section titles, community card names, interest tags, buttons, nav items.</div>
+        <span class="frc-tag">google fonts · free</span>
+      </div>
+      <div class="font-role-card">
+        <div class="frc-label">Body / UI</div>
+        <div class="frc-specimen" style="font-family:var(--font-body);font-size:17px;font-weight:400;line-height:1.5;color:var(--color-text-primary);">Space Grotesk</div>
+        <div class="frc-name">Space Grotesk · 400 / 500</div>
+        <div class="frc-desc">All body copy, descriptions, profile bios, captions, form labels, error messages, toast text.</div>
+        <span class="frc-tag">google fonts · free</span>
+      </div>
+      <div class="font-role-card">
+        <div class="frc-label">Mono / labels</div>
+        <div class="frc-specimen" style="font-family:var(--font-mono);font-size:15px;font-weight:400;line-height:1.5;color:var(--color-text-primary);">DM Mono 0123</div>
+        <div class="frc-name">DM Mono · 400 / 500</div>
+        <div class="frc-desc">Badges, interest tags, timestamps, member counts, metadata, section labels, code snippets.</div>
+        <span class="frc-tag">google fonts · free</span>
+      </div>
+    </div>
+
+    <div class="type-stack">
+      <div class="type-row"><div class="type-meta">Display 1 — Bungee 400 · 48px · brand font</div><div class="td1">Find your people ✦</div></div>
+      <div class="type-row"><div class="type-meta">Display 2 — Bungee 400 · 30px</div><div class="td2">Music nerds only 🎧</div></div>
+      <div class="type-row"><div class="type-meta">Display 3 — Bungee 400 · 20px</div><div class="td3">47 members vibe-checked ⚡</div></div>
+      <div class="type-row"><div class="type-meta">Body — Space Grotesk 400 · 15px · 1.7 line-height · body font</div><div class="tb">Connect with people who get it. Share interests, start conversations, build communities that actually feel like home — no cringe, no algorithm, just vibes and good people.</div></div>
+      <div class="type-row"><div class="type-meta">Caption — Space Grotesk 400 · 13px</div><div class="tc">Active 3 mins ago · 247 members · public community</div></div>
+      <div class="type-row"><div class="type-meta">Mono — DM Mono 400 · 13px · badges, tags, metadata</div><div class="tm">community.id → cmt_k9x2p · joined: 14 days ago</div></div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       03 COMMUNITY COMPONENTS
+       ====================================================== -->
+  <div class="px-div"></div>
+  <div class="section">
+    <div class="sec-label">03 — Community components</div>
+    <div class="sec-title">Built for connection</div>
+    <div class="sec-sub">Surfaces designed specifically for community life: profiles, group cards, interest discovery, and connection suggestions.</div>
+
+    <div style="margin-bottom:12px;font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:0.10em;color:var(--color-text-tertiary);">Profile card</div>
+    <div class="profile-card">
+      <div class="profile-banner"></div>
+      <div class="profile-av">
+        <svg style="image-rendering:pixelated;" width="48" height="48" viewBox="0 0 12 12"><rect width="12" height="12" fill="#7B5EA7"/><rect x="3" y="1" width="6" height="5" fill="#C8F135"/><rect x="4" y="2" width="1" height="1" fill="#1A1917"/><rect x="7" y="2" width="1" height="1" fill="#1A1917"/><rect x="4" y="4" width="4" height="1" fill="#1A1917"/><rect x="2" y="6" width="8" height="6" fill="#7B5EA7"/></svg>
+      </div>
+      <div class="profile-body">
+        <div class="profile-name">zara.exe ✦</div>
+        <div class="profile-handle">@zara_px · melbourne, au</div>
+        <div class="profile-tags">
+          <span class="ptag">🎧 music</span><span class="ptag">🎮 gaming</span><span class="ptag">✨ art</span><span class="ptag">🌀 design</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:12px;font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:0.10em;color:var(--color-text-tertiary);">Community cards</div>
+    <div class="community-grid">
+      <div class="comm-card"><div class="comm-accent-bar" style="background:var(--color-electric);"></div><div class="comm-body"><span class="comm-emoji">🎧</span><div class="comm-title">hyperpop heads</div><div class="comm-meta">2,847 members · active now</div></div></div>
+      <div class="comm-card"><div class="comm-accent-bar" style="background:var(--color-coral);"></div><div class="comm-body"><span class="comm-emoji">🎮</span><div class="comm-title">indie game devs</div><div class="comm-meta">1,203 members · 4 online</div></div></div>
+      <div class="comm-card comm-card-dark"><div class="comm-accent-bar" style="background:var(--color-lime);"></div><div class="comm-body"><span class="comm-emoji">✨</span><div class="comm-title">pixel art club</div><div class="comm-meta">892 members · new!</div></div></div>
+    </div>
+
+    <div style="margin:20px 0 12px;font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:0.10em;color:var(--color-text-tertiary);">Interest tag cloud</div>
+    <div class="interest-cloud">
+      <span class="itag itag-active" style="background:var(--color-lime);color:var(--color-lime-ink);">🎧 music</span>
+      <span class="itag itag-active" style="background:var(--color-electric);color:var(--color-electric-ink);">🎮 gaming</span>
+      <span class="itag itag-neutral">✏️ art</span>
+      <span class="itag itag-active" style="background:var(--color-coral);color:#fff;">🔥 fashion</span>
+      <span class="itag itag-neutral">🌿 plants</span>
+      <span class="itag itag-active" style="background:var(--color-mint);color:#0a3329;">📸 photography</span>
+      <span class="itag itag-neutral">🍜 food</span>
+      <span class="itag itag-active" style="background:var(--color-candy);color:#4a0a2b;">💅 beauty</span>
+      <span class="itag itag-neutral">🎬 film</span>
+      <span class="itag itag-active" style="background:var(--color-sky);color:#032040;">✍️ writing</span>
+    </div>
+
+    <div style="margin-bottom:12px;font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:0.10em;color:var(--color-text-tertiary);">Connection suggestion card</div>
+    <div class="match-card">
+      <div style="background:var(--color-lime);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-family:var(--font-brand);font-size:14px;font-weight:600;color:var(--color-lime-ink);">✦ 3 shared interests</span>
+        <span style="font-size:14px;">🎯</span>
+      </div>
+      <div style="padding:16px;display:flex;gap:14px;align-items:flex-start;">
+        <div style="flex-shrink:0;outline:2px solid var(--color-text-primary);">
+          <svg style="image-rendering:pixelated;" width="40" height="40" viewBox="0 0 10 10"><rect width="10" height="10" fill="#FF6147"/><rect x="2" y="1" width="6" height="5" fill="#FF8DC7"/><rect x="3" y="2" width="1" height="1" fill="#1A1917"/><rect x="6" y="2" width="1" height="1" fill="#1A1917"/><rect x="3" y="4" width="4" height="1" fill="#1A1917"/><rect x="1" y="6" width="8" height="4" fill="#FF6147"/></svg>
+        </div>
+        <div>
+          <div style="font-family:var(--font-brand);font-size:16px;font-weight:400;margin-bottom:2px;color:var(--color-text-primary);">maya.glitch</div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-tertiary);margin-bottom:8px;">sydney, au · 47 mutual vibes</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;">
+            <span class="ptag">🎧 music</span><span class="ptag">🌀 design</span><span class="ptag">✨ art</span>
+          </div>
+        </div>
+      </div>
+      <div style="padding:0 16px 16px;display:flex;gap:8px;">
+        <button class="btn btn-primary" style="flex:1;justify-content:center;font-size:14px;padding:9px;">say hi 👋</button>
+        <button class="btn btn-ghost" style="font-size:13px;padding:9px 16px;">skip</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       04 CORE COMPONENTS
+       ====================================================== -->
+  <div class="px-div"></div>
+  <div class="section">
+    <div class="sec-label">04 — Core components</div>
+    <div class="sec-title">Component Library</div>
+    <div class="sec-sub">All components use the pixel language: hard edges, 2px outlines, offset shadows. Toggle dark mode to verify both states.</div>
+
+    <div class="comp-grid">
+      <div class="comp-box">
+        <div class="comp-lbl">Buttons — Bungee font</div>
+        <div class="btn-row">
+          <button class="btn btn-primary">join now ✦</button>
+          <button class="btn btn-lime">⚡ action</button>
+          <button class="btn btn-outline">outline</button>
+          <button class="btn btn-electric">🔮 electric</button>
+          <button class="btn btn-coral">🔥 alert</button>
+          <button class="btn btn-ghost">ghost</button>
+        </div>
+      </div>
+
+      <div class="comp-box">
+        <div class="comp-lbl">Badges — DM Mono font</div>
+        <div class="badge-row">
+          <span class="badge b-lime">⚡ new</span>
+          <span class="badge b-mint">🟢 live</span>
+          <span class="badge b-coral">🔥 trending</span>
+          <span class="badge b-electric">✨ pro</span>
+          <span class="badge b-neutral">beta</span>
+          <span class="badge b-candy">💅 vip</span>
+        </div>
+      </div>
+
+      <div class="comp-box">
+        <div class="comp-lbl">Inputs — Space Grotesk</div>
+        <div class="inp-col">
+          <div class="inp-wrap">
+            <div class="inp-lbl">Your handle</div>
+            <input class="ds-input" placeholder="@yourname ✦">
+          </div>
+          <div class="inp-wrap">
+            <div class="inp-lbl">Search communities</div>
+            <input class="ds-input" placeholder="music, art, gaming...">
+            <div class="inp-help">Try: hyperpop, pixel art, game dev</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="comp-box">
+        <div class="comp-lbl">Toasts — Space Grotesk</div>
+        <div class="toast-col">
+          <div class="toast toast-success"><span class="toast-icon">✅</span><span>You joined — welcome to the crew! 🎉</span></div>
+          <div class="toast toast-error"><span class="toast-icon">🔥</span><span>Couldn't load — try again?</span></div>
+          <div class="toast toast-info"><span class="toast-icon">💡</span><span>3 people share your interests</span></div>
+          <div class="toast toast-warning"><span class="toast-icon">⚠️</span><span>Your bio is almost full</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       05 PIXEL AVATAR SYSTEM
+       ====================================================== -->
+  <div class="px-div"></div>
+  <div class="section">
+    <div class="sec-label">05 — Pixel avatar system</div>
+    <div class="sec-title">Avatar Sprites</div>
+    <div class="sec-sub">Each user gets a pixel avatar — a small SVG sprite with a unique colour combination that becomes their identity across the app. Available in four sizes.</div>
+
+    <div style="outline:2px solid var(--color-text-primary);background:var(--color-surface);padding:24px;">
+      <div class="avatar-row">
+        <div class="avatar-item">
+          <svg style="image-rendering:pixelated;outline:2px solid var(--color-text-primary);" width="24" height="32" viewBox="0 0 6 8"><rect x="1" y="0" width="4" height="3" fill="#C8F135"/><rect x="1" y="3" width="4" height="5" fill="#7B5EA7"/><rect x="2" y="1" width="1" height="1" fill="#1A1917"/><rect x="4" y="1" width="1" height="1" fill="#1A1917"/></svg>
+          <span class="avatar-size-label">xs · 24px</span>
+        </div>
+        <div class="avatar-item">
+          <svg style="image-rendering:pixelated;outline:2px solid var(--color-text-primary);" width="32" height="40" viewBox="0 0 8 10"><rect x="2" y="0" width="4" height="4" fill="#FF8DC7"/><rect x="2" y="4" width="4" height="6" fill="#FF6147"/><rect x="3" y="1" width="1" height="1" fill="#1A1917"/><rect x="5" y="1" width="1" height="1" fill="#1A1917"/><rect x="3" y="3" width="2" height="1" fill="#1A1917"/></svg>
+          <span class="avatar-size-label">sm · 32px</span>
+        </div>
+        <div class="avatar-item">
+          <svg style="image-rendering:pixelated;outline:2px solid var(--color-text-primary);" width="48" height="60" viewBox="0 0 12 15"><rect x="3" y="0" width="6" height="5" fill="#FFB830"/><rect x="3" y="5" width="6" height="10" fill="#4DAEEC"/><rect x="4" y="2" width="1" height="1" fill="#1A1917"/><rect x="7" y="2" width="1" height="1" fill="#1A1917"/><rect x="4" y="4" width="4" height="1" fill="#1A1917"/><rect x="1" y="8" width="2" height="7" fill="#4DAEEC"/><rect x="9" y="8" width="2" height="7" fill="#4DAEEC"/></svg>
+          <span class="avatar-size-label">md · 48px</span>
+        </div>
+        <div class="avatar-item">
+          <svg style="image-rendering:pixelated;outline:2px solid var(--color-text-primary);" width="64" height="80" viewBox="0 0 16 20"><rect x="4" y="0" width="8" height="6" fill="#3ECFAC"/><rect x="4" y="6" width="8" height="14" fill="#C8F135"/><rect x="5" y="2" width="2" height="2" fill="#1A1917"/><rect x="9" y="2" width="2" height="2" fill="#1A1917"/><rect x="6" y="5" width="4" height="1" fill="#1A1917"/><rect x="1" y="9" width="3" height="10" fill="#C8F135"/><rect x="12" y="9" width="3" height="10" fill="#C8F135"/></svg>
+          <span class="avatar-size-label">lg · 64px</span>
+        </div>
+        <div class="avatar-item" style="margin-left:16px;">
+          <div style="position:relative;width:76px;height:52px;">
+            <svg style="image-rendering:pixelated;outline:2px solid var(--color-surface);position:absolute;left:0;top:6px;" width="40" height="52" viewBox="0 0 10 13"><rect x="3" y="0" width="4" height="4" fill="#C8F135"/><rect x="2" y="4" width="6" height="9" fill="#7B5EA7"/><rect x="4" y="2" width="1" height="1" fill="#1A1917"/><rect x="6" y="2" width="1" height="1" fill="#1A1917"/></svg>
+            <svg style="image-rendering:pixelated;outline:2px solid var(--color-surface);position:absolute;left:20px;top:6px;" width="40" height="52" viewBox="0 0 10 13"><rect x="3" y="0" width="4" height="4" fill="#FF8DC7"/><rect x="2" y="4" width="6" height="9" fill="#FF6147"/><rect x="4" y="2" width="1" height="1" fill="#1A1917"/><rect x="6" y="2" width="1" height="1" fill="#1A1917"/></svg>
+            <svg style="image-rendering:pixelated;outline:2px solid var(--color-surface);position:absolute;left:40px;top:6px;" width="40" height="52" viewBox="0 0 10 13"><rect x="3" y="0" width="4" height="4" fill="#FFB830"/><rect x="2" y="4" width="6" height="9" fill="#4DAEEC"/><rect x="4" y="2" width="1" height="1" fill="#1A1917"/><rect x="6" y="2" width="1" height="1" fill="#1A1917"/></svg>
+          </div>
+          <span class="avatar-size-label">group stack</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       06 EMOJI + ICON LANGUAGE
+       ====================================================== -->
+  <div class="px-div"></div>
+  <div class="section">
+    <div class="sec-label">06 — Icon language</div>
+    <div class="sec-title">Emoji + Pixel Icons</div>
+    <div class="sec-sub">Native emoji for personality and social context. Streamline Pixel icons (streamlinehq.com/icons/pixel) for UI chrome. Never mix both in the same component.</div>
+
+    <div class="emoji-grid" style="margin-bottom:12px;">
+      <div class="emoji-box"><div class="emoji-cat-lbl">Reactions</div><div class="emoji-list">❤️ 🔥 ✨ 💯 🫶 👀 🤝 💬</div></div>
+      <div class="emoji-box"><div class="emoji-cat-lbl">Interests</div><div class="emoji-list">🎧 🎮 🎨 📸 ✏️ 🌿 🍜 🎬</div></div>
+      <div class="emoji-box"><div class="emoji-cat-lbl">Status</div><div class="emoji-list">🟢 🔴 🌙 ⚡ 🔮 🪩 💅 🌀</div></div>
+      <div class="emoji-box"><div class="emoji-cat-lbl">Actions</div><div class="emoji-list">🚀 🎯 👋 🗑️ 📌 🔔 💌 ✦</div></div>
+    </div>
+
+    <div style="outline:2px solid var(--color-text-primary);background:var(--color-surface);padding:16px 20px;">
+      <div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:0.10em;color:var(--color-text-tertiary);margin-bottom:10px;">Usage rules</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-family:var(--font-body);font-size:12px;color:var(--color-text-secondary);">
+        <div>✅ Bungee + emoji in headings → "Music nerds 🎧"</div>
+        <div>✅ Streamline Pixel for nav, settings, actions</div>
+        <div>✅ 1 emoji max per badge or button label</div>
+        <div>✅ Emoji in interest tags, always paired with text</div>
+        <div>❌ Never mix emoji + pixel icon in the same component</div>
+        <div>❌ Emoji solo — always pair with readable text in UI</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       07 SPACING
+       ====================================================== -->
+  <div class="px-div"></div>
+  <div class="section">
+    <div class="sec-label">07 — Spacing</div>
+    <div class="sec-title">Spacing Scale</div>
+    <div class="sec-sub">4px base unit, 8px pixel grid. All spacing tokens snap to this scale.</div>
+    <div style="outline:2px solid var(--color-text-primary);background:var(--color-surface);padding:24px;">
+      <div class="sp-row"><div class="sp-bar" style="width:4px;"></div><span class="sp-token">--sp-1</span><span class="sp-val">4px</span><span class="sp-desc">micro — icon gap, tight inline</span></div>
+      <div class="sp-row"><div class="sp-bar" style="width:8px;"></div><span class="sp-token">--sp-2</span><span class="sp-val">8px</span><span class="sp-desc">inline — between badge elements</span></div>
+      <div class="sp-row"><div class="sp-bar" style="width:12px;"></div><span class="sp-token">--sp-3</span><span class="sp-val">12px</span><span class="sp-desc">tight — inside compact components</span></div>
+      <div class="sp-row"><div class="sp-bar" style="width:16px;"></div><span class="sp-token">--sp-4</span><span class="sp-val">16px</span><span class="sp-desc">default — standard component padding</span></div>
+      <div class="sp-row"><div class="sp-bar" style="width:24px;"></div><span class="sp-token">--sp-6</span><span class="sp-val">24px</span><span class="sp-desc">relaxed — card internal sections</span></div>
+      <div class="sp-row"><div class="sp-bar" style="width:32px;"></div><span class="sp-token">--sp-8</span><span class="sp-val">32px</span><span class="sp-desc">block — between component groups</span></div>
+      <div class="sp-row"><div class="sp-bar" style="width:48px;"></div><span class="sp-token">--sp-12</span><span class="sp-val">48px</span><span class="sp-desc">section — between page sections</span></div>
+      <div class="sp-row"><div class="sp-bar" style="width:64px;"></div><span class="sp-token">--sp-16</span><span class="sp-val">64px</span><span class="sp-desc">page — major layout divisions</span></div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       08 MOTION
+       ====================================================== -->
+  <div class="px-div"></div>
+  <div class="section">
+    <div class="sec-label">08 — Motion</div>
+    <div class="sec-title">Animation Tokens</div>
+    <div class="sec-sub">Spring for interactions. Ease for transitions. Bounce for celebration moments. Steps for pixel sprite movement — this one is unique to the pixel system.</div>
+    <div class="motion-grid">
+      <div class="motion-box">
+        <div class="motion-lbl">Spring — buttons, hover states</div>
+        <div class="motion-track"><div class="m-dot m-spring"></div></div>
+        <div class="motion-name">Spring</div>
+        <div class="motion-val">cubic-bezier(0.34, 1.56, 0.64, 1) · 300ms</div>
+      </div>
+      <div class="motion-box">
+        <div class="motion-lbl">Ease out — page transitions</div>
+        <div class="motion-track"><div class="m-dot m-ease"></div></div>
+        <div class="motion-name">Ease out</div>
+        <div class="motion-val">cubic-bezier(0.25, 0.46, 0.45, 0.94) · 240ms</div>
+      </div>
+      <div class="motion-box">
+        <div class="motion-lbl">Bounce — join, celebrate moments</div>
+        <div class="motion-track"><div class="m-dot m-bounce"></div></div>
+        <div class="motion-name">Bounce</div>
+        <div class="motion-val">cubic-bezier(0.68, -0.55, 0.265, 1.55) · 400ms</div>
+      </div>
+      <div class="motion-box">
+        <div class="motion-lbl">Steps — pixel sprite animation ✦</div>
+        <div class="motion-track"><div class="m-dot m-step"></div></div>
+        <div class="motion-name">Stepped</div>
+        <div class="motion-val">steps(6, end) · 600ms — pixel-native only</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       09 VOICE & TONE
+       ====================================================== -->
+  <div class="px-div"></div>
+  <div class="section">
+    <div class="sec-label">09 — Voice & tone</div>
+    <div class="sec-title">Copy Guidelines</div>
+    <div class="sec-sub">Write like a person who actually uses the app. Warm, punchy, direct. Never corporate. Community copy celebrates belonging and makes people feel seen.</div>
+    <div class="voice-stack">
+      <div class="voice-row voice-do"><div class="vtag vtag-do">✅ do</div><div class="vtext">"You joined Pixel Art Club — 892 people are hyped to meet you 🎉"</div></div>
+      <div class="voice-row voice-dont"><div class="vtag vtag-dont">❌ don't</div><div class="vtext">"You have successfully joined the community. Welcome aboard."</div></div>
+      <div class="voice-row voice-do"><div class="vtag vtag-do">✅ do</div><div class="vtext">"Nobody in your area yet — be the first to plant a flag 🚩"</div></div>
+      <div class="voice-row voice-dont"><div class="vtag vtag-dont">❌ don't</div><div class="vtext">"No communities found in your location."</div></div>
+      <div class="voice-row voice-do"><div class="vtag vtag-do">✅ do</div><div class="vtext">"3 people nearby are also into hyperpop ⚡ say hi?"</div></div>
+      <div class="voice-row voice-dont"><div class="vtag vtag-dont">❌ don't</div><div class="vtext">"3 users with matching interests have been found in your area."</div></div>
+      <div class="voice-row voice-do"><div class="vtag vtag-do">✅ do</div><div class="vtext">"Something broke — not the vibe. We're on it ⚡"</div></div>
+      <div class="voice-row voice-dont"><div class="vtag vtag-dont">❌ don't</div><div class="vtext">"An error has occurred. Please try again later or contact support."</div></div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       10 DESIGN TOKENS — ENGINEER HANDOFF
+       ====================================================== -->
+  <div class="px-div"></div>
+  <div class="section">
+    <div class="sec-label">10 — Design tokens · engineer handoff</div>
+    <div class="sec-title">CSS Tokens</div>
+    <div class="sec-sub">Copy the block below directly into your project's token or variables file. Includes the Google Fonts import, all colour tokens, pixel system, and motion curves.</div>
+
+    <div class="token-block">
+      <pre class="tcode"><span style="color:#4DAEEC;">/* ============================================================
+   PXL // DS — Design Tokens v3.0
+   Copy into: tokens.css / variables.css / :root stylesheet
+   ============================================================ */</span>
+
+<span style="color:#4DAEEC;">/* Google Fonts import */</span>
+<span style="color:#C8F135;">@import</span> url(<span style="color:#FF8DC7;">'https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap'</span>);
+
+<span style="color:#C8F135;">:root</span> {
+
+  <span style="color:#4DAEEC;">/* ── TYPOGRAPHY ── three fonts, three jobs ── */</span>
+  --font-brand:              <span style="color:#FF8DC7;">'Bungee', sans-serif</span>;      <span style="color:#6B6A65;">/* logo, headlines, buttons, nav */</span>
+  --font-body:               <span style="color:#FF8DC7;">'Space Grotesk', sans-serif</span>; <span style="color:#6B6A65;">/* body copy, labels, forms      */</span>
+  --font-mono:               <span style="color:#FF8DC7;">'DM Mono', monospace</span>;        <span style="color:#6B6A65;">/* badges, tags, metadata        */</span>
+  --fw-brand-regular:        <span style="color:#3ECFAC;">500</span>;
+  --fw-brand-bold:           <span style="color:#3ECFAC;">700</span>;
+  --fw-body:                 <span style="color:#3ECFAC;">400</span>;
+  --fw-body-medium:          <span style="color:#3ECFAC;">500</span>;
+  --fw-mono:                 <span style="color:#3ECFAC;">400</span>;
+
+  <span style="color:#4DAEEC;">/* ── BACKGROUNDS — warm neutral, not pure white ── */</span>
+  --color-bg-primary:        <span style="color:#3ECFAC;">#F5F4F0</span>;
+  --color-bg-secondary:      <span style="color:#3ECFAC;">#EDECE8</span>;
+  --color-bg-tertiary:       <span style="color:#3ECFAC;">#E4E3DF</span>;
+  --color-surface:           <span style="color:#3ECFAC;">#FFFFFF</span>;
+
+  <span style="color:#4DAEEC;">/* ── TEXT ── */</span>
+  --color-text-primary:      <span style="color:#3ECFAC;">#1A1917</span>;
+  --color-text-secondary:    <span style="color:#3ECFAC;">#6B6A65</span>;
+  --color-text-tertiary:     <span style="color:#3ECFAC;">#9E9D97</span>;
+
+  <span style="color:#4DAEEC;">/* ── ACCENTS ── */</span>
+  --color-lime:              <span style="color:#C8F135;">#C8F135</span>;  <span style="color:#6B6A65;">/* primary action    */</span>
+  --color-lime-ink:          <span style="color:#3ECFAC;">#2a4000</span>;  <span style="color:#6B6A65;">/* text on lime      */</span>
+  --color-electric:          <span style="color:#7B5EA7;">#7B5EA7</span>;  <span style="color:#6B6A65;">/* brand anchor      */</span>
+  --color-electric-ink:      <span style="color:#3ECFAC;">#f0e6ff</span>;  <span style="color:#6B6A65;">/* text on electric  */</span>
+  --color-coral:             <span style="color:#FF6147;">#FF6147</span>;  <span style="color:#6B6A65;">/* alert / urgency   */</span>
+  --color-sky:               <span style="color:#4DAEEC;">#4DAEEC</span>;  <span style="color:#6B6A65;">/* info / connect    */</span>
+  --color-mint:              <span style="color:#3ECFAC;">#3ECFAC</span>;  <span style="color:#6B6A65;">/* success           */</span>
+  --color-candy:             <span style="color:#FF8DC7;">#FF8DC7</span>;  <span style="color:#6B6A65;">/* delight / fun     */</span>
+  --color-amber:             <span style="color:#FFB830;">#FFB830</span>;  <span style="color:#6B6A65;">/* warning           */</span>
+
+  <span style="color:#4DAEEC;">/* ── PIXEL SYSTEM — no border-radius on pixel components ── */</span>
+  --pixel-unit:              <span style="color:#3ECFAC;">8px</span>;
+  --pixel-border:            <span style="color:#3ECFAC;">2px solid #1A1917</span>;
+  --pixel-shadow:            <span style="color:#3ECFAC;">3px 3px 0 #1A1917</span>;
+  --pixel-shadow-lime:       <span style="color:#3ECFAC;">3px 3px 0 #C8F135</span>;
+  --pixel-shadow-electric:   <span style="color:#3ECFAC;">3px 3px 0 #7B5EA7</span>;
+  --pixel-shadow-coral:      <span style="color:#3ECFAC;">3px 3px 0 #FF6147</span>;
+
+  <span style="color:#4DAEEC;">/* ── BORDER-RADIUS — non-pixel surfaces only ── */</span>
+  --radius-sm:               <span style="color:#3ECFAC;">4px</span>;
+  --radius-md:               <span style="color:#3ECFAC;">8px</span>;
+  --radius-pill:             <span style="color:#3ECFAC;">999px</span>;
+
+  <span style="color:#4DAEEC;">/* ── SPACING — 8px pixel grid ── */</span>
+  --sp-1:  <span style="color:#3ECFAC;">4px</span>;
+  --sp-2:  <span style="color:#3ECFAC;">8px</span>;
+  --sp-3:  <span style="color:#3ECFAC;">12px</span>;
+  --sp-4:  <span style="color:#3ECFAC;">16px</span>;
+  --sp-6:  <span style="color:#3ECFAC;">24px</span>;
+  --sp-8:  <span style="color:#3ECFAC;">32px</span>;
+  --sp-12: <span style="color:#3ECFAC;">48px</span>;
+  --sp-16: <span style="color:#3ECFAC;">64px</span>;
+
+  <span style="color:#4DAEEC;">/* ── MOTION ── */</span>
+  --ease-spring:   <span style="color:#FFB830;">cubic-bezier(0.34, 1.56, 0.64, 1)</span>;   <span style="color:#6B6A65;">/* buttons, interactions */</span>
+  --ease-out:      <span style="color:#FFB830;">cubic-bezier(0.25, 0.46, 0.45, 0.94)</span>; <span style="color:#6B6A65;">/* page transitions      */</span>
+  --ease-bounce:   <span style="color:#FFB830;">cubic-bezier(0.68, -0.55, 0.265, 1.55)</span>;<span style="color:#6B6A65;">/* celebrations          */</span>
+  --ease-pixel:    <span style="color:#FFB830;">steps(6, end)</span>;                        <span style="color:#6B6A65;">/* sprite movement       */</span>
+  --dur-fast:      <span style="color:#3ECFAC;">150ms</span>;
+  --dur-base:      <span style="color:#3ECFAC;">240ms</span>;
+  --dur-slow:      <span style="color:#3ECFAC;">400ms</span>;
+}
+
+<span style="color:#C8F135;">[data-theme="dark"]</span> {
+  --color-bg-primary:      <span style="color:#3ECFAC;">#141413</span>;
+  --color-bg-secondary:    <span style="color:#3ECFAC;">#1C1C1A</span>;
+  --color-bg-tertiary:     <span style="color:#3ECFAC;">#252522</span>;
+  --color-surface:         <span style="color:#3ECFAC;">#1F1F1D</span>;
+  --color-text-primary:    <span style="color:#3ECFAC;">#F0EFE9</span>;
+  --color-text-secondary:  <span style="color:#3ECFAC;">#9E9D97</span>;
+  --color-text-tertiary:   <span style="color:#3ECFAC;">#6B6A65</span>;
+  --pixel-border:          <span style="color:#3ECFAC;">2px solid #F0EFE9</span>;
+  --pixel-shadow:          <span style="color:#3ECFAC;">3px 3px 0 #F0EFE9</span>;
+}</pre>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       FOOTER
+       ====================================================== -->
+  <div style="outline:2px solid var(--color-text-primary);background:var(--color-text-primary);padding:28px 32px;display:flex;align-items:center;justify-content:space-between;">
+    <div>
+      <div style="font-family:var(--font-brand);font-size:24px;font-weight:400;color:var(--color-lime);margin-bottom:6px;">PXL // DS ✦</div>
+      <div style="font-family:var(--font-mono);font-size:10px;color:#6B6A65;">v3.0 · Bungee Edition · Community · Pixel Art · Light + Dark · Figma + Code Handoff</div>
+    </div>
+    <div style="display:flex;gap:2px;">
+      <div style="width:12px;height:12px;background:var(--color-lime);image-rendering:pixelated;"></div>
+      <div style="width:12px;height:12px;background:var(--color-electric);image-rendering:pixelated;"></div>
+      <div style="width:12px;height:12px;background:var(--color-coral);image-rendering:pixelated;"></div>
+      <div style="width:12px;height:12px;background:var(--color-mint);image-rendering:pixelated;"></div>
+      <div style="width:12px;height:12px;background:var(--color-candy);image-rendering:pixelated;"></div>
+      <div style="width:12px;height:12px;background:var(--color-sky);image-rendering:pixelated;"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function toggleTheme() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    document.documentElement.setAttribute('data-theme', isDark ? '' : 'dark');
+    document.getElementById('themeBtn').textContent = isDark ? '[ ☀ light ]' : '[ ☾ dark ]';
+  }
+</script>
+
+</body>
+</html>
