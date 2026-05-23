@@ -3,6 +3,11 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Local-only dev scripts (Dev 4): demo seed + SQLite db
+backend/_local_demo_seed.py
+backend/community.db
+backend/community.db-journal
+
 # C extensions
 *.so
 

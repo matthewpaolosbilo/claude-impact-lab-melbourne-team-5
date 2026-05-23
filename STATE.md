@@ -336,18 +336,18 @@ SEED_LOCATIONS = [
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 4.1 | Badge computation helpers (backend): `count_attended`, `count_hosted`, `check_weekly_streak`, `count_distinct_types`, `hosted_event_with_min_attendees` | ⬜ TODO | Pure functions over RSVP/Event tables |
-| 4.2 | `routers/badges.py` — `GET /api/users/{id}/badges` (returns earned + available with progress) | ⬜ TODO | See schema in Integration Points |
-| 4.3 | `badges.js` — client-side badge metadata (name, icon, description, earn criteria text) matching server definitions | ⬜ TODO | 8 badges — see definitions above |
-| 4.4 | `BadgeShelf.jsx` — grid of all possible badges. Earned = full color + glow. Locked = greyed out with hint text | ⬜ TODO | Fetch from `GET /api/users/{id}/badges` |
-| 4.5 | `ProfilePanel.jsx` — user name, email, member since, total events attended, total events hosted | ⬜ TODO | |
-| 4.6 | `Profile.jsx` page — ProfilePanel + BadgeShelf + past RSVP history | ⬜ TODO | Mounted at `/profile` (route added by Dev 3) |
-| 4.7 | Toast notifications: "RSVP confirmed!", "New badge earned: 🔥 First Flame!" | ⬜ TODO | Lightweight lib or custom |
-| 4.8 | Badge unlock celebration: modal with confetti/pulse when new badge earned | ⬜ TODO | Re-check badges after each RSVP |
-| 4.9 | Attendee surfacing on `EventCard`: count + avatars (or initials) for who's going | ⬜ TODO | Extends Dev 3's EventCard |
-| 4.10 | Host attribution on `EventCard` and `EventModal` — show host name + their badges | ⬜ TODO | |
-| 4.11 | Community notification hooks — placeholder UI for "new event near you" / "your friend RSVPed" | ⬜ TODO | Stub UI; backend wiring optional today |
-| 4.12 | README.md — project overview, setup instructions, env vars, deploy URLs | ⬜ TODO | Shared task — close out the project |
+| 4.1 | Badge computation helpers (backend): `count_attended`, `count_hosted`, `check_weekly_streak`, `count_distinct_types`, `hosted_event_with_min_attendees` | ✅ DONE | `backend/badge_logic.py` — pure SQLAlchemy 2.0 queries, plus extras: `weekly_streak_length`, `largest_hosted_attendance`, `latest_qualifying_attendance` for progress text. |
+| 4.2 | `routers/badges.py` — `GET /api/users/{id}/badges` (returns earned + available with progress) | ✅ DONE | Plus a small `/api/users/{id}/profile-stats` endpoint to power ProfilePanel. Imports `get_db` from `database.py` — Dev 1, please expose. |
+| 4.3 | `badges.js` — client-side badge metadata (name, icon, description, earn criteria text) matching server definitions | ✅ DONE | `frontend/src/utils/badges.js` — 8 badges + `mergeBadgePayload(serverPayload)` helper. |
+| 4.4 | `BadgeShelf.jsx` — grid of all possible badges. Earned = full color + glow. Locked = greyed out with hint text | ✅ DONE | Fetches `/api/users/{id}/badges`; accepts an optional `payload` prop for preview/SSR. |
+| 4.5 | `ProfilePanel.jsx` — user name, email, member since, total events attended, total events hosted | ✅ DONE | Hits `/api/users/{id}` + `/api/users/{id}/profile-stats`. |
+| 4.6 | `Profile.jsx` page — ProfilePanel + BadgeShelf + past RSVP history | ✅ DONE | Reads `cm.user_id` from localStorage. Past RSVPs uses `GET /api/events?user_id&attended=true` — Dev 1, please add that filter. |
+| 4.7 | Toast notifications: "RSVP confirmed!", "New badge earned: 🔥 First Flame!" | ✅ DONE | Custom (`ToastProvider`, `useToast`, `Toaster`). No extra dep. Slide-in animation. |
+| 4.8 | Badge unlock celebration: modal with confetti/pulse when new badge earned | ✅ DONE | `BadgeUnlockModal` + `useBadgeWatcher(userId)`. Call `triggerBadgeCheck()` after RSVP success. Diff stored in `cm.badges.lastEarned`. |
+| 4.9 | Attendee surfacing on `EventCard`: count + avatars (or initials) for who's going | ✅ DONE | `AttendeeChips` sub-component for Dev 3 to drop in. Degrades to count-only if backend doesn't include `attendees[]`. |
+| 4.10 | Host attribution on `EventCard` and `EventModal` — show host name + their badges | ✅ DONE | `HostBadge` sub-component — lazy-fetches host's top badges. |
+| 4.11 | Community notification hooks — placeholder UI for "new event near you" / "your friend RSVPed" | ✅ DONE | `NotificationFeed` stub with 3 sample entries, ready for backend wiring. |
+| 4.12 | README.md — project overview, setup instructions, env vars, deploy URLs | ✅ DONE | Draft committed; Dev 1 + 3 will fill in live URLs after deploy. |
 
 ---
 
@@ -497,9 +497,9 @@ VITE_MAPBOX_TOKEN=pk.xxxxxxxxxxxxxxxxxxxxxxxx  # public Mapbox token, scoped to 
 | Backend Foundation | Dev 1 | `feature/backend` | ⬜ Not started | — |
 | GIS / Mapping | Dev 2 (you) | `feature/gis` | ⬜ Not started | Coordinate `models.py` with Dev 1 |
 | Frontend App | Dev 3 | `feature/frontend-app` | 🟡 In progress — 10/15 done (3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.13) | 3.10 next (RSVP wiring); 3.11/3.12 unblocked; 3.14/3.15 need Render URL from Dev 1's 1.12 |
-| Badges & Social | Dev 4 | `feature/social` | ⬜ Not started | Needs `api.js` + auth flow from Dev 3 |
+| Badges & Social | Dev 4 | `feature/social` | ✅ All 12 tasks done | Backend tests passing (13/13 incl. Dev 1 smoke). Mounted in `main.py`. Awaiting Dev 1 users/events endpoints to wire Profile end-to-end. |
 
-**Last updated:** 2026-05-23 — 3.6 auth modal + user-aware NavHeader shipped on branch `feat-3.6` (PR #14, parallel worktree)
+**Last updated:** 2026-05-23 — Dev 4 (Badges & Social) complete on `feature/social`, merged with main (incl. 3.6 auth modal + user-aware NavHeader from `feat-3.6` PR #14).
 
 ---
 
