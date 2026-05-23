@@ -365,7 +365,7 @@ SEED_LOCATIONS = [
 | 3.8 | `EventCard.jsx` — compact card: title, type pill, date/time, location name, RSVP button | ✅ DONE | `frontend/src/components/EventCard.jsx`. Click opens `EventModal` in view mode; RSVP button stubbed (real wiring in 3.10). Slots marked for Dev 4's 4.9 attendee avatars + 4.10 host badges. Branch: `feat-3.8-3.9`. |
 | 3.9 | `EventModal.jsx` — view/create event. Form: title, description, type, location, start/end, max attendees | ✅ DONE | `frontend/src/components/EventModal.jsx`. Dual-mode (view/create), Esc + backdrop close, native `datetime-local` inputs, required-field validation. Location dropdown consumes `locations` prop fed by Dev 2's `useLocations` hook. Branch: `feat-3.8-3.9`. |
 | 3.10 | Wire RSVP: "I'm Going" → `POST /api/events/{id}/rsvp` with user_id from localStorage | ✅ DONE | `rsvpToEvent(eventId, userId)` helper in `frontend/src/api.js` (sends `X-User-Id` header). `Home.jsx` does optimistic update + real POST + rollback on failure + success toast, and calls `useBadgeWatcher.triggerBadgeCheck()` on success or 409 (already-RSVP'd treated as success). Unsigned users get AuthModal popped via the `community-maxxing-open-auth` event. SEED_EVENTS → live `GET /api/events` swap deferred. Branch: `feat-3.10`. |
-| 3.11 | Empty states: no events yet, no search results — friendly copy + illustration | ⬜ TODO | |
+| 3.11 | Empty states: no events yet, no search results — friendly copy + illustration | ✅ DONE | Filter-aware empty state on `Home.jsx` — brand icon trio (Flame/Sprout/ChefHat) plus two copy variants (`No events up yet, no stress` when no filters active; `Nothing matches yet` when query or type filter is active). Scope grew to cover no-search-matches once Dev 2's 2.8 SearchBar landed in the merge. Branch: `feat-3.11`. |
 | 3.12 | Mobile responsive: stacks vertical, full-width cards | ⬜ TODO | |
 | 3.13 | `vite.config.js` — proxy `/api` to backend in dev | ✅ DONE | Done early as part of 3.1 — proxies `/api` to `http://localhost:8000`. |
 | 3.14 | `netlify.toml` — build command, publish dir, redirect `/api/*` to Render backend URL | ✅ DONE | `frontend/netlify.toml`. Build cmd `npm run build`, publish `dist`. `/api/*` rewrites (status 200, force=true) to `https://commaxx-api.onrender.com/api/:splat`; SPA fallback `/* → /index.html` ordered after the API rule. Render `/api/locations` confirmed 200 from the rewrite target. Netlify site base directory should be set to `frontend`. Branch: `feat-3.14`. |
@@ -597,10 +597,10 @@ VITE_MAPBOX_TOKEN=pk.xxxxxxxxxxxxxxxxxxxxxxxx  # public Mapbox token, scoped to 
 |------------|-----|--------|----------|---------|
 | Backend Foundation | Dev 1 | `feature/backend` | 🟡 In progress — 12/17 done (1.1–1.12 ✅; live at commaxx-api.onrender.com); Maxxer subtasks 1.10.1–1.10.5 TODO | Maxxer needs `ANTHROPIC_API_KEY` env + `routers/chat.py` (1.10.1–1.10.5) |
 | GIS / Mapping | Dev 2 (you) | `feature/gis` | ✅ Complete — 9/10 done (2.1–2.6, 2.8–2.10); 2.7 deferred | Bespoke SVG markers remain deferred until designers provide assets |
-| Frontend App | Dev 3 | `feature/frontend-app` | 🟡 In progress — 14/17 done (3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.7.1, 3.7.2, 3.8, 3.9, 3.10, 3.13, 3.14) | 3.11/3.12 polish and 3.15 deploy remain |
+| Frontend App | Dev 3 | `feature/frontend-app` | 🟡 In progress — 15/17 done (3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.7.1, 3.7.2, 3.8, 3.9, 3.10, 3.11, 3.13, 3.14) | 3.12 mobile polish and 3.15 deploy remain |
 | Badges & Social + Maxxer | Dev 4 | `feature/social` | 🟡 17/19 done — Maxxer frontend complete (4.13/4.14/4.15/4.17/4.19 ✅, 4.16 now wired through Dev 2 map highlights, 4.18 needs live-data QA) | Real Maxxer responses need Dev 1 `/api/chat` endpoints; mock adapter in `utils/maxxerMock.js` until then |
 
-**Last updated:** 2026-05-23 — Dev 2 GIS stream complete and merged with Dev 4 Maxxer frontend: SearchBar filters live events/locations, marker/list sync works, and Maxxer `suggestedEventIds` now map to highlighted pins/event cards.
+**Last updated:** 2026-05-23 — 3.11 empty states shipped on branch `feat-3.11`: filter-aware brand card on `Home.jsx` covers both no-events and no-search-matches once Dev 2's 2.8 SearchBar landed; Frontend App tracker now 15/17 done.
 
 ---
 
