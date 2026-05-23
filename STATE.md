@@ -319,11 +319,11 @@ SEED_LOCATIONS = [
 | 1.8 | `routers/events.py` — `GET /api/search?q=...&type=...&date=...` | ⬜ TODO | Search events by keyword, type, date range |
 | 1.9 | `main.py` — mount routers, CORS (allow Netlify domain + localhost), call seed on startup | ⬜ TODO | Dev 2 mounts locations router; Dev 4 mounts badges router |
 | 1.10 | `render.yaml` — web service config, start `uvicorn main:app --host 0.0.0.0 --port $PORT` | ⬜ TODO | |
-| 1.10.1 | Add `anthropic` to `requirements.txt` and load `ANTHROPIC_API_KEY` from Render env | ⬜ TODO | Backend-only secret; never expose via Vite. |
-| 1.10.2 | `models.py` / schemas — add nullable `preferences` JSON column to `User` and include it in user reads | ⬜ TODO | Stores Maxxer onboarding output: reason in Melbourne, home misses, vibe, dietary/cultural needs, area, social energy. |
-| 1.10.3 | `routers/chat.py` — `POST /api/chat` for ongoing Maxxer suggestions | ⬜ TODO | Loads user preferences, last 5 RSVPs, upcoming events in next 14 days; calls Claude Sonnet; returns response + suggested event IDs. |
-| 1.10.4 | `routers/chat.py` — `POST /api/chat/onboarding` for conversational preference gathering | ⬜ TODO | Uses onboarding prompt; when complete, extracts preferences JSON, saves to `User.preferences`, returns `onboarding_complete: true`. |
-| 1.10.5 | Maxxer system prompts + response parsing | ⬜ TODO | Enforce exactly 3 real event suggestions, parse `[EVENT:id]` tags, reject IDs not present in the available-events context. |
+| 1.10.1 | Add `anthropic` to `requirements.txt` and load `ANTHROPIC_API_KEY` from Render env | ✅ DONE | `anthropic>=0.40,<1` in `requirements.txt` + `pyproject.toml`. `services/anthropic_client.AnthropicMaxxerClient` reads `ANTHROPIC_API_KEY` (and optional `MAXXER_MODEL`, default `claude-sonnet-4-6`) at request time. Backend-only secret — Render env var still needs setting before/at merge. |
+| 1.10.2 | `models.py` / schemas — add nullable `preferences` JSON column to `User` and include it in user reads | ✅ DONE | SQLAlchemy `JSON` column on `User`; idempotent `ALTER TABLE users ADD COLUMN preferences` in `init_db()` for pre-existing local DBs; `UserRead.preferences: Optional[dict]`. Defaults `null` on create; populated by `/api/chat/onboarding` tool call. |
+| 1.10.3 | `routers/chat.py` — `POST /api/chat` for ongoing Maxxer suggestions | ✅ DONE | Loads upcoming-14d events (limit 30), last 5 RSVPs, current `user.preferences`; calls `MaxxerClient` (real Claude or stub if no key); returns `{response, suggested_event_ids, onboarding_complete}` with exactly 3 grounded events via `[EVENT:id]` enforcement. Hallucinated ids filtered before response leaves the server. |
+| 1.10.4 | `routers/chat.py` — `POST /api/chat/onboarding` for conversational preference gathering | ✅ DONE | Stateless: frontend sends `history` each turn. System prompt + `finish_onboarding` tool (6 dimensions). When Claude calls the tool, preferences persist to `User.preferences`, a follow-up call generates 3 grounded picks, response returns `onboarding_complete:true` + typed `MaxxerPreferences`. Otherwise returns assistant text with `onboarding_complete:false`. |
+| 1.10.5 | Maxxer system prompts + response parsing | ✅ DONE | `services/maxxer.py` owns the warm Gen Z `MAXXER_VOICE_PREFACE`, chat + onboarding system prompts, the `finish_onboarding` tool schema, and `enforce_event_suggestions(text, available_ids)` — drops hallucinated ids, dedupes, truncates to 3, strips orphan `[EVENT:id]` tags. 10 unit tests cover edge cases. |
 | 1.11 | Test all endpoints locally with curl/httpie | ⬜ TODO | |
 | 1.12 | Deploy to Render, confirm health check | ⬜ TODO | Update STATE.md with live URL |
 
@@ -595,12 +595,12 @@ VITE_MAPBOX_TOKEN=pk.xxxxxxxxxxxxxxxxxxxxxxxx  # public Mapbox token, scoped to 
 
 | Workstream | Dev | Branch | Progress | Blocker |
 |------------|-----|--------|----------|---------|
-| Backend Foundation | Dev 1 | `feature/backend` | 🟡 Partial foundation present | Badges/chat endpoints still not present in repo; Maxxer needs Anthropic env + chat endpoints |
-| GIS / Mapping | Dev 2 (you) | `feature/gis` | 🟡 In progress — 6/10 done (2.1, 2.2, 2.3, 2.4, 2.5, 2.6); 2.7 deferred | SearchBar + map/event-list sync + mobile UX + Maxxer highlighted pins remain |
+| Backend Foundation | Dev 1 | `feature/backend` | ✅ Maxxer chat + onboarding + `User.preferences` + events `?user_id&attended=true` filter shipped (PR pending) | Render: set `ANTHROPIC_API_KEY` before/at merge; without it the endpoints fall back to a deterministic stub |
+| GIS / Mapping | Dev 2 | `feature/gis` | 🟡 In progress — 6/10 done (2.1, 2.2, 2.3, 2.4, 2.5, 2.6); 2.7 deferred | SearchBar + map/event-list sync + mobile UX + Maxxer highlighted pins remain |
 | Frontend App | Dev 3 | `feature/frontend-app` | 🟡 In progress — 10/17 done (3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.13) | 3.10 next (RSVP wiring); 3.11/3.12 unblocked; Maxxer shell can use mock responses until `/api/chat` exists |
 | Badges & Social + Maxxer | Dev 4 | `feature/social` | 🟡 Badges/social done; Maxxer TODO (12/18 done) | Real Maxxer responses need Dev 1 `/api/chat` endpoints |
 
-**Last updated:** 2026-05-23 — Resolved state-file merge with main: kept Dev 4 badges/social completion, preserved Maxxer agent workstream, and retained backend chat endpoints, frontend chat/onboarding tasks, env vars, schemas, and integration notes.
+**Last updated:** 2026-05-23 — Dev 1 Phase 2 ready for review: Maxxer chat + onboarding endpoints, `User.preferences`, anthropic SDK, and the Dev 4 4.6 events filter all on `feature/backend`. 75 backend tests passing.
 
 ---
 
