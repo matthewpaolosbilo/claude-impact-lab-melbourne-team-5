@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
 import NavHeader from './components/NavHeader'
+import AuthModal from './components/AuthModal'
 import Home from './pages/Home'
 
 // placeholder for Dev 4's 4.6 (Profile.jsx: ProfilePanel + BadgeShelf + RSVP history)
@@ -25,6 +26,7 @@ export default function App() {
     <BrowserRouter>
       <div className="flex h-screen flex-col bg-cm-cream text-cm-charcoal">
         <NavHeader />
+        <AuthModal />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/profile" element={<ProfilePlaceholder />} />

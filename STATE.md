@@ -359,12 +359,12 @@ SEED_LOCATIONS = [
 | 3.3 | Tailwind config + design tokens applied (see DESIGN TOKENS below) | ✅ DONE | Inter font import added; `@theme` in `src/index.css` extended with `--font-sans`, `--radius-card`, `--shadow-card`, `--spacing-card`. Base layer sets `body` background, text color, and font. Demo pill in `App.jsx` uses `rounded-card shadow-card p-card` as smoke test. Branch: `feat-3.3`. |
 | 3.4 | `App.jsx` — React Router: `/` → Home, `/profile` → Profile (Dev 4 owns Profile page) | ✅ DONE | `BrowserRouter` with `/` and `/profile` routes wired. Inline placeholders mark slots for 3.7 (Home) and Dev 4's 4.6 (Profile). Branch: `feat-3.4`. |
 | 3.5 | Nav header component — logo/title left, profile avatar/name right (links to Profile) | ✅ DONE | `NavHeader.jsx` sticky top bar mounted in `App.jsx` above `<Routes>`. Logo links to `/`; "Sign in" pill links to `/profile` (slot for 3.6 auth-aware avatar + name). Lucide `UserCircle2`. Branch: `feat-3.5`. |
-| 3.6 | Simple auth flow: first-visit modal asks name + email → `POST /api/users` → store `user_id` in localStorage. Show name in header thereafter | ⬜ TODO | No passwords. Just identification. |
-| 3.7 | `Home.jsx` — layout: search bar top, map (Dev 2's `MapView`) 60% height, scrollable event list below, "Add Event" FAB bottom-right | ✅ DONE | `frontend/src/pages/Home.jsx` wired into `/`. SearchBar slot waits on 2.8, event list slot waits on 3.8 + Dev 1's 1.6, FAB stub waits on 3.9. Consumes Dev 2's merged `MapView` with API-fed locations. Branch: `feat-3.7` (stacked on `feat-3.5`). |
+| 3.6 | Simple auth flow: first-visit modal asks name + email → `POST /api/users` → store `user_id` in localStorage. Show name in header thereafter | ✅ DONE | `AuthModal.jsx` + `useUser` hook (localStorage key `community-maxxing-user`, same-tab sync via custom event). NavHeader swaps "Sign in" pill for initials avatar + name when a user exists. Inline error on POST failure. Dev 1's `POST /api/users` now on main so submissions work end-to-end. Branch: `feat-3.6` (PR #14, implemented in a separate worktree). |
+| 3.7 | `Home.jsx` — layout: search bar top, map (Dev 2's `MapView`) 60% height, scrollable event list below, "Add Event" FAB bottom-right | ✅ DONE | `frontend/src/pages/Home.jsx` wired into `/`. SearchBar slot waits on 2.8; event list + modal now consume seeded/API events from Dev 3's 3.8/3.9 work. Consumes Dev 2's merged `MapView` with API-fed locations. Branch: `feat-3.7` (stacked on `feat-3.5`). |
 | 3.7.1 | App shell gate for `OnboardingChat.jsx` | ⬜ TODO | If signed-in user has no `preferences`, render Dev 4's `OnboardingChat` fullscreen instead of Home. Can be built with mocked user preferences until Dev 1 endpoint lands. |
 | 3.7.2 | Home layout slot for `ChatPanel.jsx` | ⬜ TODO | Reserve right sidebar on desktop and bottom drawer area on mobile for Dev 4's `ChatPanel`; pass suggested event IDs down to MapView once available. |
-| 3.8 | `EventCard.jsx` — compact card: title, type pill, date/time, location name, RSVP button | ⬜ TODO | Dev 4 enriches with attendee count + host |
-| 3.9 | `EventModal.jsx` — view/create event. Form: title, description, type, location, start/end, max attendees | ⬜ TODO | |
+| 3.8 | `EventCard.jsx` — compact card: title, type pill, date/time, location name, RSVP button | ✅ DONE | `frontend/src/components/EventCard.jsx`. Click opens `EventModal` in view mode; RSVP button stubbed (real wiring in 3.10). Slots marked for Dev 4's 4.9 attendee avatars + 4.10 host badges. Branch: `feat-3.8-3.9`. |
+| 3.9 | `EventModal.jsx` — view/create event. Form: title, description, type, location, start/end, max attendees | ✅ DONE | `frontend/src/components/EventModal.jsx`. Dual-mode (view/create), Esc + backdrop close, native `datetime-local` inputs, required-field validation. Location dropdown consumes `locations` prop fed by Dev 2's `useLocations` hook. Branch: `feat-3.8-3.9`. |
 | 3.10 | Wire RSVP: "I'm Going" → `POST /api/events/{id}/rsvp` with user_id from localStorage | ⬜ TODO | Dev 4 adds badge-earn check on success |
 | 3.11 | Empty states: no events yet, no search results — friendly copy + illustration | ⬜ TODO | |
 | 3.12 | Mobile responsive: stacks vertical, full-width cards | ⬜ TODO | |
@@ -595,12 +595,12 @@ VITE_MAPBOX_TOKEN=pk.xxxxxxxxxxxxxxxxxxxxxxxx  # public Mapbox token, scoped to 
 
 | Workstream | Dev | Branch | Progress | Blocker |
 |------------|-----|--------|----------|---------|
-| Backend Foundation | Dev 1 | `feature/backend` | 🟡 Partial foundation present | Events/users/badges endpoints still not present in repo; Maxxer needs Anthropic env + chat endpoints |
+| Backend Foundation | Dev 1 | `feature/backend` | 🟡 Partial foundation present | Badges/chat endpoints still not present in repo; Maxxer needs Anthropic env + chat endpoints |
 | GIS / Mapping | Dev 2 (you) | `feature/gis` | 🟡 In progress — 6/10 done (2.1, 2.2, 2.3, 2.4, 2.5, 2.6); 2.7 deferred | SearchBar + map/event-list sync + mobile UX + Maxxer highlighted pins remain |
-| Frontend App | Dev 3 | `feature/frontend-app` | 🟡 In progress — 7/17 done (3.1, 3.2, 3.3, 3.4, 3.5, 3.7, 3.13) | 3.6/3.8/3.10 blocked on Dev 1 endpoints; Maxxer shell can use mock responses until `/api/chat` exists |
+| Frontend App | Dev 3 | `feature/frontend-app` | 🟡 In progress — 10/17 done (3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.13) | 3.10 next (RSVP wiring); 3.11/3.12 unblocked; Maxxer shell can use mock responses until `/api/chat` exists |
 | Badges & Social + Maxxer | Dev 4 | `feature/social` | ⬜ Not started | Needs `api.js` + auth flow from Dev 3; real Maxxer responses need Dev 1 `/api/chat` endpoints |
 
-**Last updated:** 2026-05-23 — Added Maxxer AI agent workstream, backend chat endpoints, frontend chat/onboarding tasks, env vars, schemas, and integration notes.
+**Last updated:** 2026-05-23 — Resolved state-file merge with main: kept Dev 3 auth/EventCard/EventModal completions and added Maxxer agent workstream, backend chat endpoints, frontend chat/onboarding tasks, env vars, schemas, and integration notes.
 
 ---
 
