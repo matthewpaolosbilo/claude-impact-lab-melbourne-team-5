@@ -16,5 +16,5 @@ export default function OnboardingGate({ children }) {
     setUser({ ...user, preferences: preferences ?? { _stub: true } })
   }
 
-  return <OnboardingChat onComplete={handleComplete} />
+  return <OnboardingChat userId={user.id} onComplete={handleComplete} />
 }
