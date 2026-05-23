@@ -60,7 +60,7 @@ export default function RsvpConfirmationModal({ event, imageSrc = '/confirmation
 
         <div className="px-card pb-card pt-4 text-center">
           <p className="text-xs font-semibold uppercase tracking-wide text-cm-orange">
-            You're going!
+            You earned your first badge!
           </p>
           <h2
             id="rsvp-confirmation-title"
