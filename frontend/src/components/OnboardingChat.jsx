@@ -2,9 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { Send, Sparkles } from 'lucide-react'
 import { useMaxxer } from '../hooks/useMaxxer'
 
-// 4.15 — fullscreen conversational onboarding. Replaces Home until the user has
-// `preferences` set. Calls /api/chat/onboarding. On completion, invokes
-// `onComplete(preferences)` so the host can persist + flip the app gate.
 export default function OnboardingChat({ userId, onComplete }) {
   const [draft, setDraft] = useState('')
   const threadRef = useRef(null)
@@ -33,7 +30,6 @@ export default function OnboardingChat({ userId, onComplete }) {
     if (!isLoading) inputRef.current?.focus()
   }, [isLoading])
 
-  // Once the mock/real flow reports complete, surface preferences to the host.
   useEffect(() => {
     if (onboardingComplete) {
       const t = setTimeout(() => onComplete?.(onboardingPreferences), 1200)
@@ -49,48 +45,101 @@ export default function OnboardingChat({ userId, onComplete }) {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 items-center justify-center bg-gradient-to-br from-cm-cream via-white to-cm-cream px-4 py-6">
+    <div
+      className="flex min-h-0 flex-1 items-center justify-center px-4 py-6"
+      style={{ background: 'var(--color-bg-primary)' }}
+    >
       <div className="flex h-full w-full max-w-xl flex-col">
         <header className="flex items-center gap-2 px-2 pb-3">
-          <Sparkles className="h-5 w-5 text-cm-gold" />
-          <h1 className="text-lg font-semibold text-cm-charcoal">Meet the Maxxer</h1>
+          <Sparkles className="h-5 w-5" style={{ color: 'var(--color-electric)' }} />
+          <h1 className="font-brand uppercase" style={{ fontSize: 20, letterSpacing: '0.04em' }}>
+            Meet the Maxxer ✨
+          </h1>
         </header>
 
         <div
           ref={threadRef}
-          className="flex-1 space-y-3 overflow-y-auto rounded-card bg-white/70 p-card shadow-card ring-1 ring-black/5"
+          className="flex-1 space-y-3 overflow-y-auto"
+          style={{
+            background: 'var(--color-surface)',
+            outline: '2px solid var(--color-text-primary)',
+            boxShadow: 'var(--shadow-pixel)',
+            padding: 16,
+          }}
         >
           {messages.map((m, i) => (
             <OnboardingBubble key={i} message={m} />
           ))}
           {isLoading && <OnboardingTyping />}
           {error && (
-            <div className="rounded-card bg-red-50 px-3 py-2 text-xs text-red-700">
+            <div
+              className="font-mono"
+              style={{
+                background: '#ffe5e0',
+                color: '#6b1a0c',
+                outline: '2px solid var(--color-coral)',
+                padding: '8px 12px',
+                fontSize: 11,
+                letterSpacing: '0.04em',
+              }}
+            >
               {error}
             </div>
           )}
           {onboardingComplete && (
-            <div className="rounded-card bg-cm-gold/15 px-3 py-2 text-xs font-semibold text-cm-charcoal">
-              all set ✨ taking you to the map…
+            <div
+              className="font-brand uppercase"
+              style={{
+                background: 'var(--color-lime)',
+                color: 'var(--color-lime-ink)',
+                outline: '2px solid var(--color-text-primary)',
+                padding: '8px 12px',
+                fontSize: 12,
+                letterSpacing: '0.04em',
+              }}
+            >
+              All set ✨ taking you to the map…
             </div>
           )}
         </div>
 
         <form onSubmit={submit} className="mt-3">
-          <div className="flex items-center gap-2 rounded-full bg-white px-4 py-3 shadow-card ring-1 ring-black/5 focus-within:ring-cm-orange">
+          <div
+            className="flex items-center gap-2"
+            style={{
+              background: 'var(--color-surface)',
+              outline: '2px solid var(--color-text-primary)',
+              padding: '8px 12px',
+              boxShadow: 'var(--shadow-pixel)',
+            }}
+          >
             <input
               ref={inputRef}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               placeholder="type your answer…"
               disabled={isLoading || onboardingComplete}
-              className="flex-1 bg-transparent text-sm text-cm-charcoal outline-none placeholder:text-cm-warm-gray disabled:opacity-50"
+              className="font-body flex-1 bg-transparent outline-none"
+              style={{
+                fontSize: 13,
+                color: 'var(--color-text-primary)',
+                border: 'none',
+              }}
             />
             <button
               type="submit"
               disabled={isLoading || onboardingComplete || !draft.trim()}
               aria-label="Send"
-              className="cursor-pointer rounded-full bg-cm-orange p-2 text-white shadow-card disabled:cursor-default disabled:opacity-40"
+              className="cursor-pointer"
+              style={{
+                background: 'var(--color-lime)',
+                color: 'var(--color-lime-ink)',
+                outline: '2px solid var(--color-text-primary)',
+                border: 'none',
+                padding: 6,
+                boxShadow: 'var(--shadow-pixel-sm)',
+                opacity: isLoading || onboardingComplete || !draft.trim() ? 0.4 : 1,
+              }}
             >
               <Send className="h-4 w-4" />
             </button>
@@ -106,11 +155,16 @@ function OnboardingBubble({ message }) {
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`max-w-[88%] rounded-2xl px-3 py-2 text-sm ${
-          isUser
-            ? 'bg-cm-charcoal text-white'
-            : 'bg-cm-cream text-cm-charcoal ring-1 ring-black/5'
-        }`}
+        className="font-body"
+        style={{
+          maxWidth: '88%',
+          background: isUser ? 'var(--color-text-primary)' : 'var(--color-bg-secondary)',
+          color: isUser ? 'var(--color-bg-primary)' : 'var(--color-text-primary)',
+          outline: '2px solid var(--color-text-primary)',
+          padding: '8px 12px',
+          fontSize: 13,
+          lineHeight: 1.5,
+        }}
       >
         <span className="whitespace-pre-wrap">{message.content}</span>
       </div>
@@ -121,11 +175,26 @@ function OnboardingBubble({ message }) {
 function OnboardingTyping() {
   return (
     <div className="flex justify-start">
-      <div className="rounded-2xl bg-cm-cream px-3 py-2 ring-1 ring-black/5">
+      <div
+        style={{
+          background: 'var(--color-bg-secondary)',
+          outline: '2px solid var(--color-text-primary)',
+          padding: '8px 12px',
+        }}
+      >
         <span className="inline-flex items-center gap-1">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cm-warm-gray" />
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cm-warm-gray" style={{ animationDelay: '120ms' }} />
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cm-warm-gray" style={{ animationDelay: '240ms' }} />
+          {[0, 120, 240].map((delay) => (
+            <span
+              key={delay}
+              className="animate-pulse"
+              style={{
+                width: 6,
+                height: 6,
+                background: 'var(--color-text-secondary)',
+                animationDelay: `${delay}ms`,
+              }}
+            />
+          ))}
         </span>
       </div>
     </div>

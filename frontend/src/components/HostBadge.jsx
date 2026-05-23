@@ -1,14 +1,6 @@
 import { useEffect, useState } from 'react'
 import { fetchUserBadges } from '../api'
 
-/**
- * Shows a host's name + their top earned badges.
- *
- * Props:
- *   host        { id, name } from event payload
- *   maxBadges   how many earned-badge icons to display (default 3)
- *   showLabel   prepend "Hosted by" (default true)
- */
 export default function HostBadge({ host, maxBadges = 3, showLabel = true }) {
   const [topBadges, setTopBadges] = useState([])
 
@@ -29,13 +21,26 @@ export default function HostBadge({ host, maxBadges = 3, showLabel = true }) {
   if (!host) return null
 
   return (
-    <div className="inline-flex items-center gap-2 text-sm text-cm-charcoal">
-      {showLabel && <span className="text-cm-warm-gray">Hosted by</span>}
-      <span className="font-semibold">{host.name}</span>
+    <div className="inline-flex items-center gap-2">
+      {showLabel && (
+        <span
+          className="font-mono uppercase"
+          style={{ fontSize: 10, color: 'var(--color-text-tertiary)', letterSpacing: '0.06em' }}
+        >
+          Hosted by
+        </span>
+      )}
+      <span className="font-brand uppercase" style={{ fontSize: 13, color: 'var(--color-text-primary)', letterSpacing: '0.02em' }}>
+        {host.name}
+      </span>
       {topBadges.length > 0 && (
         <span className="inline-flex items-center gap-0.5" aria-label="Host badges">
           {topBadges.map((b) => (
-            <span key={b.id} title={`${b.name} — ${b.description}`} className="text-base leading-none">
+            <span
+              key={b.id}
+              title={`${b.name} — ${b.description}`}
+              style={{ fontSize: 14, lineHeight: 1 }}
+            >
               {b.icon}
             </span>
           ))}

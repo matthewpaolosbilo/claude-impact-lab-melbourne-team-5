@@ -1,13 +1,5 @@
-/**
- * Tiny initials-avatar stack used on EventCard / EventModal.
- *
- * Props:
- *   attendees      optional [{ id, name }] from the event payload (if backend exposes it)
- *   attendeeCount  total going (used when attendee list isn't expanded)
- *   max            max avatars to show before overflow chip (default 4)
- *
- * Degrades gracefully: if `attendees` is missing, renders just the count chip.
- */
+import { InitialsAvatar } from './ui/Avatar'
+
 export default function AttendeeChips({ attendees, attendeeCount, max = 4 }) {
   const list = Array.isArray(attendees) ? attendees : []
   const visible = list.slice(0, max)
@@ -16,8 +8,11 @@ export default function AttendeeChips({ attendees, attendeeCount, max = 4 }) {
   if (visible.length === 0) {
     const count = attendeeCount ?? 0
     return (
-      <div className="inline-flex items-center gap-1 text-xs text-cm-warm-gray">
-        <span aria-hidden="true">👥</span>
+      <div
+        className="inline-flex items-center gap-1 font-mono uppercase"
+        style={{ fontSize: 10, color: 'var(--color-text-secondary)', letterSpacing: '0.06em' }}
+      >
+        <span aria-hidden>👥</span>
         <span>{count} going</span>
       </div>
     )
@@ -25,24 +20,42 @@ export default function AttendeeChips({ attendees, attendeeCount, max = 4 }) {
 
   return (
     <div className="flex items-center">
-      <div className="flex -space-x-2">
-        {visible.map((a) => (
-          <div
+      <div className="flex" style={{ marginRight: 8 }}>
+        {visible.map((a, i) => (
+          <span
             key={a.id}
             title={a.name}
-            className="w-7 h-7 rounded-full grid place-items-center text-[10px] font-bold text-white ring-2 ring-white"
-            style={{ background: colorFor(a.id) }}
+            style={{ marginLeft: i === 0 ? 0 : -6 }}
           >
-            {initials(a.name)}
-          </div>
+            <InitialsAvatar
+              initials={initials(a.name)}
+              size={28}
+              onSurface
+            />
+          </span>
         ))}
         {overflow > 0 && (
-          <div className="w-7 h-7 rounded-full grid place-items-center text-[10px] font-semibold bg-stone-200 text-cm-charcoal ring-2 ring-white">
+          <span
+            className="font-mono inline-flex items-center justify-center"
+            style={{
+              marginLeft: -6,
+              width: 28,
+              height: 28,
+              background: 'var(--color-bg-tertiary)',
+              color: 'var(--color-text-primary)',
+              outline: '2px solid var(--color-surface)',
+              fontSize: 10,
+              fontWeight: 600,
+            }}
+          >
             +{overflow}
-          </div>
+          </span>
         )}
       </div>
-      <span className="ml-2 text-xs text-cm-warm-gray">
+      <span
+        className="font-mono uppercase"
+        style={{ fontSize: 10, color: 'var(--color-text-secondary)', letterSpacing: '0.06em' }}
+      >
         {attendeeCount ?? list.length} going
       </span>
     </div>
@@ -52,10 +65,4 @@ export default function AttendeeChips({ attendees, attendeeCount, max = 4 }) {
 function initials(name) {
   if (!name) return '?'
   return name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase()
-}
-
-const PALETTE = ['#F97316', '#22C55E', '#A855F7', '#EAB308', '#0EA5E9', '#EC4899']
-function colorFor(id) {
-  const idx = (typeof id === 'number' ? id : String(id).length) % PALETTE.length
-  return PALETTE[idx]
 }

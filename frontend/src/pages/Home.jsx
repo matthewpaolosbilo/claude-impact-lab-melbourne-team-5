@@ -5,6 +5,7 @@ import EventCard from '../components/EventCard'
 import EventModal from '../components/EventModal'
 import SearchBar from '../components/SearchBar'
 import ChatPanel from '../components/ChatPanel'
+import RsvpConfirmationModal from '../components/RsvpConfirmationModal'
 import { useLocations } from '../utils/useLocations'
 import { useEvents } from '../utils/useEvents'
 import { OPEN_AUTH_EVENT, useUser } from '../hooks/useUser'
@@ -23,6 +24,7 @@ export default function Home() {
   const { triggerBadgeCheck } = useBadgeWatcher(user?.id)
 
   const [modal, setModal] = useState({ open: false, mode: 'view', event: null })
+  const [rsvpConfirmEvent, setRsvpConfirmEvent] = useState(null)
   const [suggestedEventIds, setSuggestedEventIds] = useState([])
   const [query, setQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
@@ -130,6 +132,7 @@ export default function Home() {
     try {
       await rsvpToEvent(event.id, user.id)
       toast.success("You're going!")
+      setRsvpConfirmEvent(event)
       triggerBadgeCheck()
     } catch (err) {
       // 409 = already RSVP'd. Treat as success: keep optimistic state, no error noise.
@@ -287,6 +290,11 @@ export default function Home() {
           proactiveOnMount
         />
       )}
+
+      <RsvpConfirmationModal
+        event={rsvpConfirmEvent}
+        onClose={() => setRsvpConfirmEvent(null)}
+      />
     </div>
   )
 }

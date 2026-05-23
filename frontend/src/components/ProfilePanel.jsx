@@ -1,15 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Mail, Calendar, Users, Award } from 'lucide-react'
 import { fetchUser, fetchProfileStats } from '../api'
+import Avatar from './ui/Avatar'
 
-/**
- * Renders a user's name, email, member-since, and totals (attended / hosted).
- *
- * Props:
- *   userId   numeric user id
- *   user?    optional pre-fetched user object
- *   stats?   optional pre-fetched stats { attended_total, hosted_total }
- */
 export default function ProfilePanel({ userId, user: userProp, stats: statsProp }) {
   const [user, setUser] = useState(userProp || null)
   const [stats, setStats] = useState(statsProp || null)
@@ -36,52 +29,143 @@ export default function ProfilePanel({ userId, user: userProp, stats: statsProp 
   }, [userId, userProp, statsProp])
 
   if (loading) {
-    return <div className="rounded-xl bg-white shadow p-4 text-cm-warm-gray">Loading profile…</div>
+    return (
+      <div
+        className="font-mono"
+        style={{
+          background: 'var(--color-surface)',
+          color: 'var(--color-text-tertiary)',
+          outline: '2px solid var(--color-text-primary)',
+          boxShadow: 'var(--shadow-pixel)',
+          padding: 16,
+          fontSize: 11,
+        }}
+      >
+        LOADING PROFILE…
+      </div>
+    )
   }
   if (!user) {
-    return <div className="rounded-xl bg-white shadow p-4 text-cm-warm-gray">Sign in to see your profile.</div>
+    return (
+      <div
+        className="font-body"
+        style={{
+          background: 'var(--color-surface)',
+          color: 'var(--color-text-secondary)',
+          outline: '2px solid var(--color-text-primary)',
+          boxShadow: 'var(--shadow-pixel)',
+          padding: 16,
+          fontSize: 13,
+        }}
+      >
+        Sign in to see your profile.
+      </div>
+    )
   }
 
-  const initials = (user.name || '?')
-    .split(' ')
-    .map((p) => p[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
-  const since = user.created_at ? new Date(user.created_at).toLocaleDateString('en-AU', { month: 'short', year: 'numeric' }) : '—'
+  const since = user.created_at
+    ? new Date(user.created_at).toLocaleDateString('en-AU', { month: 'short', year: 'numeric' })
+    : '—'
 
   return (
-    <div className="rounded-xl bg-white shadow p-4">
-      <div className="flex items-center gap-4">
-        <div className="w-16 h-16 rounded-full bg-cm-orange text-white grid place-items-center text-2xl font-bold">
-          {initials}
+    <div
+      style={{
+        background: 'var(--color-surface)',
+        color: 'var(--color-text-primary)',
+        outline: '2px solid var(--color-text-primary)',
+        boxShadow: 'var(--shadow-pixel)',
+        position: 'relative',
+        padding: 0,
+      }}
+    >
+      {/* Banner — lime stripe pattern */}
+      <div
+        aria-hidden
+        style={{
+          height: 56,
+          background:
+            'repeating-linear-gradient(135deg, var(--color-lime) 0 8px, var(--color-lime-ink) 8px 12px)',
+        }}
+      />
+
+      <div style={{ padding: '0 16px 16px' }}>
+        <div style={{ marginTop: -24, marginBottom: 12 }}>
+          <Avatar seed={user.email || user.name} size={56} outlineColor="var(--color-surface)" alt={user.name} />
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-xl font-bold text-cm-charcoal truncate">{user.name}</div>
-          <div className="text-sm text-cm-warm-gray flex items-center gap-1 truncate">
-            <Mail size={14} /> <span className="truncate">{user.email}</span>
-          </div>
-          <div className="text-xs text-cm-warm-gray flex items-center gap-1 mt-1">
-            <Calendar size={12} /> Member since {since}
-          </div>
+
+        <div className="font-brand uppercase" style={{ fontSize: 20, letterSpacing: '0.02em' }}>
+          {user.name}
         </div>
-      </div>
-      {user.bio ? <p className="mt-3 text-sm text-cm-charcoal">{user.bio}</p> : null}
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        <Stat icon={<Users size={16} />} label="Attended" value={stats?.attended_total ?? 0} />
-        <Stat icon={<Award size={16} />} label="Hosted" value={stats?.hosted_total ?? 0} />
+        <div
+          className="font-mono mt-1 flex items-center gap-1 truncate"
+          style={{ fontSize: 11, color: 'var(--color-text-secondary)', letterSpacing: '0.04em' }}
+        >
+          <Mail size={12} /> <span className="truncate">{user.email}</span>
+        </div>
+        <div
+          className="font-mono mt-1 flex items-center gap-1 uppercase"
+          style={{ fontSize: 10, color: 'var(--color-text-tertiary)', letterSpacing: '0.06em' }}
+        >
+          <Calendar size={11} /> Member since {since}
+        </div>
+
+        {user.bio ? (
+          <p className="font-body mt-3" style={{ fontSize: 14, lineHeight: 1.5 }}>
+            {user.bio}
+          </p>
+        ) : null}
+
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <Stat icon={<Users size={14} />} label="Attended" value={stats?.attended_total ?? 0} accent="mint" />
+          <Stat icon={<Award size={14} />} label="Hosted" value={stats?.hosted_total ?? 0} accent="electric" />
+        </div>
       </div>
     </div>
   )
 }
 
-function Stat({ icon, label, value }) {
+const ACCENTS = {
+  mint: 'var(--color-mint)',
+  electric: 'var(--color-electric)',
+  lime: 'var(--color-lime)',
+  coral: 'var(--color-coral)',
+}
+
+function Stat({ icon, label, value, accent = 'lime' }) {
   return (
-    <div className="rounded-lg bg-cm-cream p-3 flex items-center gap-3">
-      <div className="w-8 h-8 rounded-full bg-white grid place-items-center text-cm-orange">{icon}</div>
+    <div
+      style={{
+        background: 'var(--color-bg-secondary)',
+        outline: '2px solid var(--color-text-primary)',
+        boxShadow: `3px 3px 0 ${ACCENTS[accent] || ACCENTS.lime}`,
+        padding: '10px 12px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+      }}
+    >
+      <div
+        className="grid place-items-center"
+        style={{
+          width: 28,
+          height: 28,
+          background: ACCENTS[accent] || ACCENTS.lime,
+          outline: '2px solid var(--color-text-primary)',
+          color: 'var(--color-text-primary)',
+        }}
+      >
+        {icon}
+      </div>
       <div>
-        <div className="text-lg font-bold text-cm-charcoal leading-tight">{value}</div>
-        <div className="text-xs text-cm-warm-gray">{label}</div>
+        <div className="font-brand" style={{ fontSize: 18, lineHeight: 1 }}>
+          {value}
+        </div>
+        <div
+          className="font-mono uppercase"
+          style={{ fontSize: 9, color: 'var(--color-text-secondary)', letterSpacing: '0.06em', marginTop: 2 }}
+        >
+          {label}
+        </div>
       </div>
     </div>
   )

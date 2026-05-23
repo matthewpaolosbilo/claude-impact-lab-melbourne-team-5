@@ -30,7 +30,7 @@ export function useMaxxer({ userId, mode = 'chat', initialMessages = [] } = {}) 
       try {
         const fn = mode === 'onboarding' ? sendOnboardingMessage : sendChatMessage
         const data = await fn({ userId, messages: nextHistory })
-        setMessages((m) => [...m, { role: 'assistant', content: data.message ?? '' }])
+        setMessages((m) => [...m, { role: 'assistant', content: data.response ?? '' }])
         if (Array.isArray(data.suggested_event_ids)) {
           setSuggestedEventIds(data.suggested_event_ids)
         }
@@ -58,7 +58,7 @@ export function useMaxxer({ userId, mode = 'chat', initialMessages = [] } = {}) 
     try {
       const fn = mode === 'onboarding' ? sendOnboardingMessage : sendChatMessage
       const data = await fn({ userId, messages: [] })
-      setMessages([{ role: 'assistant', content: data.message ?? '' }])
+      setMessages([{ role: 'assistant', content: data.response ?? '' }])
       if (Array.isArray(data.suggested_event_ids)) {
         setSuggestedEventIds(data.suggested_event_ids)
       }

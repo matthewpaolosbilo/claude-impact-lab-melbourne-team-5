@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { X, Calendar, MapPin, Users } from 'lucide-react'
 import { EVENT_TYPES, EVENT_TYPE_ORDER } from '../utils/eventTypes'
+import Input, { Textarea, Select, Label, HelpText } from './ui/Input'
+import Button from './ui/Button'
+import Badge from './ui/Badge'
 
 const EMPTY_FORM = {
   title: '',
@@ -23,16 +26,11 @@ function formatRange(startIso, endIso) {
   return `${date}, ${time(start)} to ${time(end)}`
 }
 
-// 3.9 EventModal. Dual mode: "view" shows an event; "create" shows the form.
-// Backdrop click and Escape both close. Parent owns open state.
-// Real POST /api/events wiring lands when Dev 1's 1.6 ships.
 export default function EventModal({ open, mode = 'view', event, locations = [], onClose, onSubmit, onRsvp }) {
   const [form, setForm] = useState(EMPTY_FORM)
   const [error, setError] = useState(null)
   const [prevOpen, setPrevOpen] = useState(open)
 
-  // Reset form + error when the modal transitions to open.
-  // Storing prevOpen avoids the setState-in-effect lint rule (React 19 idiom).
   if (open !== prevOpen) {
     setPrevOpen(open)
     if (open) {
@@ -72,22 +70,36 @@ export default function EventModal({ open, mode = 'view', event, locations = [],
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(20, 20, 19, 0.6)' }}
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-card bg-white p-card shadow-card"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        style={{
+          background: 'var(--color-surface)',
+          color: 'var(--color-text-primary)',
+          outline: '2px solid var(--color-text-primary)',
+          boxShadow: 'var(--shadow-pixel)',
+          borderRadius: 'var(--radius-md)',
+          padding: 20,
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3">
-          <h2 className="text-lg font-semibold text-cm-charcoal">
+          <h2 className="font-brand uppercase" style={{ fontSize: 18, letterSpacing: '0.02em' }}>
             {mode === 'create' ? 'Add an event' : event?.title}
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="cursor-pointer rounded-full p-1 text-cm-warm-gray hover:bg-cm-cream"
+            className="cursor-pointer p-1"
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--color-text-secondary)',
+            }}
           >
             <X className="h-5 w-5" />
           </button>
@@ -111,23 +123,25 @@ export default function EventModal({ open, mode = 'view', event, locations = [],
 }
 
 function ViewBody({ event, onRsvp, onClose }) {
-  const type = EVENT_TYPES[event.event_type] ?? { label: event.event_type, color: '#78716C' }
+  const type = EVENT_TYPES[event.event_type] ?? { label: event.event_type, badgeVariant: 'neutral' }
   const isGoing = event.user_rsvp === 'going' || event.user_rsvp === 'attended'
   const isFull =
     event.max_attendees != null && event.attendee_count >= event.max_attendees
 
   return (
     <>
-      <span
-        className="mt-2 inline-block rounded-full px-2.5 py-1 text-xs font-medium text-white"
-        style={{ backgroundColor: type.color }}
+      <div className="mt-3">
+        <Badge variant={type.badgeVariant}>{type.label}</Badge>
+      </div>
+
+      <p className="font-body mt-3" style={{ fontSize: 14, lineHeight: 1.6 }}>
+        {event.description}
+      </p>
+
+      <dl
+        className="font-mono mt-4 space-y-2"
+        style={{ fontSize: 12, color: 'var(--color-text-secondary)', letterSpacing: '0.04em' }}
       >
-        {type.label}
-      </span>
-
-      <p className="mt-3 text-sm text-cm-charcoal">{event.description}</p>
-
-      <dl className="mt-4 space-y-2 text-sm text-cm-warm-gray">
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4" aria-hidden />
           <dd>{formatRange(event.start_time, event.end_time)}</dd>
@@ -141,38 +155,26 @@ function ViewBody({ event, onRsvp, onClose }) {
           <dd>
             {event.attendee_count} going
             {event.max_attendees ? ` / ${event.max_attendees}` : ''}
-            {/* 4.9 attendee avatars slot */}
           </dd>
         </div>
       </dl>
 
-      <p className="mt-3 text-xs text-cm-warm-gray">
+      <p
+        className="font-mono mt-3"
+        style={{ fontSize: 10, color: 'var(--color-text-tertiary)', letterSpacing: '0.06em', textTransform: 'uppercase' }}
+      >
         Hosted by {event.host?.name}
-        {/* 4.10 host badge chips slot */}
       </p>
 
       <div className="mt-5 flex items-center justify-end gap-2">
-        <button
-          type="button"
-          onClick={onClose}
-          className="cursor-pointer rounded-full px-4 py-2 text-sm text-cm-charcoal hover:bg-cm-cream"
-        >
-          Close
-        </button>
-        <button
-          type="button"
+        <Button variant="ghost" onClick={onClose}>Close</Button>
+        <Button
+          variant={isGoing || isFull ? 'ghost' : 'lime'}
           onClick={() => !isFull && !isGoing && onRsvp?.(event)}
           disabled={isFull || isGoing}
-          className={`cursor-pointer rounded-full px-4 py-2 text-sm font-semibold ${
-            isGoing
-              ? 'bg-cm-green/15 text-cm-green'
-              : isFull
-              ? 'bg-cm-cream text-cm-warm-gray cursor-not-allowed'
-              : 'bg-cm-orange text-white hover:bg-cm-orange/90'
-          }`}
         >
           {isGoing ? "You're going" : isFull ? 'Full' : "I'm going"}
-        </button>
+        </Button>
       </div>
     </>
   )
@@ -180,110 +182,60 @@ function ViewBody({ event, onRsvp, onClose }) {
 
 function CreateForm({ form, error, locations, onChange, onSubmit, onClose }) {
   return (
-    <form onSubmit={onSubmit} className="mt-3 space-y-3">
-      <Field label="Title">
-        <input
-          type="text"
-          value={form.title}
-          onChange={onChange('title')}
-          required
-          className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm focus:border-cm-orange focus:outline-none"
-        />
-      </Field>
+    <form onSubmit={onSubmit} className="mt-4 space-y-3">
+      <div>
+        <Label htmlFor="ev-title" required>Title</Label>
+        <Input id="ev-title" type="text" value={form.title} onChange={onChange('title')} required />
+      </div>
 
-      <Field label="Description">
-        <textarea
-          value={form.description}
-          onChange={onChange('description')}
-          rows={3}
-          className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm focus:border-cm-orange focus:outline-none"
-        />
-      </Field>
+      <div>
+        <Label htmlFor="ev-desc">Description</Label>
+        <Textarea id="ev-desc" value={form.description} onChange={onChange('description')} rows={3} />
+      </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Field label="Type">
-          <select
-            value={form.event_type}
-            onChange={onChange('event_type')}
-            className="w-full cursor-pointer rounded-lg border border-black/10 px-3 py-2 text-sm focus:border-cm-orange focus:outline-none"
-          >
+        <div>
+          <Label htmlFor="ev-type" required>Type</Label>
+          <Select id="ev-type" value={form.event_type} onChange={onChange('event_type')}>
             {EVENT_TYPE_ORDER.map((k) => (
               <option key={k} value={k}>{EVENT_TYPES[k].label}</option>
             ))}
-          </select>
-        </Field>
+          </Select>
+        </div>
 
-        <Field label="Location">
-          <select
-            value={form.location_id}
-            onChange={onChange('location_id')}
-            required
-            className="w-full cursor-pointer rounded-lg border border-black/10 px-3 py-2 text-sm focus:border-cm-orange focus:outline-none"
-          >
-            <option value="">Choose...</option>
+        <div>
+          <Label htmlFor="ev-loc" required>Location</Label>
+          <Select id="ev-loc" value={form.location_id} onChange={onChange('location_id')} required>
+            <option value="">Choose…</option>
             {locations.map((l) => (
               <option key={l.id} value={l.id}>{l.name}</option>
             ))}
-          </select>
-        </Field>
+          </Select>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Field label="Start">
-          <input
-            type="datetime-local"
-            value={form.start_time}
-            onChange={onChange('start_time')}
-            required
-            className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm focus:border-cm-orange focus:outline-none"
-          />
-        </Field>
-        <Field label="End">
-          <input
-            type="datetime-local"
-            value={form.end_time}
-            onChange={onChange('end_time')}
-            className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm focus:border-cm-orange focus:outline-none"
-          />
-        </Field>
+        <div>
+          <Label htmlFor="ev-start" required>Start</Label>
+          <Input id="ev-start" type="datetime-local" value={form.start_time} onChange={onChange('start_time')} required />
+        </div>
+        <div>
+          <Label htmlFor="ev-end">End</Label>
+          <Input id="ev-end" type="datetime-local" value={form.end_time} onChange={onChange('end_time')} />
+        </div>
       </div>
 
-      <Field label="Max attendees (optional)">
-        <input
-          type="number"
-          min="1"
-          value={form.max_attendees}
-          onChange={onChange('max_attendees')}
-          className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm focus:border-cm-orange focus:outline-none"
-        />
-      </Field>
+      <div>
+        <Label htmlFor="ev-max">Max attendees (optional)</Label>
+        <Input id="ev-max" type="number" min="1" value={form.max_attendees} onChange={onChange('max_attendees')} />
+      </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <HelpText error>{error}</HelpText>}
 
-      <div className="flex items-center justify-end gap-2 pt-1">
-        <button
-          type="button"
-          onClick={onClose}
-          className="cursor-pointer rounded-full px-4 py-2 text-sm text-cm-charcoal hover:bg-cm-cream"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          className="cursor-pointer rounded-full bg-cm-orange px-4 py-2 text-sm font-semibold text-white hover:bg-cm-orange/90"
-        >
-          Create event
-        </button>
+      <div className="flex items-center justify-end gap-2 pt-2">
+        <Button variant="ghost" onClick={onClose}>Cancel</Button>
+        <Button type="submit" variant="primary">Create event</Button>
       </div>
     </form>
-  )
-}
-
-function Field({ label, children }) {
-  return (
-    <label className="block text-sm">
-      <span className="mb-1 block font-medium text-cm-charcoal">{label}</span>
-      {children}
-    </label>
   )
 }
