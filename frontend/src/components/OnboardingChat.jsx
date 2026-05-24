@@ -15,6 +15,7 @@ export default function OnboardingChat({ userId, onComplete }) {
     bootstrap,
     onboardingComplete,
     onboardingPreferences,
+    onboardingResult,
   } = useMaxxer({ userId, mode: 'onboarding' })
 
   useEffect(() => {
@@ -33,16 +34,13 @@ export default function OnboardingChat({ userId, onComplete }) {
 
   useEffect(() => {
     if (onboardingComplete) {
-      const finalAssistantMessage = [...messages]
-        .reverse()
-        .find((message) => message.role === 'assistant')
       const t = setTimeout(() => onComplete?.(onboardingPreferences, {
-        response: finalAssistantMessage?.content ?? '',
-        suggestedEventIds,
+        response: onboardingResult?.response ?? '',
+        suggestedEventIds: onboardingResult?.suggestedEventIds ?? suggestedEventIds,
       }), 500)
       return () => clearTimeout(t)
     }
-  }, [messages, onboardingComplete, onboardingPreferences, onComplete, suggestedEventIds])
+  }, [onboardingComplete, onboardingPreferences, onboardingResult, onComplete, suggestedEventIds])
 
   const submit = (e) => {
     e?.preventDefault()

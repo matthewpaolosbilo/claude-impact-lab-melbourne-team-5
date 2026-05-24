@@ -168,7 +168,7 @@ class StubMaxxerClient(MaxxerClient):
     def _onboarding(messages: list[MaxxerMessage], *, force: bool = False) -> MaxxerCompletion:
         user_turns = sum(1 for m in messages if m["role"] == "user")
         if not force and user_turns < 3:
-            idx = max(0, min(user_turns - 1, len(_STUB_FOLLOWUPS) - 1))
+            idx = min(user_turns, len(_STUB_FOLLOWUPS) - 1)
             return {"text": _STUB_FOLLOWUPS[idx], "tool_calls": []}
         return {
             "text": "ok I've got you, let me find your first picks 🔥",

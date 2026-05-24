@@ -8,6 +8,8 @@ import { sendChatMessage, sendOnboardingMessage } from '../api'
 //
 // Each message: { role: 'user' | 'assistant', content: string }
 // The assistant reply may include [EVENT:id] tags — that parsing happens at render time.
+// Assistant messages also carry eventIds from the backend payload so cards can
+// render even if a model response omits or rewrites tags.
 //
 // Returned shape:
 //   { messages, isLoading, error, suggestedEventIds, onboardingComplete, send, reset }
@@ -23,6 +25,7 @@ export function useMaxxer({
   const [suggestedEventIds, setSuggestedEventIds] = useState(initialSuggestedEventIds)
   const [onboardingComplete, setOnboardingComplete] = useState(false)
   const [onboardingPreferences, setOnboardingPreferences] = useState(null)
+  const [onboardingResult, setOnboardingResult] = useState(null)
 
   const send = useCallback(
     async (text) => {
@@ -35,14 +38,26 @@ export function useMaxxer({
       try {
         const fn = mode === 'onboarding' ? sendOnboardingMessage : sendChatMessage
         const data = await fn({ userId, messages: nextHistory })
-        setMessages((m) => [...m, { role: 'assistant', content: data.response ?? '' }])
-        if (Array.isArray(data.suggested_event_ids)) {
-          setSuggestedEventIds(data.suggested_event_ids)
+        const eventIds = Array.isArray(data.suggested_event_ids)
+          ? data.suggested_event_ids
+          : []
+        const assistantMessage = {
+          role: 'assistant',
+          content: data.response ?? '',
+          eventIds,
+        }
+        setMessages((m) => [...m, assistantMessage])
+        if (eventIds.length || Array.isArray(data.suggested_event_ids)) {
+          setSuggestedEventIds(eventIds)
         }
         if (mode === 'onboarding') {
           if (data.onboarding_complete) {
             setOnboardingComplete(true)
             setOnboardingPreferences(data.preferences ?? null)
+            setOnboardingResult({
+              response: assistantMessage.content,
+              suggestedEventIds: eventIds,
+            })
           }
         }
       } catch (err) {
@@ -63,9 +78,12 @@ export function useMaxxer({
     try {
       const fn = mode === 'onboarding' ? sendOnboardingMessage : sendChatMessage
       const data = await fn({ userId, messages: [] })
-      setMessages([{ role: 'assistant', content: data.response ?? '' }])
-      if (Array.isArray(data.suggested_event_ids)) {
-        setSuggestedEventIds(data.suggested_event_ids)
+      const eventIds = Array.isArray(data.suggested_event_ids)
+        ? data.suggested_event_ids
+        : []
+      setMessages([{ role: 'assistant', content: data.response ?? '', eventIds }])
+      if (eventIds.length || Array.isArray(data.suggested_event_ids)) {
+        setSuggestedEventIds(eventIds)
       }
     } catch (err) {
       setError(err?.message || 'Maxxer is taking a sec — try again')
@@ -80,6 +98,7 @@ export function useMaxxer({
     setSuggestedEventIds([])
     setOnboardingComplete(false)
     setOnboardingPreferences(null)
+    setOnboardingResult(null)
   }, [])
 
   return {
@@ -89,6 +108,7 @@ export function useMaxxer({
     suggestedEventIds,
     onboardingComplete,
     onboardingPreferences,
+    onboardingResult,
     send,
     bootstrap,
     reset,

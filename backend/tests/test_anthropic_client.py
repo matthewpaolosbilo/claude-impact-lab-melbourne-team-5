@@ -67,6 +67,33 @@ def test_stub_onboarding_continues_when_few_user_turns():
     assert completion["text"]  # canned follow-up text
 
 
+def test_stub_onboarding_advances_questions_after_each_user_turn():
+    from services.anthropic_client import StubMaxxerClient
+    from services.maxxer import (
+        FINISH_ONBOARDING_TOOL,
+        build_onboarding_system_prompt,
+    )
+
+    client = StubMaxxerClient()
+    opener = client.complete(
+        system=build_onboarding_system_prompt(),
+        messages=[],
+        tools=[FINISH_ONBOARDING_TOOL],
+    )
+    second = client.complete(
+        system=build_onboarding_system_prompt(),
+        messages=[
+            {"role": "assistant", "content": opener["text"]},
+            {"role": "user", "content": "study in Carlton"},
+        ],
+        tools=[FINISH_ONBOARDING_TOOL],
+    )
+
+    assert "What brought you" in opener["text"]
+    assert "What brought you" not in second["text"]
+    assert "miss" in second["text"].lower()
+
+
 def test_stub_onboarding_completes_after_three_user_turns():
     from services.anthropic_client import StubMaxxerClient
     from services.maxxer import (

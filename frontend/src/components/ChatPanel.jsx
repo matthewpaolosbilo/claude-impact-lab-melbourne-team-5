@@ -287,6 +287,12 @@ function MessageBubble({ message, eventsById, onOpenEvent, onRsvp }) {
     )
   }
   const { segments } = parseMaxxerText(message.content)
+  const taggedIds = new Set(
+    segments.filter((seg) => seg.kind === 'event').map((seg) => seg.eventId),
+  )
+  const fallbackEventIds = Array.isArray(message.eventIds)
+    ? message.eventIds.filter((eventId) => !taggedIds.has(eventId))
+    : []
   return (
     <div className="flex min-w-0 justify-start">
       <div
@@ -315,6 +321,14 @@ function MessageBubble({ message, eventsById, onOpenEvent, onRsvp }) {
             />
           ),
         )}
+        {fallbackEventIds.map((eventId) => (
+          <MaxxerEventSuggestion
+            key={`fallback-${eventId}`}
+            event={eventsById?.get(eventId)}
+            onOpen={onOpenEvent}
+            onRsvp={onRsvp}
+          />
+        ))}
       </div>
     </div>
   )

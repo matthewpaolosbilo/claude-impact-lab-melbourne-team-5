@@ -13,12 +13,18 @@ export default function OnboardingGate({ children }) {
   if (!user) return children
   if (completedThisLoad) {
     if (!isValidElement(children)) return children
+    const response = onboardingResult?.response ?? ''
+    const suggestedEventIds = onboardingResult?.suggestedEventIds ?? []
     return cloneElement(children, {
-      initialMaxxerMessages: onboardingResult?.response
-        ? [{ role: 'assistant', content: onboardingResult.response }]
+      initialMaxxerMessages: response || suggestedEventIds.length
+        ? [{
+            role: 'assistant',
+            content: response,
+            eventIds: suggestedEventIds,
+          }]
         : [],
-      initialSuggestedEventIds: onboardingResult?.suggestedEventIds ?? [],
-      chatDefaultOpen: Boolean(onboardingResult?.response),
+      initialSuggestedEventIds: suggestedEventIds,
+      chatDefaultOpen: Boolean(response || suggestedEventIds.length),
     })
   }
 
