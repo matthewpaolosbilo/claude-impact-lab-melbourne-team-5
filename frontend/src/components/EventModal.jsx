@@ -70,13 +70,14 @@ export default function EventModal({ open, mode = 'view', event, locations = [],
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto px-4 pb-8 pt-6 sm:items-center sm:p-4"
       style={{ background: 'rgba(20, 20, 19, 0.6)' }}
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        className="w-full max-w-lg overflow-y-auto"
         style={{
+          maxHeight: 'calc(100dvh - 56px)',
           background: 'var(--color-surface)',
           color: 'var(--color-text-primary)',
           outline: '2px solid var(--color-text-primary)',
