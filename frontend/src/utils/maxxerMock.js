@@ -52,7 +52,7 @@ export async function mockChatReply({ messages }) {
 // Scripted 3-turn onboarding. Each user turn advances state by one. After the 3rd
 // user message we mark complete and return a synthesized preferences object.
 const ONBOARDING_TURNS = [
-  "hey hey, welcome to spacd. ngl Melbourne can be a lot when you're new — what brought you here, and which part of Melbourne are you usually around?",
+  "Hi, I'm Maxxer. I help international students find events and make new friends in Melbourne. What brought you here, and which part of Melbourne are you usually around?",
   "ok bet. what's something you miss from home, plus any dietary or cultural stuff i should respect?",
   'last one — what social vibe are you giving rn: big BBQ energy, chill garden potter, cooking sesh together, or low-key just being around people?',
 ]
