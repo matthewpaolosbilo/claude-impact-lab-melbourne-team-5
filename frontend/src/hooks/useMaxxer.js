@@ -11,11 +11,16 @@ import { sendChatMessage, sendOnboardingMessage } from '../api'
 //
 // Returned shape:
 //   { messages, isLoading, error, suggestedEventIds, onboardingComplete, send, reset }
-export function useMaxxer({ userId, mode = 'chat', initialMessages = [] } = {}) {
+export function useMaxxer({
+  userId,
+  mode = 'chat',
+  initialMessages = [],
+  initialSuggestedEventIds = [],
+} = {}) {
   const [messages, setMessages] = useState(initialMessages)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [suggestedEventIds, setSuggestedEventIds] = useState([])
+  const [suggestedEventIds, setSuggestedEventIds] = useState(initialSuggestedEventIds)
   const [onboardingComplete, setOnboardingComplete] = useState(false)
   const [onboardingPreferences, setOnboardingPreferences] = useState(null)
 

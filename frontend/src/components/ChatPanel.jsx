@@ -10,9 +10,12 @@ export default function ChatPanel({
   onOpenEvent,
   onRsvp,
   onSuggestionsChange,
+  initialMessages = [],
+  initialSuggestedEventIds = [],
+  defaultOpen = false,
   proactiveOnMount = false,
 }) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(defaultOpen)
   const [draft, setDraft] = useState('')
   const threadRef = useRef(null)
   const inputRef = useRef(null)
@@ -23,16 +26,21 @@ export default function ChatPanel({
     suggestedEventIds,
     send,
     bootstrap,
-  } = useMaxxer({ userId, mode: 'chat' })
+  } = useMaxxer({
+    userId,
+    mode: 'chat',
+    initialMessages,
+    initialSuggestedEventIds,
+  })
 
   useEffect(() => {
     onSuggestionsChange?.(suggestedEventIds)
   }, [suggestedEventIds, onSuggestionsChange])
 
   useEffect(() => {
-    if (proactiveOnMount) bootstrap()
+    if (proactiveOnMount && initialMessages.length === 0) bootstrap()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [proactiveOnMount])
+  }, [proactiveOnMount, initialMessages.length])
 
   useEffect(() => {
     const el = threadRef.current

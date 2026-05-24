@@ -10,6 +10,7 @@ export default function OnboardingChat({ userId, onComplete }) {
     messages,
     isLoading,
     error,
+    suggestedEventIds,
     send,
     bootstrap,
     onboardingComplete,
@@ -32,10 +33,16 @@ export default function OnboardingChat({ userId, onComplete }) {
 
   useEffect(() => {
     if (onboardingComplete) {
-      const t = setTimeout(() => onComplete?.(onboardingPreferences), 1200)
+      const finalAssistantMessage = [...messages]
+        .reverse()
+        .find((message) => message.role === 'assistant')
+      const t = setTimeout(() => onComplete?.(onboardingPreferences, {
+        response: finalAssistantMessage?.content ?? '',
+        suggestedEventIds,
+      }), 500)
       return () => clearTimeout(t)
     }
-  }, [onboardingComplete, onboardingPreferences, onComplete])
+  }, [messages, onboardingComplete, onboardingPreferences, onComplete, suggestedEventIds])
 
   const submit = (e) => {
     e?.preventDefault()
@@ -67,9 +74,12 @@ export default function OnboardingChat({ userId, onComplete }) {
             padding: 16,
           }}
         >
-          {messages.map((m, i) => (
-            <OnboardingBubble key={i} message={m} />
-          ))}
+          {messages.map((m, i) => {
+            const isFinalRecommendation =
+              onboardingComplete && i === messages.length - 1 && m.role === 'assistant'
+            if (isFinalRecommendation) return null
+            return <OnboardingBubble key={i} message={m} />
+          })}
           {isLoading && <OnboardingTyping />}
           {error && (
             <div

@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 class UserCreate(BaseModel):
     name: str = Field(min_length=1)
-    email: EmailStr
+    password: str = Field(min_length=1)
     bio: Optional[str] = None
 
 
@@ -22,6 +22,10 @@ class UserRead(BaseModel):
     bio: Optional[str] = None
     preferences: Optional[dict] = None
     created_at: datetime
+
+
+class UserLoginRead(UserRead):
+    token: str
 
 
 class HostSummary(BaseModel):

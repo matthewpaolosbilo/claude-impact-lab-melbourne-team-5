@@ -14,7 +14,11 @@ import { useToast } from '../hooks/useToast'
 import { useBadgeWatcher } from '../hooks/useBadgeWatcher'
 import { rsvpToEvent } from '../api'
 
-export default function Home() {
+export default function Home({
+  initialMaxxerMessages = [],
+  initialSuggestedEventIds = [],
+  chatDefaultOpen = false,
+}) {
   const { user } = useUser()
   const { events, setEvents } = useEvents()
   const { locations, loading: locationsLoading, error: locationsError } = useLocations()
@@ -23,7 +27,7 @@ export default function Home() {
 
   const [modal, setModal] = useState({ open: false, mode: 'view', event: null })
   const [rsvpConfirmEvent, setRsvpConfirmEvent] = useState(null)
-  const [suggestedEventIds, setSuggestedEventIds] = useState([])
+  const [suggestedEventIds, setSuggestedEventIds] = useState(initialSuggestedEventIds)
   const [query, setQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
   const [selectedLocationId, setSelectedLocationId] = useState(null)
@@ -319,6 +323,9 @@ export default function Home() {
           onOpenEvent={openView}
           onRsvp={handleRsvp}
           onSuggestionsChange={setSuggestedEventIds}
+          initialMessages={initialMaxxerMessages}
+          initialSuggestedEventIds={initialSuggestedEventIds}
+          defaultOpen={chatDefaultOpen}
           proactiveOnMount
         />
       )}

@@ -5,6 +5,22 @@ export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000'
 })
 
+function getStoredAuthToken() {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = window.localStorage.getItem('spacd-user')
+    if (!raw) return null
+    return JSON.parse(raw)?.token ?? null
+  } catch {
+    return null
+  }
+}
+
+function authHeaders() {
+  const token = getStoredAuthToken()
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
 // ---- Dev 4 (badges + social) endpoints ----
 
 export async function fetchUser(userId) {
@@ -88,11 +104,15 @@ function splitMessages(messages) {
 export async function sendChatMessage({ userId, messages }) {
   const { message, history } = splitMessages(messages)
   try {
-    const { data } = await api.post('/api/chat', {
-      user_id: userId,
-      message,
-      history,
-    })
+    const { data } = await api.post(
+      '/api/chat',
+      {
+        user_id: userId,
+        message,
+        history,
+      },
+      { headers: authHeaders() },
+    )
     return data
   } catch (err) {
     if (isMissingEndpoint(err)) return mockChatReply({ messages, api })
@@ -108,11 +128,15 @@ export async function sendChatMessage({ userId, messages }) {
 export async function sendOnboardingMessage({ userId, messages }) {
   const { message, history } = splitMessages(messages)
   try {
-    const { data } = await api.post('/api/chat/onboarding', {
-      user_id: userId,
-      message,
-      history,
-    })
+    const { data } = await api.post(
+      '/api/chat/onboarding',
+      {
+        user_id: userId,
+        message,
+        history,
+      },
+      { headers: authHeaders() },
+    )
     return data
   } catch (err) {
     if (isMissingEndpoint(err)) return mockOnboardingReply({ messages })

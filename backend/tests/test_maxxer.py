@@ -98,8 +98,8 @@ def test_build_onboarding_system_prompt_mentions_dimensions():
 
     prompt = build_onboarding_system_prompt()
 
-    # The 5 scripted questions surface: reason in Melbourne, home misses, vibe,
-    # dietary/cultural, and which part of Melbourne they're around.
+    # The 3 scripted questions combine: reason + area, home misses +
+    # dietary/cultural, and social vibe.
     for keyword in [
         "Melbourne",
         "home",
@@ -136,11 +136,11 @@ def test_finish_onboarding_tool_only_requires_melbourne_reason():
     assert required == ["melbourne_reason"]
 
 
-def test_onboarding_prompt_scripts_five_questions():
+def test_onboarding_prompt_scripts_three_questions():
     from services.maxxer import build_onboarding_system_prompt
 
     prompt = build_onboarding_system_prompt()
     # Must mention the hard cap and the must-call rule, otherwise Claude
     # keeps the conversation going.
-    assert "5" in prompt
+    assert "3" in prompt
     assert "MUST" in prompt and "finish_onboarding" in prompt

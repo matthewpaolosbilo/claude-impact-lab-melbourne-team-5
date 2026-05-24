@@ -1,14 +1,15 @@
 def test_post_user_creates_and_returns_user(client):
     response = client.post(
         "/api/users",
-        json={"name": "Priya", "email": "priya@example.com"},
+        json={"name": "Priya", "password": "test-share-password"},
     )
 
     assert response.status_code == 200
     body = response.json()
     assert body["id"]
     assert body["name"] == "Priya"
-    assert body["email"] == "priya@example.com"
+    assert body["email"] == "priya@spacd.shared"
+    assert body["token"]
     assert body["bio"] is None
     assert body["preferences"] is None
     assert "created_at" in body
@@ -23,21 +24,31 @@ def test_get_user_returns_preferences_field(client, db_session, a_user):
     assert response.json()["preferences"] == {"melbourne_reason": "study"}
 
 
-def test_post_user_with_existing_email_returns_existing_user(client):
+def test_post_user_with_existing_name_returns_existing_user(client):
     first = client.post(
         "/api/users",
-        json={"name": "Priya", "email": "priya@example.com"},
+        json={"name": "Priya", "password": "test-share-password"},
     ).json()
 
     again = client.post(
         "/api/users",
-        json={"name": "Different Name", "email": "priya@example.com"},
+        json={"name": "Priya", "password": "test-share-password"},
     )
 
     assert again.status_code == 200
     body = again.json()
     assert body["id"] == first["id"]
     assert body["name"] == "Priya"
+    assert body["token"]
+
+
+def test_post_user_rejects_wrong_shared_password(client):
+    response = client.post(
+        "/api/users",
+        json={"name": "Priya", "password": "wrong"},
+    )
+
+    assert response.status_code == 401
 
 
 def test_get_user_by_id_returns_user(client, a_user):

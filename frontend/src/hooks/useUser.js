@@ -10,7 +10,7 @@ export const OPEN_AUTH_EVENT = 'spacd-open-auth'
 
 function parseStoredUser(raw) {
   const parsed = JSON.parse(raw)
-  if (parsed && typeof parsed === 'object' && parsed.id) {
+  if (parsed && typeof parsed === 'object' && parsed.id && parsed.token) {
     return parsed
   }
   return null

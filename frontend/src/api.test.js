@@ -52,7 +52,7 @@ describe('sendChatMessage', () => {
         { role: 'user', content: 'first' },
         { role: 'assistant', content: 'reply' },
       ],
-    })
+    }, { headers: {} })
   })
 
   it('sends message:"" and history:[] for the bootstrap (empty messages) case', async () => {
@@ -62,7 +62,7 @@ describe('sendChatMessage', () => {
       user_id: 7,
       message: '',
       history: [],
-    })
+    }, { headers: {} })
   })
 
   it('returns the backend response payload unchanged so callers can read .response', async () => {
@@ -122,7 +122,7 @@ describe('sendOnboardingMessage', () => {
         { role: 'user', content: 'I am here for uni' },
         { role: 'assistant', content: 'what do you miss?' },
       ],
-    })
+    }, { headers: {} })
   })
 
   it('passes the preferences field through when onboarding completes', async () => {

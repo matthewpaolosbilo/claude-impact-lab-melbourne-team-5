@@ -1,19 +1,31 @@
+import { cloneElement, isValidElement, useState } from 'react'
 import { useUser } from '../hooks/useUser'
-import { needsOnboarding } from '../utils/preferences'
 import OnboardingChat from './OnboardingChat'
 
-// 3.7.1 app-shell gate. Signed-in users without preferences get the Maxxer
-// onboarding fullscreen instead of Home. Signed-out visitors pass through
-// (AuthModal still gates RSVP). When onboarding completes, we write
-// preferences onto the user via the same useUser hook AuthModal uses, which
-// re-fires the same-tab sync event and flips this gate.
+// Demo mode: signed-in users always see Maxxer onboarding on a fresh page load,
+// even if preferences were saved previously. After completion, keep showing Home
+// for the rest of this in-memory session until the next refresh.
 export default function OnboardingGate({ children }) {
   const { user, setUser } = useUser()
+  const [completedThisLoad, setCompletedThisLoad] = useState(false)
+  const [onboardingResult, setOnboardingResult] = useState(null)
 
-  if (!needsOnboarding(user)) return children
+  if (!user) return children
+  if (completedThisLoad) {
+    if (!isValidElement(children)) return children
+    return cloneElement(children, {
+      initialMaxxerMessages: onboardingResult?.response
+        ? [{ role: 'assistant', content: onboardingResult.response }]
+        : [],
+      initialSuggestedEventIds: onboardingResult?.suggestedEventIds ?? [],
+      chatDefaultOpen: Boolean(onboardingResult?.response),
+    })
+  }
 
-  const handleComplete = (preferences) => {
+  const handleComplete = (preferences, result) => {
     setUser({ ...user, preferences: preferences ?? { _stub: true } })
+    setOnboardingResult(result ?? null)
+    setCompletedThisLoad(true)
   }
 
   return <OnboardingChat userId={user.id} onComplete={handleComplete} />
