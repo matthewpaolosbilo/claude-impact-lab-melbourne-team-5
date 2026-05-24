@@ -15,6 +15,12 @@ from main import app
 from models import Event, Location, RSVP, User
 
 
+@pytest.fixture(autouse=True)
+def auth_env(monkeypatch):
+    monkeypatch.setenv("SPACD_SHARE_PASSWORD", "test-share-password")
+    monkeypatch.setenv("SPACD_AUTH_SECRET", "test-auth-secret")
+
+
 @pytest.fixture
 def db_session():
     engine = create_engine(

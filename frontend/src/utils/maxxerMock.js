@@ -49,26 +49,24 @@ export async function mockChatReply({ messages }) {
   }
 }
 
-// Scripted 5-turn onboarding. Each user turn advances state by one. After the 5th
+// Scripted 3-turn onboarding. Each user turn advances state by one. After the 3rd
 // user message we mark complete and return a synthesized preferences object.
 const ONBOARDING_TURNS = [
-  "hey hey, welcome to spacd. ngl Melbourne can be a lot when you're new — what brought you here? studying, working, something else?",
-  "ok bet. what's something you actually miss from home — like a food, a routine, a vibe? doesn't have to be deep.",
-  'fair fr. what kind of social energy are you giving rn — big group cooking sesh, chill garden potter, or low-key tag-along to a bbq?',
-  'any dietary stuff or cultural things i should know? halal, veg, dairy-free, anything that makes a spot feel like home?',
-  "last one — which part of Melbourne are you usually around? CBD, north side, west, somewhere else?",
+  "hey hey, welcome to spacd. ngl Melbourne can be a lot when you're new — what brought you here, and which part of Melbourne are you usually around?",
+  "ok bet. what's something you miss from home, plus any dietary or cultural stuff i should respect?",
+  'last one — what social vibe are you giving rn: big BBQ energy, chill garden potter, cooking sesh together, or low-key just being around people?',
 ]
 
 function extractPreferences(userMessages) {
   // Lightweight extraction — the real backend will use Claude. Just store raw answers
   // so the UI can demonstrate the round-trip.
-  const [reason, miss, vibe, dietary, area] = userMessages.map((m) => m.content?.trim() ?? '')
+  const [reasonAndArea, missAndNeeds, vibe] = userMessages.map((m) => m.content?.trim() ?? '')
   return {
-    reason_in_melbourne: reason || null,
-    home_misses: miss || null,
+    reason_in_melbourne: reasonAndArea || null,
+    usual_area: reasonAndArea || null,
+    home_misses: missAndNeeds || null,
+    dietary_cultural: missAndNeeds || null,
     social_vibe: vibe || null,
-    dietary_cultural: dietary || null,
-    usual_area: area || null,
   }
 }
 

@@ -16,6 +16,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from auth import require_chat_token
 from database import get_db
 from models import Event, RSVP, User
 from services.anthropic_client import (
@@ -152,9 +153,15 @@ def _conversation_messages(request: ChatRequest) -> list[MaxxerMessage]:
 @router.post("", response_model=ChatResponse)
 def chat(
     payload: ChatRequest,
+    token: dict = Depends(require_chat_token),
     db: Session = Depends(get_db),
     maxxer: MaxxerClient = Depends(get_maxxer_client),
 ) -> ChatResponse:
+    if token.get("sub") != str(payload.user_id):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token does not match user",
+        )
     user = _get_user_or_404(payload.user_id, db)
     events = _upcoming_events(db)
     available_ids = {e.id for e in events}
@@ -179,7 +186,7 @@ def chat(
     )
 
 
-ONBOARDING_QUESTION_LIMIT = 5
+ONBOARDING_QUESTION_LIMIT = 3
 
 
 def _count_user_turns(messages: list[MaxxerMessage]) -> int:
@@ -189,9 +196,15 @@ def _count_user_turns(messages: list[MaxxerMessage]) -> int:
 @router.post("/onboarding", response_model=OnboardingChatResponse)
 def chat_onboarding(
     payload: ChatRequest,
+    token: dict = Depends(require_chat_token),
     db: Session = Depends(get_db),
     maxxer: MaxxerClient = Depends(get_maxxer_client),
 ) -> OnboardingChatResponse:
+    if token.get("sub") != str(payload.user_id):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token does not match user",
+        )
     user = _get_user_or_404(payload.user_id, db)
     messages = _conversation_messages(payload)
 
@@ -210,7 +223,7 @@ def chat_onboarding(
         None,
     )
 
-    # Safety net: if the user has answered the 5 scripted questions and Claude
+    # Safety net: if the user has answered the 3 scripted questions and Claude
     # still hasn't called the tool, force it. Otherwise the conversation drags
     # on and the gate never flips. The forced call discards Claude's text so
     # the frontend transitions straight to the map.

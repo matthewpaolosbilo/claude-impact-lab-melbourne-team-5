@@ -8,6 +8,12 @@ no-API-key dev path works.
 from datetime import datetime, timedelta
 
 
+def _auth_headers(user_id: int) -> dict[str, str]:
+    from auth import issue_auth_token
+
+    return {"Authorization": f"Bearer {issue_auth_token(user_id)}"}
+
+
 def _upcoming(now: datetime, days_ahead: int) -> datetime:
     return now + timedelta(days=days_ahead)
 
@@ -38,8 +44,19 @@ def _seed_events(db_session, host, location, count: int = 3):
 
 
 def test_chat_404_when_user_missing(client, fake_maxxer):
-    response = client.post("/api/chat", json={"user_id": 9999, "message": "hi"})
+    response = client.post(
+        "/api/chat",
+        json={"user_id": 9999, "message": "hi"},
+        headers=_auth_headers(9999),
+    )
     assert response.status_code == 404
+
+
+def test_chat_401_without_bearer_token(client, a_user, fake_maxxer):
+    response = client.post(
+        "/api/chat", json={"user_id": a_user.id, "message": "hi"}
+    )
+    assert response.status_code == 401
 
 
 def test_chat_returns_three_event_suggestions_from_available_pool(
@@ -58,7 +75,9 @@ def test_chat_returns_three_event_suggestions_from_available_pool(
     )
 
     response = client.post(
-        "/api/chat", json={"user_id": a_user.id, "message": "what's on"}
+        "/api/chat",
+        json={"user_id": a_user.id, "message": "what's on"},
+        headers=_auth_headers(a_user.id),
     )
 
     assert response.status_code == 200
@@ -83,7 +102,9 @@ def test_chat_filters_out_hallucinated_event_ids(
     )
 
     response = client.post(
-        "/api/chat", json={"user_id": a_user.id, "message": "yo"}
+        "/api/chat",
+        json={"user_id": a_user.id, "message": "yo"},
+        headers=_auth_headers(a_user.id),
     )
 
     assert response.status_code == 200
@@ -99,7 +120,9 @@ def test_chat_in_stub_mode_works_without_anthropic_key(
     e1, e2, e3 = _seed_events(db_session, a_user, a_location, count=3)
 
     response = client.post(
-        "/api/chat", json={"user_id": a_user.id, "message": "hey"}
+        "/api/chat",
+        json={"user_id": a_user.id, "message": "hey"},
+        headers=_auth_headers(a_user.id),
     )
 
     assert response.status_code == 200
@@ -126,6 +149,7 @@ def test_chat_passes_history_to_client(
                 {"role": "assistant", "content": "reply"},
             ],
         },
+        headers=_auth_headers(a_user.id),
     )
 
     sent = fake_maxxer.calls[0]["messages"]
@@ -143,6 +167,7 @@ def test_onboarding_continues_when_no_tool_call(
     response = client.post(
         "/api/chat/onboarding",
         json={"user_id": a_user.id, "message": "hi"},
+        headers=_auth_headers(a_user.id),
     )
 
     assert response.status_code == 200
@@ -186,6 +211,7 @@ def test_onboarding_completes_and_saves_preferences_when_tool_called(
     response = client.post(
         "/api/chat/onboarding",
         json={"user_id": a_user.id, "message": "small intimate groups"},
+        headers=_auth_headers(a_user.id),
     )
 
     assert response.status_code == 200
@@ -211,16 +237,17 @@ def test_onboarding_preserves_existing_preferences_until_completion(
     client.post(
         "/api/chat/onboarding",
         json={"user_id": a_user.id, "message": "hi"},
+        headers=_auth_headers(a_user.id),
     )
 
     db_session.refresh(a_user)
     assert a_user.preferences == {"melbourne_reason": "old"}
 
 
-def test_onboarding_forces_completion_after_five_user_turns(
+def test_onboarding_forces_completion_after_three_user_turns(
     client, db_session, a_user, a_location, fake_maxxer
 ):
-    """Safety net: if the user has answered 5 questions and Claude still hasn't
+    """Safety net: if the user has answered 3 questions and Claude still hasn't
     called finish_onboarding, the router forces it via tool_choice. The gate
     should flip even if Claude was trying to keep chatting."""
     _seed_events(db_session, a_user, a_location, count=3)
@@ -242,9 +269,9 @@ def test_onboarding_forces_completion_after_five_user_turns(
         ]
     )
 
-    # Build history with 4 prior user turns; the request message is the 5th.
+    # Build history with 2 prior user turns; the request message is the 3rd.
     history = []
-    for i in range(4):
+    for i in range(2):
         history.append({"role": "user", "content": f"answer {i + 1}"})
         history.append({"role": "assistant", "content": f"question {i + 2}"})
 
@@ -252,9 +279,10 @@ def test_onboarding_forces_completion_after_five_user_turns(
         "/api/chat/onboarding",
         json={
             "user_id": a_user.id,
-            "message": "answer 5",
+            "message": "answer 3",
             "history": history,
         },
+        headers=_auth_headers(a_user.id),
     )
 
     assert response.status_code == 200

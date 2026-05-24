@@ -29,18 +29,22 @@ Run the tests:
 Base URL in dev: `http://localhost:8000`. Frontend (`feature/frontend-app`) proxies
 `/api/*` here via Vite (see `frontend/vite.config.js`).
 
-### Auth: `X-User-Id` header
+### Auth
 
-Protected endpoints expect the integer user id in an `X-User-Id` header. Missing or
-unknown ids return `401`. This is the hackathon stand-in for real auth — the frontend
-stores `user_id` in `localStorage` after `POST /api/users`.
+`POST /api/users` is a shared-password login for the demo. It accepts `{name, password}`;
+the backend checks `password` against `SPACD_SHARE_PASSWORD`, creates or returns a user,
+and returns a signed token. Maxxer chat endpoints require that token as
+`Authorization: Bearer <token>` before they call Anthropic.
+
+Event/RSVP protected endpoints still expect the integer user id in an `X-User-Id`
+header. This remains the hackathon stand-in for fuller auth.
 
 ### Routes
 
 | Route | Method | Auth | Notes |
 |---|---|---|---|
 | `/health` | GET | none | `{ok: true}` |
-| `/api/users` | POST | none | body `{name, email, bio?}`; returns existing user on duplicate email (login-by-email) |
+| `/api/users` | POST | none | body `{name, password, bio?}`; returns user plus bearer token after shared-password check |
 | `/api/users/{id}` | GET | none | 404 if missing |
 | `/api/events` | GET | optional | filters `location_id`, `event_type`, `date_from`, `date_to`; `user_rsvp` reflects current user |
 | `/api/events` | POST | required | body `{title, description, event_type, location_id, start_time, end_time, max_attendees?}`; host = current user; 400 if `location_id` unknown |
@@ -75,6 +79,8 @@ See [openapi.json](openapi.json) for the full schema. Key shapes:
 ```
 DATABASE_URL=sqlite:///./community.db
 CORS_ORIGINS=http://localhost:5173,https://community-maxxing.netlify.app
+SPACD_SHARE_PASSWORD=<shared demo password>
+SPACD_AUTH_SECRET=<long random token signing secret, optional but recommended>
 ```
 
 `CORS_ORIGINS` is a comma-separated list. Production value should include the deployed

@@ -117,9 +117,9 @@ _AVAILABLE_EVENTS_BLOCK = re.compile(
     re.DOTALL,
 )
 _STUB_FOLLOWUPS = [
-    "yo welcome 🔥 first off — what brought you to Melbs?",
-    "love that. and what's something you miss from home rn?",
-    "okay bet — what kind of vibe feels right? like chill kitchen hangs, big BBQ parties, quiet garden time?",
+    "yo welcome 🔥 first off — what brought you to Melbs, and which part of Melbourne are you usually around?",
+    "love that. what's something you miss from home rn, plus any dietary or cultural stuff I should respect?",
+    "okay bet — last one: what kind of social vibe feels right? chill kitchen hangs, big BBQ energy, quiet garden time, or low-key just being around people?",
 ]
 
 

@@ -95,6 +95,8 @@ http://localhost:5173/?preview=social
 ```
 DATABASE_URL=sqlite:///./community.db
 CORS_ORIGINS=http://localhost:5173,https://community-maxxing.netlify.app
+SPACD_SHARE_PASSWORD=<shared demo password>
+SPACD_AUTH_SECRET=<long random token signing secret, optional but recommended>
 ```
 
 **Frontend (Netlify):**
