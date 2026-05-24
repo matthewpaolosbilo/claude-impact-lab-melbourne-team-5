@@ -96,7 +96,7 @@ export default function ChatPanel({
       )}
 
       <aside
-        className={`fixed z-40 flex flex-col transition-transform duration-200 ${
+        className={`fixed z-40 flex max-w-full min-w-0 flex-col transition-transform duration-200 ${
           isOpen ? 'translate-y-0 md:translate-x-0' : 'translate-y-full md:translate-y-0 md:translate-x-full'
         } inset-x-0 bottom-0 h-[70vh] md:inset-y-0 md:right-0 md:left-auto md:h-auto md:w-[380px]`}
         style={{
@@ -133,7 +133,7 @@ export default function ChatPanel({
 
         <div
           ref={threadRef}
-          className="flex-1 space-y-3 overflow-y-auto px-4 py-3"
+          className="min-w-0 flex-1 space-y-3 overflow-y-auto px-4 py-3"
           style={{ background: 'var(--color-bg-secondary)' }}
         >
           {messages.length === 0 && !isLoading && <EmptyState />}
@@ -170,7 +170,7 @@ export default function ChatPanel({
           style={{ borderTop: '2px solid var(--color-text-primary)', background: 'var(--color-surface)' }}
         >
           <div
-            className="flex items-center gap-2"
+            className="flex min-w-0 items-center gap-2"
             style={{
               background: 'var(--color-bg-secondary)',
               outline: '2px solid var(--color-border-strong)',
@@ -183,9 +183,9 @@ export default function ChatPanel({
               onChange={(e) => setDraft(e.target.value)}
               placeholder="ask maxxer anything…"
               disabled={isLoading}
-              className="font-body flex-1 bg-transparent outline-none"
+              className="font-body min-w-0 flex-1 bg-transparent outline-none"
               style={{
-                fontSize: 13,
+                fontSize: 16,
                 color: 'var(--color-text-primary)',
                 border: 'none',
               }}
@@ -268,9 +268,9 @@ function MessageBubble({ message, eventsById, onOpenEvent, onRsvp }) {
   const isUser = message.role === 'user'
   if (isUser) {
     return (
-      <div className="flex justify-end">
+      <div className="flex min-w-0 justify-end">
         <div
-          className="font-body"
+          className="min-w-0 font-body"
           style={{
             maxWidth: '85%',
             background: 'var(--color-text-primary)',
@@ -288,9 +288,9 @@ function MessageBubble({ message, eventsById, onOpenEvent, onRsvp }) {
   }
   const { segments } = parseMaxxerText(message.content)
   return (
-    <div className="flex justify-start">
+    <div className="flex min-w-0 justify-start">
       <div
-        className="font-body"
+        className="min-w-0 font-body"
         style={{
           maxWidth: '92%',
           background: 'var(--color-surface)',

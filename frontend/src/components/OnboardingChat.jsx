@@ -56,7 +56,7 @@ export default function OnboardingChat({ userId, onComplete }) {
       className="flex min-h-0 flex-1 items-center justify-center px-4 py-6"
       style={{ background: 'var(--color-bg-primary)' }}
     >
-      <div className="flex h-full w-full max-w-xl flex-col">
+      <div className="flex h-full w-full max-w-xl min-w-0 flex-col">
         <header className="flex items-center gap-2 px-2 pb-3">
           <Sparkles className="h-5 w-5" style={{ color: 'var(--color-electric)' }} />
           <h1 className="font-brand uppercase" style={{ fontSize: 20, letterSpacing: '0.04em' }}>
@@ -66,7 +66,7 @@ export default function OnboardingChat({ userId, onComplete }) {
 
         <div
           ref={threadRef}
-          className="flex-1 space-y-3 overflow-y-auto"
+          className="min-w-0 flex-1 space-y-3 overflow-y-auto"
           style={{
             background: 'var(--color-surface)',
             outline: '2px solid var(--color-text-primary)',
@@ -115,7 +115,7 @@ export default function OnboardingChat({ userId, onComplete }) {
 
         <form onSubmit={submit} className="mt-3">
           <div
-            className="flex items-center gap-2"
+            className="flex min-w-0 items-center gap-2"
             style={{
               background: 'var(--color-surface)',
               outline: '2px solid var(--color-text-primary)',
@@ -129,9 +129,9 @@ export default function OnboardingChat({ userId, onComplete }) {
               onChange={(e) => setDraft(e.target.value)}
               placeholder="type your answer…"
               disabled={isLoading || onboardingComplete}
-              className="font-body flex-1 bg-transparent outline-none"
+              className="font-body min-w-0 flex-1 bg-transparent outline-none"
               style={{
-                fontSize: 13,
+                fontSize: 16,
                 color: 'var(--color-text-primary)',
                 border: 'none',
               }}
