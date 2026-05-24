@@ -1,9 +1,6 @@
 # spacd — Backend
 
-FastAPI + SQLite. Owned by Dev 1 on `feature/backend`. Locations router is Dev 2's
-(`feature/gis`); badges router is Dev 4's (`feature/social`). All three branches share
-`models.py`, `seed.py`, and `main.py` — see the section at the bottom for the conventions
-that keep merges clean.
+FastAPI + SQLAlchemy + SQLite API for the spacd demo.
 
 ## Quickstart
 
@@ -11,108 +8,118 @@ that keep merges clean.
 cd backend
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
-.venv/bin/uvicorn main:app --reload
+SPACD_SHARE_PASSWORD=demo-password \
+SPACD_AUTH_SECRET=local-dev-secret \
+.venv/bin/uvicorn main:app --reload --port 8000
 ```
 
-Open `http://localhost:8000/docs` for the live OpenAPI explorer. The committed
-[openapi.json](openapi.json) snapshot lets Dev 2/3/4 stub against the contract without
-running the server.
+Open `http://localhost:8000/docs` for the live OpenAPI explorer.
 
-Run the tests:
+Run tests:
 
 ```bash
+cd backend
 .venv/bin/pytest -q
 ```
 
-## API contract
+## Environment
 
-Base URL in dev: `http://localhost:8000`. Frontend (`feature/frontend-app`) proxies
-`/api/*` here via Vite (see `frontend/vite.config.js`).
+```text
+DATABASE_URL=sqlite:///./community.db
+CORS_ORIGINS=http://localhost:5173,https://<your-netlify-site>.netlify.app
+ANTHROPIC_API_KEY=sk-ant-...
+MAXXER_MODEL=claude-sonnet-4-6
+SPACD_SHARE_PASSWORD=<shared demo password>
+SPACD_AUTH_SECRET=<long random token signing secret>
+```
 
-### Auth
+Required for the shareable hosted demo:
 
-`POST /api/users` is a shared-password login for the demo. It accepts `{name, password}`;
-the backend checks `password` against `SPACD_SHARE_PASSWORD`, creates or returns a user,
-and returns a signed token. Maxxer chat endpoints require that token as
-`Authorization: Bearer <token>` before they call Anthropic.
+- `SPACD_SHARE_PASSWORD`: the password the team can share with demo users
+- `SPACD_AUTH_SECRET`: private token-signing secret; generate with
+  `openssl rand -base64 32`
 
-Event/RSVP protected endpoints still expect the integer user id in an `X-User-Id`
-header. This remains the hackathon stand-in for fuller auth.
+If `ANTHROPIC_API_KEY` is missing, Maxxer uses a deterministic stub and no
+Anthropic credits are spent.
 
-### Routes
+## Auth Model
 
-| Route | Method | Auth | Notes |
-|---|---|---|---|
-| `/health` | GET | none | `{ok: true}` |
-| `/api/users` | POST | none | body `{name, password, bio?}`; returns user plus bearer token after shared-password check |
-| `/api/users/{id}` | GET | none | 404 if missing |
-| `/api/events` | GET | optional | filters `location_id`, `event_type`, `date_from`, `date_to`; `user_rsvp` reflects current user |
-| `/api/events` | POST | required | body `{title, description, event_type, location_id, start_time, end_time, max_attendees?}`; host = current user; 400 if `location_id` unknown |
-| `/api/events/{id}` | GET | optional | 404 if missing |
-| `/api/events/{id}/rsvp` | POST | required | creates RSVP `status="going"`; 409 if already RSVP'd, 404 if event missing |
-| `/api/rsvps/{id}` | PATCH | required | body `{status: "going" \| "attended"}`; only attendee or event host may update |
-| `/api/search` | GET | optional | filters `q` (title/description LIKE), `type` (location type), `date_from`, `date_to` |
+The app uses a lightweight demo auth flow.
 
-### Response shapes
+`POST /api/users` accepts:
 
-See [openapi.json](openapi.json) for the full schema. Key shapes:
-
-```jsonc
-// EventRead
+```json
 {
-  "id": 1,
-  "title": "Saturday Arvo BBQ",
-  "description": "BYO everything, we supply the onions",
-  "event_type": "social",
-  "start_time": "2026-05-30T12:00:00",
-  "end_time": "2026-05-30T15:00:00",
-  "host": { "id": 1, "name": "Priya" },
-  "location": { "id": 1, "name": "Flagstaff Gardens BBQ", "type": "bbq" },
-  "attendee_count": 7,
-  "max_attendees": 20,
-  "user_rsvp": null  // null | "going" | "attended"
+  "name": "Priya",
+  "password": "shared-demo-password"
 }
 ```
 
-## Environment variables
+The backend checks the password against `SPACD_SHARE_PASSWORD`, creates or
+returns a user, and returns a signed bearer token. The frontend stores that user
+and token in `localStorage`.
 
+Maxxer endpoints require:
+
+```text
+Authorization: Bearer <token>
 ```
-DATABASE_URL=sqlite:///./community.db
-CORS_ORIGINS=http://localhost:5173,https://community-maxxing.netlify.app
-SPACD_SHARE_PASSWORD=<shared demo password>
-SPACD_AUTH_SECRET=<long random token signing secret, optional but recommended>
-```
 
-`CORS_ORIGINS` is a comma-separated list. Production value should include the deployed
-Netlify domain.
+Event and RSVP write endpoints still use the older `X-User-Id` header. That is
+good enough for the hackathon demo, but it is not production auth.
 
-## Seed data
+## API Routes
 
-On startup the app calls `seed_if_empty()` which:
+| Route | Method | Auth | Notes |
+| --- | --- | --- | --- |
+| `/health` | GET | none | `{ok: true}` |
+| `/api/users` | POST | shared password | returns user plus bearer token |
+| `/api/users/{id}` | GET | none | user profile fields |
+| `/api/events` | GET | optional `X-User-Id` | list/filter events |
+| `/api/events` | POST | `X-User-Id` | create event |
+| `/api/events/{id}` | GET | optional `X-User-Id` | event detail |
+| `/api/events/{id}/rsvp` | POST | `X-User-Id` | RSVP to event |
+| `/api/rsvps/{id}` | PATCH | `X-User-Id` | update RSVP status |
+| `/api/search` | GET | optional `X-User-Id` | keyword/type/date search |
+| `/api/locations` | GET/POST | none | third-space locations |
+| `/api/users/{id}/badges` | GET | none | badge progress |
+| `/api/users/{id}/profile-stats` | GET | none | attended/hosted totals |
+| `/api/chat` | POST | bearer token | Maxxer event recommendations |
+| `/api/chat/onboarding` | POST | bearer token | three-question onboarding |
 
-1. Inserts a sample host user (`priya@example.com`).
-2. Calls `seed_locations(db)` — **stub on this branch.** Dev 2's `feature/gis` fills it
-   with the 15 Melbourne locations from STATE.md.
-3. Inserts up to 5 sample events (only those whose location is already seeded; the rest
-   are silently skipped).
+## Maxxer
 
-All steps are idempotent — restart the server as many times as you want.
+Maxxer is the Claude-powered assistant. The backend:
 
-## Shared files (don't break Dev 2 / Dev 4)
+- builds prompts from upcoming events, saved user preferences, and RSVP history
+- asks Claude for exactly three grounded event suggestions
+- strips hallucinated `[EVENT:id]` tags before returning responses
+- completes onboarding after three user answers, forcing the tool call if needed
+- falls back to a local stub when no Anthropic key is configured
 
-- **`models.py`** — User, Event, RSVP scaffolded here. `Location` is a stub matching
-  STATE.md's schema so this branch boots in isolation; Dev 2 enriches/replaces.
-  New models go **below** the `# --- Add new models below this line ---` marker.
-- **`seed.py`** — `seed_locations(db)` is a stub returning `0`. Dev 2 replaces the body.
-- **`main.py`** — commented `include_router(locations.router)` / `include_router(badges.router)`
-  lines mark where Dev 2 (locations) and Dev 4 (badges) wire in their routers.
+Most Maxxer prompt and parsing logic lives in `services/maxxer.py`; the Anthropic
+client/stub lives in `services/anthropic_client.py`.
+
+## Seed Data
+
+On startup, `main.py` calls `seed_if_empty()`.
+
+The seed inserts:
+
+- a sample host user
+- Melbourne third-space locations
+- sample events where matching locations exist
+
+The seed is idempotent, so restarting the server is safe.
 
 ## Deploy
 
-`render.yaml` defines a web service on Render's free tier:
+`render.yaml` defines the Render web service.
+
+After merging to `main`, Render should auto-deploy. Confirm with:
 
 ```bash
-git push -u origin feature/backend
-# Open PR; merge to main; Render auto-deploys.
-curl https://<service>.onrender.com/health
+curl https://commaxx-api.onrender.com/health
 ```
+
+Make sure `CORS_ORIGINS` includes the deployed Netlify origin.
