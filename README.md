@@ -1,142 +1,162 @@
 # spacd
 
-> Strava for acts of public service — Melbourne MVP.
+> Community connection for international students.
 
-A civic participation web app that connects students and residents to community
-**third spaces** across Melbourne — public BBQs, community garden beds, and shared
-kitchens. Find events, RSVP, host your own, earn badges for showing up.
+spacd is a Melbourne civic participation prototype that helps students and
+residents find low-pressure community events at public BBQs, community gardens,
+and shared kitchens. People can sign in with a shared demo password, complete a
+short Maxxer onboarding chat, browse a Mapbox map of third spaces, RSVP to
+events, and collect badges for showing up.
 
-Built in one day by Team 5 at the Claude Impact Lab (Melbourne, May 2026).
+Built in one day by Team 5 at Claude Impact Lab Melbourne, then lightly polished
+after the hackathon so it can be shared with friends and colleagues.
 
----
+## Demo Flow
+
+1. Open the app.
+2. Sign in with your name and the shared demo password.
+3. Answer Maxxer's three onboarding questions.
+4. Review Maxxer's suggested events in the default-open sidebar.
+5. Browse the map, open event cards, RSVP, and check the profile/badges page.
+
+The pitch deck is served as a static asset at `/assets/spaced-deck.html` and is
+linked from the header and login modal.
 
 ## Stack
 
-- **Backend:** FastAPI + SQLAlchemy + SQLite — deployed on Render
-- **Frontend:** React 19 + Vite 8 + Tailwind v4 + Leaflet (OpenStreetMap) — deployed on Netlify
-- **Auth:** name + email only, `user_id` stored in `localStorage`
+- **Backend:** FastAPI + SQLAlchemy + SQLite, deployed on Render
+- **Frontend:** React 19 + Vite 8 + Tailwind v4 + Mapbox GL, deployed on Netlify
+- **AI:** Anthropic Claude via backend-only Maxxer chat endpoints
+- **Auth:** shared-password demo login; Maxxer endpoints require a signed bearer token
 
-## Repository layout
+## Repository Layout
 
-```
+```text
 backend/
-├── badge_logic.py        — Dev 4: badge helpers + BADGE_DEFINITIONS
-├── database.py           — Dev 1: SQLAlchemy engine + get_db
-├── models.py             — Dev 1 (User/Event/RSVP) + Dev 2 (Location)
-├── seed.py               — Dev 1 (events) + Dev 2 (locations)
-├── main.py               — Dev 1: FastAPI app + CORS + router mounting
-├── routers/
-│   ├── badges.py         — Dev 4
-│   ├── events.py         — Dev 1
-│   ├── locations.py      — Dev 2
-│   └── users.py          — Dev 1
-└── tests/                — Dev 4: badge logic tests w/ in-memory SQLite
+  auth.py                 shared-password + signed token helpers
+  badge_logic.py          badge computation helpers
+  database.py             SQLAlchemy engine/session setup
+  main.py                 FastAPI app, CORS, router mounting, seed startup
+  models.py               User, Event, RSVP, Location models
+  routers/                users, events, locations, badges, chat
+  services/               Anthropic client + Maxxer prompt/parsing logic
+  tests/                  pytest coverage for API and Maxxer behavior
 
 frontend/
-├── src/
-│   ├── api.js            — Dev 3 created, Dev 2 + Dev 4 extend
-│   ├── App.jsx           — Dev 3 (router); Dev 4 added `?preview=social` dev preview
-│   ├── components/
-│   │   ├── BadgeShelf.jsx       — Dev 4
-│   │   ├── BadgeUnlockModal.jsx — Dev 4
-│   │   ├── AttendeeChips.jsx    — Dev 4
-│   │   ├── HostBadge.jsx        — Dev 4
-│   │   ├── NotificationFeed.jsx — Dev 4
-│   │   ├── ProfilePanel.jsx     — Dev 4
-│   │   ├── Toaster.jsx          — Dev 4
-│   │   ├── DevSocialPreview.jsx — Dev 4 (dev-only)
-│   │   ├── EventCard.jsx        — Dev 3 (Dev 4 drops AttendeeChips + HostBadge in)
-│   │   ├── EventModal.jsx       — Dev 3
-│   │   ├── MapView.jsx          — Dev 2
-│   │   ├── LocationPin.jsx      — Dev 2
-│   │   └── SearchBar.jsx        — Dev 2
-│   ├── hooks/
-│   │   ├── useToast.jsx         — Dev 4
-│   │   └── useBadgeWatcher.js   — Dev 4
-│   ├── pages/
-│   │   ├── Home.jsx             — Dev 3
-│   │   └── Profile.jsx          — Dev 4
-│   └── utils/
-│       ├── badges.js            — Dev 4
-│       └── constants.js         — Dev 2
+  public/assets/          static pitch deck and other public assets
+  src/api.js              frontend API helpers
+  src/components/         map, events, auth, chat, profile, badge UI
+  src/hooks/              user, toast, badge watcher, Maxxer chat hooks
+  src/pages/              Home and Profile routes
+  src/utils/              constants, mocks, parsing, data hooks
 ```
 
-## Local setup
+Longer hackathon handoff notes live in `STATE.md` and `docs/`. They are useful
+for archaeology, but the READMEs are the current setup reference.
+
+## Local Setup
 
 ### Backend
+
 ```bash
 cd backend
 python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt           # Dev 1 will add this
-uvicorn main:app --reload --port 8000
+.venv/bin/pip install -r requirements.txt
+SPACD_SHARE_PASSWORD=demo-password \
+SPACD_AUTH_SECRET=local-dev-secret \
+.venv/bin/uvicorn main:app --reload --port 8000
 ```
-Tests:
+
+Open `http://localhost:8000/docs` for the FastAPI docs.
+
+Backend tests:
+
 ```bash
-cd backend && source .venv/bin/activate
-pip install pytest
-pytest tests/ -v
+cd backend
+.venv/bin/pytest -q
 ```
 
 ### Frontend
+
 ```bash
 cd frontend
 npm install
-npm run dev          # http://localhost:5173
-```
-Open the Dev 4 preview with mocked data (no backend required):
-```
-http://localhost:5173/?preview=social
+npm run dev
 ```
 
-## Environment variables
+Open `http://localhost:5173`.
 
-**Backend (Render):**
+Frontend checks:
+
+```bash
+cd frontend
+npm run build
+npm run test
 ```
+
+## Environment Variables
+
+### Backend
+
+```text
 DATABASE_URL=sqlite:///./community.db
-CORS_ORIGINS=http://localhost:5173,https://community-maxxing.netlify.app
+CORS_ORIGINS=http://localhost:5173,https://<your-netlify-site>.netlify.app
+ANTHROPIC_API_KEY=sk-ant-...
 SPACD_SHARE_PASSWORD=<shared demo password>
-SPACD_AUTH_SECRET=<long random token signing secret, optional but recommended>
+SPACD_AUTH_SECRET=<long random token signing secret>
 ```
 
-**Frontend (Netlify):**
-```
+`SPACD_SHARE_PASSWORD` is the human-shared demo password. `SPACD_AUTH_SECRET`
+should be a private random string, for example `openssl rand -base64 32`.
+
+If `ANTHROPIC_API_KEY` is not set, the backend falls back to a deterministic
+stub so the UI remains demoable without spending credits.
+
+### Frontend
+
+```text
 VITE_API_URL=https://commaxx-api.onrender.com
+VITE_MAPBOX_TOKEN=pk...
 ```
 
-## API surface (current)
+For local development, `frontend/vite.config.js` proxies `/api` to
+`http://localhost:8000`.
 
-| Route | Method | Owner | Purpose |
-|-------|--------|-------|---------|
-| `/api/users` | POST | Dev 1 | Create/login by email |
-| `/api/users/{id}` | GET | Dev 1 | Profile fields |
-| `/api/users/{id}/badges` | GET | Dev 4 | Earned + available with progress |
-| `/api/users/{id}/profile-stats` | GET | Dev 4 | Totals for ProfilePanel |
-| `/api/locations` | GET/POST | Dev 2 | Third spaces |
-| `/api/events` | GET/POST | Dev 1 | Event list + create |
-| `/api/events/{id}` | GET | Dev 1 | Event detail |
-| `/api/events/{id}/rsvp` | POST | Dev 1 | RSVP |
-| `/api/rsvps/{id}` | PATCH | Dev 1 | Mark attended |
-| `/api/search` | GET | Dev 1 | Keyword/type/date search |
+## API Surface
 
-See `STATE.md` for full schemas, data models, and remaining task statuses.
+| Route | Method | Purpose |
+| --- | --- | --- |
+| `/health` | GET | backend health check |
+| `/api/users` | POST | shared-password login; returns user + bearer token |
+| `/api/users/{id}` | GET | user profile fields |
+| `/api/users/{id}/badges` | GET | earned + available badges |
+| `/api/users/{id}/profile-stats` | GET | profile totals |
+| `/api/locations` | GET/POST | third-space locations |
+| `/api/events` | GET/POST | event list + create |
+| `/api/events/{id}` | GET | event detail |
+| `/api/events/{id}/rsvp` | POST | RSVP |
+| `/api/rsvps/{id}` | PATCH | mark RSVP attended/going |
+| `/api/search` | GET | keyword/type/date search |
+| `/api/chat` | POST | Maxxer event suggestions; requires bearer token |
+| `/api/chat/onboarding` | POST | three-question Maxxer onboarding; requires bearer token |
 
-## Deploy URLs
+## Deployment Notes
 
-- Backend: _TBD — Dev 1 fills in after Render deploy_
-- Frontend: _TBD — Dev 3 fills in after Netlify deploy_
+- Backend deploys from `backend/render.yaml`.
+- Frontend deploys from `frontend/netlify.toml`; set Netlify's base directory to
+  `frontend`.
+- Add the deployed Netlify origin to `CORS_ORIGINS` on Render.
+- The pitch deck is copied by Vite from `frontend/public/assets` and should be
+  reachable at `/assets/spaced-deck.html` on the deployed frontend.
 
-## Integration notes for Dev 4 work
+## Known Demo Constraints
 
-- `Profile.jsx` is ready to mount at `/profile`. Dev 3 — add the route to `App.jsx`.
-- `AttendeeChips` and `HostBadge` are composable; drop them inside Dev 3's `EventCard.jsx` /
-  `EventModal.jsx` like the preview shows.
-- After a successful RSVP, call `triggerBadgeCheck()` from `useBadgeWatcher(userId)` to fire
-  the unlock toast + modal for any newly-earned badge. Wire `<BadgeUnlockModal>` near the app root.
-- Wrap the app in `<ToastProvider>` and render `<Toaster />` once near the root.
-- `fetchUserHistory` assumes `GET /api/events?user_id={id}&attended=true` — Dev 1, please
-  add that filter or rename; Profile degrades gracefully if it 404s.
+- Auth is intentionally lightweight and built for a shareable demo, not a
+  production account system.
+- Event creation is still optimistic/local in parts of the frontend.
+- SQLite is fine for this prototype but not the long-term database choice.
+- Full Maxxer usage spends Anthropic credits when `ANTHROPIC_API_KEY` is set.
 
 ## License
 
-Built for the City of Melbourne hackathon — Claude Impact Lab, May 2026.
+Built for Claude Impact Lab Melbourne, May 2026.
